@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #176B36;
+  --color-primary-dark: #173B2A;
+  --color-accent: #FF9800;
+  --color-warm-bg: #FAF8F2;
+  --color-body-text: #343A40;
+
+  --font-sans: 'Inter', 'Noto Sans Tamil', system-ui, sans-serif;
+  --font-tamil: 'Noto Sans Tamil', 'Inter', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-body-text);
+  background-color: var(--color-warm-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+
+/* Accessible focus visible indicators */
+:focus-visible {
+  outline: 2px solid #176B36;
+  outline-offset: 2px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-warm-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #176B36;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #173B2A;
+}
