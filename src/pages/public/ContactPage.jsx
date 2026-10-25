@@ -42,53 +42,31 @@ export default function ContactPage() {
 
     setSubmitting(true);
     try {
-      let recordId = null;
-
-      if (isSupabaseConfigured() && supabase) {
-        const { data: inserted, error } = await supabase
-          .from('contact_enquiries')
-          .insert([
-            {
-              name: data.name.trim(),
-              email: data.email.trim(),
-              subject: data.subject.trim(),
-              message: data.message.trim(),
-              status: 'new',
-            },
-          ])
-          .select()
-          .single();
-
-        if (error) throw error;
-        recordId = inserted?.id;
-
-        // Trigger optional serverless email notification on Vercel
-        try {
-          fetch('/api/send-notification', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              type: 'contact_enquiry',
-              record: {
-                name: data.name.trim(),
-                email: data.email.trim(),
-                subject: data.subject.trim(),
-                message: data.message.trim(),
-              },
-            }),
-          }).catch(() => {
-            // Non-blocking notification failure
-          });
-        } catch {
-          // ignore
-        }
+      if (!isSupabaseConfigured() || !supabase) {
+        throw new Error('Database connection is not available. Please verify your Supabase configuration.');
       }
 
-      // Keep local state in sync
+      const { data: inserted, error } = await supabase
+        .from('contact_enquiries')
+        .insert([
+          {
+            name: data.name.trim(),
+            email: data.email.trim(),
+            subject: data.subject.trim(),
+            message: data.message.trim(),
+            status: 'new',
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Keep local state in sync with confirmed database record
       dispatch({
         type: 'ADD_CONTACT_ENQUIRY',
         payload: {
-          id: recordId || undefined,
+          id: inserted?.id,
           name: data.name.trim(),
           email: data.email.trim(),
           subject: data.subject.trim(),
@@ -99,8 +77,8 @@ export default function ContactPage() {
 
       setSubmitted(true);
       showSuccess(
-        `Thank you ${data.name}. Your enquiry has been received and routed to our coordination team.`,
-        'Message Recorded'
+        `Thank you ${data.name}. Your enquiry has been received and saved successfully.`,
+        'Enquiry Saved'
       );
       reset();
     } catch (err) {

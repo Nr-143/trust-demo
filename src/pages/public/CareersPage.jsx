@@ -88,55 +88,32 @@ export default function CareersPage() {
 
     setSubmitting(true);
     try {
-      let recordId = null;
-
-      if (isSupabaseConfigured() && supabase) {
-        const { data: inserted, error } = await supabase
-          .from('job_applications')
-          .insert([
-            {
-              career_id: applyingCareer.id,
-              career_title: applyingCareer.title,
-              name: formData.name.trim(),
-              email: formData.email.trim(),
-              phone: formData.phone.trim(),
-              experience: formData.experience.trim(),
-              skills: formData.skills.trim(),
-              message: formData.message.trim(),
-              status: 'New',
-            },
-          ])
-          .select()
-          .single();
-
-        if (error) throw error;
-        recordId = inserted?.id;
-
-        // Non-blocking email alert via Vercel serverless function
-        try {
-          fetch('/api/send-notification', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              type: 'job_application',
-              record: {
-                career_title: applyingCareer.title,
-                name: formData.name.trim(),
-                email: formData.email.trim(),
-                phone: formData.phone.trim(),
-                experience: formData.experience.trim(),
-                skills: formData.skills.trim(),
-                message: formData.message.trim(),
-              },
-            }),
-          }).catch(() => {});
-        } catch {
-          // ignore notification error
-        }
+      if (!isSupabaseConfigured() || !supabase) {
+        throw new Error('Database connection is not available. Please verify your Supabase configuration.');
       }
 
+      const { data: inserted, error } = await supabase
+        .from('job_applications')
+        .insert([
+          {
+            career_id: applyingCareer.id,
+            career_title: applyingCareer.title,
+            name: formData.name.trim(),
+            email: formData.email.trim(),
+            phone: formData.phone.trim(),
+            experience: formData.experience.trim(),
+            skills: formData.skills.trim(),
+            message: formData.message.trim(),
+            status: 'New',
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
       const payload = {
-        id: recordId || undefined,
+        id: inserted?.id,
         careerId: applyingCareer.id,
         careerTitle: applyingCareer.title,
         name: formData.name.trim(),
@@ -146,7 +123,7 @@ export default function CareersPage() {
         skills: formData.skills.trim(),
         message: formData.message.trim(),
         status: 'New',
-        submittedAt: new Date().toISOString(),
+        submittedAt: inserted?.submitted_at || new Date().toISOString(),
       };
 
       dispatch({
@@ -156,7 +133,7 @@ export default function CareersPage() {
 
       setSubmittedApp(payload);
       showSuccess(
-        `Application submitted for "${applyingCareer.title}"! Our HR coordination team has received your details.`,
+        `Application for "${applyingCareer.title}" submitted and saved successfully.`,
         'Application Sent'
       );
       reset();

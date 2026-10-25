@@ -115,55 +115,32 @@ export default function VolunteerPage() {
 
     setSubmitting(true);
     try {
-      let recordId = null;
-
-      if (isSupabaseConfigured() && supabase) {
-        const { data: inserted, error } = await supabase
-          .from('volunteer_applications')
-          .insert([
-            {
-              name: formData.name.trim(),
-              email: formData.email.trim(),
-              phone: formData.phone.trim(),
-              preferred_opportunity: formData.preferredOpportunity,
-              area: formData.preferredOpportunity,
-              skills: formData.skills.trim(),
-              availability: formData.availability,
-              message: formData.message.trim(),
-              status: 'New',
-            },
-          ])
-          .select()
-          .single();
-
-        if (error) throw error;
-        recordId = inserted?.id;
-
-        // Non-blocking email alert via Vercel serverless function
-        try {
-          fetch('/api/send-notification', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              type: 'volunteer_application',
-              record: {
-                name: formData.name.trim(),
-                email: formData.email.trim(),
-                phone: formData.phone.trim(),
-                preferred_opportunity: formData.preferredOpportunity,
-                skills: formData.skills.trim(),
-                availability: formData.availability,
-                message: formData.message.trim(),
-              },
-            }),
-          }).catch(() => {});
-        } catch {
-          // ignore
-        }
+      if (!isSupabaseConfigured() || !supabase) {
+        throw new Error('Database connection is not available. Please verify your Supabase configuration.');
       }
 
+      const { data: inserted, error } = await supabase
+        .from('volunteer_applications')
+        .insert([
+          {
+            name: formData.name.trim(),
+            email: formData.email.trim(),
+            phone: formData.phone.trim(),
+            preferred_opportunity: formData.preferredOpportunity,
+            area: formData.preferredOpportunity,
+            skills: formData.skills.trim(),
+            availability: formData.availability,
+            message: formData.message.trim(),
+            status: 'New',
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
       const payload = {
-        id: recordId || undefined,
+        id: inserted?.id,
         name: formData.name.trim(),
         email: formData.email.trim(),
         phone: formData.phone.trim(),
@@ -173,8 +150,7 @@ export default function VolunteerPage() {
         availability: formData.availability,
         message: formData.message.trim(),
         status: 'New',
-        submittedAt: new Date().toISOString(),
-        isDemo: !isSupabaseConfigured(),
+        submittedAt: inserted?.submitted_at || new Date().toISOString(),
       };
 
       dispatch({
@@ -184,8 +160,8 @@ export default function VolunteerPage() {
 
       setSubmittedData(payload);
       showSuccess(
-        `Thank you ${formData.name}! Your volunteer application has been received and routed to our field coordination team.`,
-        'Application Submitted'
+        `Thank you ${formData.name}! Your volunteer application has been received and saved successfully.`,
+        'Application Saved'
       );
       reset();
 
