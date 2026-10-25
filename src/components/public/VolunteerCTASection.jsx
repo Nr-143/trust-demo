@@ -7,7 +7,7 @@ export default function VolunteerCTASection() {
 
   return (
     <section className="bg-white py-16 sm:py-20 border-b border-gray-100" id="volunteer">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="site-container">
         
         <div className="relative rounded-3xl overflow-hidden bg-[#173B2A] text-white p-8 sm:p-12 lg:p-16 shadow-xl">
           {/* Subtle background decoration */}

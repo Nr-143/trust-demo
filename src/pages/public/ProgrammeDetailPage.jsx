@@ -97,7 +97,7 @@ export default function ProgrammeDetailPage() {
     <div className="bg-[#FAF8F2] min-h-screen pb-20">
       {/* Breadcrumb Navigation */}
       <nav aria-label="Breadcrumb" className="bg-white border-b border-stone-200 sticky top-16 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="site-container py-3">
           <div className="flex items-center justify-between">
             <ol className="flex items-center gap-2 text-xs text-stone-500">
               <li>
@@ -135,7 +135,7 @@ export default function ProgrammeDetailPage() {
       </nav>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <main className="site-container pt-8">
         {/* Demonstration Disclaimer */}
         <div className="mb-6">
           <DemoBadge message="Demonstration Profile: Programme activities, scopes, and images shown below represent initial framework data. Verified completed field projects, dates, and photographic records will be published after confirmation by the NGO." />
@@ -147,7 +147,7 @@ export default function ProgrammeDetailPage() {
           className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xs mb-10"
         >
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-            <div className="max-w-3xl">
+            <div className="max-w-4xl">
               {/* Vertical Category Tag */}
               <div className="flex items-center gap-2 mb-3">
                 <div className="p-2.5 rounded-xl bg-emerald-100 text-[#176B36]">
@@ -158,7 +158,7 @@ export default function ProgrammeDetailPage() {
                     Core Vertical Focus
                   </span>
                   <span className="text-xs font-medium text-emerald-800">
-                    Mannin Maindhan Grama Arakattalai
+                    Mannin Maindhan Grama Arakkattalai
                   </span>
                 </div>
               </div>

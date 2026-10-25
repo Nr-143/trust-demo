@@ -71,7 +71,7 @@ export default function Navbar() {
           aria-label="Announcement"
           className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-white text-xs py-1.5 px-4 text-center font-medium shadow-2xs"
         >
-          <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
+          <div className="site-container flex items-center justify-center gap-2">
             <span className="truncate">{siteInfo.announcementBanner}</span>
           </div>
         </aside>
@@ -79,7 +79,7 @@ export default function Navbar() {
 
       {/* 2. Top Utility Contact Bar */}
       <div className="bg-[#173B2A] text-white/90 text-xs border-b border-emerald-950/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5 flex items-center justify-between gap-3">
+        <div className="site-container py-1.5 flex items-center justify-between gap-3">
           {/* Contact Details */}
           <div className="flex items-center gap-4 sm:gap-6 min-w-0">
             <a
@@ -134,7 +134,7 @@ export default function Navbar() {
       </div>
 
       {/* 3. Main Navigation Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="site-container">
         <div className="flex items-center justify-between h-20 sm:h-[84px] xl:h-[88px] gap-3 sm:gap-4">
           
           {/* AREA 1: LEFT — NGO Logo & Title */}

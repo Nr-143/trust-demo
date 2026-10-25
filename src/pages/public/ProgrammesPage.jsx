@@ -45,9 +45,9 @@ export default function ProgrammesPage() {
         description="Comprehensive grassroots developmental initiatives serving rural communities across Palacode and Dharmapuri district."
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <div className="site-container py-12 sm:py-16">
         <div className="mb-8">
-          <DemoBadge message="The 6 programme descriptions below reflect proposed community developmental framework designed for Mannin Maindhan Grama Arakattalai. Verified baseline surveys and targets will be added continuously." />
+          <DemoBadge message="The 6 programme descriptions below reflect proposed community developmental framework designed for Mannin Maindhan Grama Arakkattalai. Verified baseline surveys and targets will be added continuously." />
         </div>
 
         {activeProgrammes.length === 0 ? (

@@ -8,12 +8,12 @@ export default function AboutPage() {
   return (
     <>
       <PageHeader
-        title="About Mannin Maindhan Grama Arakattalai"
+        title="About Mannin Maindhan Grama Arakkattalai"
         titleTamil="எங்களைப் பற்றி • மண்ணின் மைந்தன் கிராம அறக்கட்டளை"
         description="A grassroots rural development trust anchored in Dharmapuri, working directly with village communities to foster sustainable, self-reliant change."
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <div className="site-container py-12 sm:py-16">
         
         {/* Mission & Vision */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">

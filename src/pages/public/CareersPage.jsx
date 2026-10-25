@@ -117,7 +117,7 @@ export default function CareersPage() {
         description="Build a purposeful career in grassroots rural development, community health, and educational equity across Dharmapuri."
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+      <div className="site-container py-10 sm:py-14">
         {/* Demonstration Disclaimer */}
         <div className="mb-8">
           <DemoBadge message="Demonstration Notice: The job openings and application forms below represent demonstration listings designed for organizational review. Submissions are stored locally in the browser's data layer without transmitting personal data to external recruiters or servers." />
@@ -362,7 +362,7 @@ export default function CareersPage() {
                     rows={3}
                     {...register('message')}
                     className={inputClasses}
-                    placeholder="Explain why you want to work with Mannin Maindhan Grama Arakattalai..."
+                    placeholder="Explain why you want to work with Mannin Maindhan Grama Arakkattalai..."
                   />
                 </div>
 

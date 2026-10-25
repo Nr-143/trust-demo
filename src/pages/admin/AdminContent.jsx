@@ -60,7 +60,7 @@ export default function AdminContent() {
         'A community-rooted charitable trust dedicated to holistic rural development in Dharmapuri and across Tamil Nadu through education, clean water, healthcare, environmental protection, and sustainable livelihoods.',
       footerCopyright:
         siteInfo.footerCopyright ||
-        'Mannin Maindhan Grama Arakattalai. All rights reserved. Registered Charitable Trust.',
+        'Mannin Maindhan Grama Arakkattalai. All rights reserved. Registered Charitable Trust.',
     },
   });
 
@@ -70,7 +70,7 @@ export default function AdminContent() {
       const mergedData = {
         ...siteInfo,
         ...formData,
-        whatsappUrl: `https://wa.me/${formData.whatsappNumber || '919994291195'}?text=Hello%20Mannin%20Maindhan%20Grama%20Arakattalai%2C%20I%20would%20like%20to%20connect%20with%20your%20team.`,
+        whatsappUrl: `https://wa.me/${formData.whatsappNumber || '919994291195'}?text=Hello%20Mannin%20Maindhan%20Grama%20Arakkattalai%2C%20I%20would%20like%20to%20connect%20with%20your%20team.`,
       };
 
       dispatch({ type: 'UPDATE_SITE_INFO', payload: mergedData });

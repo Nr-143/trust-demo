@@ -11,7 +11,7 @@ export default function Footer() {
     <footer className="bg-[#173B2A] text-white">
       {/* Top Pre-Footer Callout */}
       <div className="border-b border-emerald-900/60 bg-[#122e21]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        <div className="site-container py-8 sm:py-10">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-6 text-center lg:text-left">
             <div className="max-w-2xl">
               <span className="text-xs font-semibold text-accent uppercase tracking-wider">
@@ -49,7 +49,7 @@ export default function Footer() {
       </div>
 
       {/* Main Footer Links */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+      <div className="site-container py-14">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10">
           {/* Brand & Mission */}
           <div className="lg:col-span-4">

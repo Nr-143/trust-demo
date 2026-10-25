@@ -193,7 +193,7 @@ export default function CampaignDetailPage() {
     <div className="bg-[#FAF8F2] min-h-screen pb-20">
       {/* Breadcrumb Navigation */}
       <div className="bg-white border-b border-stone-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+        <div className="site-container py-3.5">
           <div className="flex items-center gap-2 text-xs text-stone-500">
             <Link to="/" className="hover:text-primary transition-colors">
               Home
@@ -208,10 +208,10 @@ export default function CampaignDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="site-container py-8 sm:py-12">
         {/* Demonstration Disclaimer Banner */}
         <div className="mb-8">
-          <DemoBadge message="Demonstration Environment: This is a frontend architectural prototype for Mannin Maindhan Grama Arakattalai. All financial figures, donor records, and payment flows below are simulated locally in your browser. No real banking credentials or payment cards are ever requested." />
+          <DemoBadge message="Demonstration Environment: This is a frontend architectural prototype for Mannin Maindhan Grama Arakkattalai. All financial figures, donor records, and payment flows below are simulated locally in your browser. No real banking credentials or payment cards are ever requested." />
         </div>
 
         {/* Main Grid: Left Column Details & Narrative | Right Column Donation Stepper */}

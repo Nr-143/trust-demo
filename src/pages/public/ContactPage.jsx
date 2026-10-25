@@ -60,7 +60,7 @@ export default function ContactPage() {
         description="Have questions, partnership queries, or want to visit our field office in Palacode? We are here to connect."
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <div className="site-container py-12 sm:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           
           {/* Contact Details Column */}
@@ -163,7 +163,7 @@ export default function ContactPage() {
                 <CheckCircle size={48} className="mx-auto text-primary mb-4" />
                 <h3 className="text-xl font-bold text-primary-dark">Message Sent Successfully!</h3>
                 <p className="text-sm text-gray-600 mt-2 max-w-md mx-auto">
-                  Thank you for reaching out to Mannin Maindhan Grama Arakattalai. A coordinator will
+                  Thank you for reaching out to Mannin Maindhan Grama Arakkattalai. A coordinator will
                   review your message and get back to you shortly.
                 </p>
                 <button

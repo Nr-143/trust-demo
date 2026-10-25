@@ -150,7 +150,7 @@ export default function VolunteerPage() {
         description="Join college youth, farmers, teachers, and professionals driving meaningful rural transformation across Dharmapuri villages."
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+      <div className="site-container py-10 sm:py-14">
         {/* Demonstration Disclaimer */}
         <div className="mb-10">
           <DemoBadge message="Demonstration Environment: Volunteer opportunities and applications submitted below are stored locally in your browser's shared data layer. No real personal information is shared with external servers. Submissions appear immediately in the Admin Volunteer Management console for review." />
@@ -490,7 +490,7 @@ export default function VolunteerPage() {
                       rows={3}
                       {...register('message')}
                       className={inputClasses}
-                      placeholder="Why would you like to volunteer with Mannin Maindhan Grama Arakattalai?"
+                      placeholder="Why would you like to volunteer with Mannin Maindhan Grama Arakkattalai?"
                     />
                   </div>
 

@@ -30,7 +30,7 @@ export default function ImpactPage() {
         description="Tracking meaningful rural transformations across education, water conservation, and community health."
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <div className="site-container py-12 sm:py-16">
         <div className="mb-8">
           <DemoBadge message={impact.disclaimer || 'The figures and progress metrics displayed below are demonstration counts for evaluation. Certified periodic field audit data will be posted following verification.'} />
         </div>

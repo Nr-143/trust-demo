@@ -27,7 +27,7 @@ export default function GalleryPage() {
         description="A visual journey through our work and the communities we serve."
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <div className="site-container py-12 sm:py-16">
         <div className="mb-6">
           <DemoBadge message="Gallery images are placeholder stock photos. Actual photos from the organisation's activities will replace these." />
         </div>
@@ -52,7 +52,7 @@ export default function GalleryPage() {
         {filtered.length === 0 ? (
           <p className="text-sm text-gray-500 text-center py-12">No images in this category.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {filtered.map((item) => (
               <div key={item.id} className="group relative overflow-hidden rounded-lg bg-gray-100">
                 <img

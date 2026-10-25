@@ -48,7 +48,7 @@ export default function CampaignsPage() {
         description="Targeted grassroots initiatives designed to resolve pressing drinking water, education, and ecological needs in Dharmapuri villages."
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+      <div className="site-container py-10 sm:py-14">
         {/* Demonstration Disclaimer Banner */}
         <div className="mb-8">
           <DemoBadge message="Demonstration Notice: Fundraising targets, raised amounts, and supporter contributions below are demonstration records created for architectural review. Try making a simulated donation to test the live reactive progress calculation in your browser." />
