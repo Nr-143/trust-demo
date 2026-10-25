@@ -14,12 +14,14 @@ import {
   Sparkles,
   ArrowRight,
   RotateCcw,
+  Loader2,
 } from 'lucide-react';
 import PageHeader from '../../components/common/PageHeader';
 import DemoBadge from '../../components/common/DemoBadge';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import { formatDate } from '../../utils/helpers';
+import { supabase, isSupabaseConfigured } from '../../services/supabaseClient';
 
 const jobApplicationSchema = z.object({
   name: z.string().min(2, 'Please enter your full name (at least 2 characters)'),
@@ -28,6 +30,7 @@ const jobApplicationSchema = z.object({
   experience: z.string().min(2, 'Please summarize your background or years of experience'),
   skills: z.string().min(2, 'Please highlight key skills or qualifications'),
   message: z.string().optional().default(''),
+  honeypot: z.string().optional(),
 });
 
 export default function CareersPage() {
@@ -66,17 +69,74 @@ export default function CareersPage() {
     resolver: zodResolver(jobApplicationSchema),
   });
 
+  const [submitting, setSubmitting] = useState(false);
+
   const handleOpenApplyModal = (career) => {
     setApplyingCareer(career);
     setSubmittedApp(null);
     reset();
   };
 
-  const onSubmitApplication = (formData) => {
+  const onSubmitApplication = async (formData) => {
+    if (!applyingCareer) return;
+
+    // Anti-spam honeypot
+    if (formData.honeypot) {
+      setSubmittedApp({ name: formData.name, careerTitle: applyingCareer.title });
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      if (!applyingCareer) return;
+      let recordId = null;
+
+      if (isSupabaseConfigured() && supabase) {
+        const { data: inserted, error } = await supabase
+          .from('job_applications')
+          .insert([
+            {
+              career_id: applyingCareer.id,
+              career_title: applyingCareer.title,
+              name: formData.name.trim(),
+              email: formData.email.trim(),
+              phone: formData.phone.trim(),
+              experience: formData.experience.trim(),
+              skills: formData.skills.trim(),
+              message: formData.message.trim(),
+              status: 'New',
+            },
+          ])
+          .select()
+          .single();
+
+        if (error) throw error;
+        recordId = inserted?.id;
+
+        // Non-blocking email alert via Vercel serverless function
+        try {
+          fetch('/api/send-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'job_application',
+              record: {
+                career_title: applyingCareer.title,
+                name: formData.name.trim(),
+                email: formData.email.trim(),
+                phone: formData.phone.trim(),
+                experience: formData.experience.trim(),
+                skills: formData.skills.trim(),
+                message: formData.message.trim(),
+              },
+            }),
+          }).catch(() => {});
+        } catch {
+          // ignore notification error
+        }
+      }
 
       const payload = {
+        id: recordId || undefined,
         careerId: applyingCareer.id,
         careerTitle: applyingCareer.title,
         name: formData.name.trim(),
@@ -87,7 +147,6 @@ export default function CareersPage() {
         message: formData.message.trim(),
         status: 'New',
         submittedAt: new Date().toISOString(),
-        isDemo: true,
       };
 
       dispatch({
@@ -97,12 +156,15 @@ export default function CareersPage() {
 
       setSubmittedApp(payload);
       showSuccess(
-        `Application submitted for "${applyingCareer.title}"! Stored in local demo database.`,
+        `Application submitted for "${applyingCareer.title}"! Our HR coordination team has received your details.`,
         'Application Sent'
       );
       reset();
     } catch (err) {
-      showError(err.message || 'Failed to submit application', 'Error');
+      console.error('Career application submission error:', err);
+      showError(err.message || 'Failed to submit application. Please try again.', 'Error');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -366,6 +428,15 @@ export default function CareersPage() {
                   />
                 </div>
 
+                {/* Hidden Honeypot for Anti-Spam */}
+                <input
+                  type="text"
+                  {...register('honeypot')}
+                  className="hidden"
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+
                 <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-2.5">
                   <button
                     type="button"
@@ -376,10 +447,17 @@ export default function CareersPage() {
                   </button>
                   <button
                     type="submit"
-                    disabled={isSubmitting}
-                    className="px-5 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                    disabled={submitting}
+                    className="px-5 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                   >
-                    Submit Sample Application
+                    {submitting ? (
+                      <>
+                        <Loader2 size={13} className="animate-spin" />
+                        <span>Submitting...</span>
+                      </>
+                    ) : (
+                      <span>Submit Application</span>
+                    )}
                   </button>
                 </div>
               </form>

@@ -91,7 +91,7 @@ export default function AdminDashboard() {
       count: enqList.length,
       sublabel: `${newEnquiries} unread messages`,
       icon: MessageSquare,
-      to: '#recent-activity',
+      to: '/admin/enquiries',
       color: 'bg-teal-50 text-teal-700',
     },
     {

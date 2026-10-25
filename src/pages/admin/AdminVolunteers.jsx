@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import {
@@ -15,9 +15,11 @@ import {
   Clock,
   Award,
   Filter,
+  RefreshCw,
 } from 'lucide-react';
 import { formatDate } from '../../utils/helpers';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import { supabase, isSupabaseConfigured } from '../../services/supabaseClient';
 
 const STATUS_OPTIONS = ['New', 'Reviewed', 'Contacted', 'Accepted', 'Rejected'];
 
@@ -30,8 +32,40 @@ export default function AdminVolunteers() {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewingVolunteer, setViewingVolunteer] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [cloudList, setCloudList] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const list = volunteerApplications || volunteers || [];
+  const fetchVolunteers = async () => {
+    if (isSupabaseConfigured() && supabase) {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('volunteer_applications')
+          .select('*')
+          .order('submitted_at', { ascending: false });
+
+        if (error) throw error;
+        const normalized = (data || []).map((item) => ({
+          ...item,
+          preferredOpportunity: item.preferred_opportunity || item.preferredOpportunity || item.area,
+          submittedAt: item.submitted_at || item.created_at,
+        }));
+        setCloudList(normalized);
+      } catch (err) {
+        console.error('Failed to load volunteers from Supabase:', err);
+        // Fall back to context
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchVolunteers();
+  }, []);
+
+  const rawList = cloudList !== null ? cloudList : (volunteerApplications || volunteers || []);
+  const list = rawList;
 
   const filtered = useMemo(() => {
     return list.filter((v) => {
@@ -53,8 +87,22 @@ export default function AdminVolunteers() {
     });
   }, [list, searchQuery, filter]);
 
-  const handleStatusChange = (id, newStatus, name) => {
+  const handleStatusChange = async (id, newStatus, name) => {
     try {
+      if (isSupabaseConfigured() && supabase) {
+        const { error } = await supabase
+          .from('volunteer_applications')
+          .update({ status: newStatus })
+          .eq('id', id);
+        if (error) throw error;
+      }
+
+      if (cloudList !== null) {
+        setCloudList((prev) =>
+          prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
+        );
+      }
+
       dispatch({
         type: 'SET_VOLUNTEER_APPLICATION_STATUS',
         payload: { id, status: newStatus },
@@ -68,9 +116,21 @@ export default function AdminVolunteers() {
     }
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     try {
+      if (isSupabaseConfigured() && supabase) {
+        const { error } = await supabase
+          .from('volunteer_applications')
+          .delete()
+          .eq('id', deleteTarget.id);
+        if (error) throw error;
+      }
+
+      if (cloudList !== null) {
+        setCloudList((prev) => prev.filter((item) => item.id !== deleteTarget.id));
+      }
+
       dispatch({ type: 'DELETE_VOLUNTEER_APPLICATION', payload: deleteTarget.id });
       showSuccess(`Volunteer record for "${deleteTarget.name}" deleted.`, 'Deleted');
       setDeleteTarget(null);
@@ -114,6 +174,19 @@ export default function AdminVolunteers() {
           <p className="text-sm text-gray-500 mt-1">
             Review submissions, evaluate skills, and manage status transitions: New, Reviewed, Contacted, Accepted, Rejected.
           </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {isSupabaseConfigured() && (
+            <button
+              onClick={fetchVolunteers}
+              disabled={loading}
+              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-stone-600 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+              <span>Refresh</span>
+            </button>
+          )}
         </div>
       </div>
 

@@ -15,11 +15,13 @@ import {
   Filter,
   Check,
   RotateCcw,
+  Loader2,
 } from 'lucide-react';
 import PageHeader from '../../components/common/PageHeader';
 import DemoBadge from '../../components/common/DemoBadge';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
+import { supabase, isSupabaseConfigured } from '../../services/supabaseClient';
 
 const volunteerFormSchema = z.object({
   name: z.string().min(2, 'Please enter your full name (at least 2 characters)'),
@@ -29,6 +31,7 @@ const volunteerFormSchema = z.object({
   skills: z.string().min(2, 'Please list any relevant skills, educational background, or interests'),
   availability: z.string().min(1, 'Please specify your availability'),
   message: z.string().optional().default(''),
+  honeypot: z.string().optional(),
 });
 
 const AVAILABILITY_OPTIONS = [
@@ -102,9 +105,65 @@ export default function VolunteerPage() {
     }
   };
 
-  const onSubmit = (formData) => {
+  const [submitting, setSubmitting] = useState(false);
+
+  const onSubmit = async (formData) => {
+    if (formData.honeypot) {
+      setSubmittedData({ name: formData.name });
+      return;
+    }
+
+    setSubmitting(true);
     try {
+      let recordId = null;
+
+      if (isSupabaseConfigured() && supabase) {
+        const { data: inserted, error } = await supabase
+          .from('volunteer_applications')
+          .insert([
+            {
+              name: formData.name.trim(),
+              email: formData.email.trim(),
+              phone: formData.phone.trim(),
+              preferred_opportunity: formData.preferredOpportunity,
+              area: formData.preferredOpportunity,
+              skills: formData.skills.trim(),
+              availability: formData.availability,
+              message: formData.message.trim(),
+              status: 'New',
+            },
+          ])
+          .select()
+          .single();
+
+        if (error) throw error;
+        recordId = inserted?.id;
+
+        // Non-blocking email alert via Vercel serverless function
+        try {
+          fetch('/api/send-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'volunteer_application',
+              record: {
+                name: formData.name.trim(),
+                email: formData.email.trim(),
+                phone: formData.phone.trim(),
+                preferred_opportunity: formData.preferredOpportunity,
+                skills: formData.skills.trim(),
+                availability: formData.availability,
+                message: formData.message.trim(),
+              },
+            }),
+          }).catch(() => {});
+        } catch {
+          // ignore
+        }
+      }
+
       const payload = {
+        id: recordId || undefined,
         name: formData.name.trim(),
         email: formData.email.trim(),
         phone: formData.phone.trim(),
@@ -115,7 +174,7 @@ export default function VolunteerPage() {
         message: formData.message.trim(),
         status: 'New',
         submittedAt: new Date().toISOString(),
-        isDemo: true,
+        isDemo: !isSupabaseConfigured(),
       };
 
       dispatch({
@@ -125,7 +184,7 @@ export default function VolunteerPage() {
 
       setSubmittedData(payload);
       showSuccess(
-        `Thank you ${formData.name}! Your volunteer application has been recorded in the local demo database.`,
+        `Thank you ${formData.name}! Your volunteer application has been received and routed to our field coordination team.`,
         'Application Submitted'
       );
       reset();
@@ -135,7 +194,10 @@ export default function VolunteerPage() {
         formElem.scrollIntoView({ behavior: 'smooth' });
       }
     } catch (err) {
-      showError(err.message || 'Failed to submit application', 'Validation Error');
+      console.error('Volunteer submission error:', err);
+      showError(err.message || 'Failed to submit application. Please try again.', 'Validation Error');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -494,13 +556,31 @@ export default function VolunteerPage() {
                     />
                   </div>
 
+                  {/* Hidden Honeypot for Anti-Spam */}
+                  <input
+                    type="text"
+                    {...register('honeypot')}
+                    className="hidden"
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={submitting}
                     className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
-                    <Send size={15} />
-                    <span>Submit Volunteer Application</span>
+                    {submitting ? (
+                      <>
+                        <Loader2 size={15} className="animate-spin" />
+                        <span>Submitting Application...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send size={15} />
+                        <span>Submit Volunteer Application</span>
+                      </>
+                    )}
                   </button>
                 </form>
               )}

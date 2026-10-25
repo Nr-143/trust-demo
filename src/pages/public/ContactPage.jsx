@@ -1,17 +1,20 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Mail, Phone, MapPin, Send, CheckCircle, MessageCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle, MessageCircle, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import PageHeader from '../../components/common/PageHeader';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
+import { supabase, isSupabaseConfigured } from '../../services/supabaseClient';
 
 const contactSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
   subject: z.string().min(3, 'Subject must be at least 3 characters'),
   message: z.string().min(10, 'Message must be at least 10 characters'),
+  // Honeypot field for anti-spam bots
+  honeypot: z.string().optional(),
 });
 
 export default function ContactPage() {
@@ -19,33 +22,92 @@ export default function ContactPage() {
   const dispatch = useSiteDispatch();
   const { showSuccess, showError } = useToast();
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(contactSchema),
   });
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
+    // Spam bot check
+    if (data.honeypot) {
+      setSubmitted(true);
+      return;
+    }
+
+    setSubmitting(true);
     try {
+      let recordId = null;
+
+      if (isSupabaseConfigured() && supabase) {
+        const { data: inserted, error } = await supabase
+          .from('contact_enquiries')
+          .insert([
+            {
+              name: data.name.trim(),
+              email: data.email.trim(),
+              subject: data.subject.trim(),
+              message: data.message.trim(),
+              status: 'new',
+            },
+          ])
+          .select()
+          .single();
+
+        if (error) throw error;
+        recordId = inserted?.id;
+
+        // Trigger optional serverless email notification on Vercel
+        try {
+          fetch('/api/send-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'contact_enquiry',
+              record: {
+                name: data.name.trim(),
+                email: data.email.trim(),
+                subject: data.subject.trim(),
+                message: data.message.trim(),
+              },
+            }),
+          }).catch(() => {
+            // Non-blocking notification failure
+          });
+        } catch {
+          // ignore
+        }
+      }
+
+      // Keep local state in sync
       dispatch({
         type: 'ADD_CONTACT_ENQUIRY',
         payload: {
-          ...data,
+          id: recordId || undefined,
+          name: data.name.trim(),
+          email: data.email.trim(),
+          subject: data.subject.trim(),
+          message: data.message.trim(),
           status: 'new',
         },
       });
+
       setSubmitted(true);
       showSuccess(
-        `Thank you ${data.name}. Your enquiry has been received and stored in our local database.`,
+        `Thank you ${data.name}. Your enquiry has been received and routed to our coordination team.`,
         'Message Recorded'
       );
       reset();
     } catch (err) {
-      showError(err.message || 'Failed to submit enquiry', 'Submission Error');
+      console.error('Contact submission error:', err);
+      showError(err.message || 'Failed to submit enquiry. Please try again.', 'Submission Error');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -214,17 +276,35 @@ export default function ContactPage() {
                       className={inputClasses}
                       placeholder="Write your message here..."
                     />
+                    {/* Hidden Honeypot for Anti-Spam */}
+                    <input
+                      type="text"
+                      {...register('honeypot')}
+                      className="hidden"
+                      tabIndex={-1}
+                      autoComplete="off"
+                    />
+
                     {errors.message && <p className="text-xs text-red-500 mt-1">{errors.message.message}</p>}
                   </div>
 
                   <div className="pt-2">
                     <button
                       type="submit"
-                      disabled={isSubmitting}
-                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dark active:bg-emerald-900 text-white text-sm font-semibold rounded-xl shadow-xs transition-colors disabled:opacity-50"
+                      disabled={submitting}
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dark active:bg-emerald-900 text-white text-sm font-semibold rounded-xl shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
                     >
-                      <Send size={16} />
-                      <span>Send Message to Trust</span>
+                      {submitting ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin" />
+                          <span>Sending Message...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send size={16} />
+                          <span>Send Message to Trust</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </form>

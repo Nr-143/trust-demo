@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import {
@@ -17,12 +17,14 @@ import {
   Mail,
   Award,
   Archive,
+  RefreshCw,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import { formatDate } from '../../utils/helpers';
+import { supabase, isSupabaseConfigured } from '../../services/supabaseClient';
 
 const careerFormSchema = z.object({
   title: z.string().min(3, 'Position title is required'),
@@ -44,6 +46,8 @@ export default function AdminCareers() {
   const [activeTab, setActiveTab] = useState('listings'); // 'listings' | 'applications'
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [cloudApplications, setCloudApplications] = useState(null);
+  const [loadingApps, setLoadingApps] = useState(false);
 
   // Modals
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -51,6 +55,38 @@ export default function AdminCareers() {
   const [viewingCareer, setViewingCareer] = useState(null);
   const [viewingApplication, setViewingApplication] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+
+  const fetchApplications = async () => {
+    if (isSupabaseConfigured() && supabase) {
+      setLoadingApps(true);
+      try {
+        const { data, error } = await supabase
+          .from('job_applications')
+          .select('*')
+          .order('submitted_at', { ascending: false });
+
+        if (error) throw error;
+        const normalized = (data || []).map((item) => ({
+          ...item,
+          careerTitle: item.career_title || item.careerTitle,
+          careerId: item.career_id || item.careerId,
+          submittedAt: item.submitted_at || item.created_at,
+        }));
+        setCloudApplications(normalized);
+      } catch (err) {
+        console.error('Failed to load applications from Supabase:', err);
+      } finally {
+        setLoadingApps(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchApplications();
+  }, []);
+
+  const rawApplications =
+    cloudApplications !== null ? cloudApplications : (jobApplications || []);
 
   // Forms
   const createForm = useForm({
@@ -87,20 +123,21 @@ export default function AdminCareers() {
   }, [careers, searchQuery, statusFilter]);
 
   const filteredApplications = useMemo(() => {
-    return (jobApplications || []).filter((app) => {
+    return rawApplications.filter((app) => {
       const matchesSearch =
         (app.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (app.careerTitle || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (app.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (app.skills || '').toLowerCase().includes(searchQuery.toLowerCase());
 
+      const status = app.status || 'New';
       const matchesStatus =
         statusFilter === 'all' ||
-        (app.status || '').toLowerCase() === statusFilter.toLowerCase();
+        status.toLowerCase() === statusFilter.toLowerCase();
 
       return matchesSearch && matchesStatus;
     });
-  }, [jobApplications, searchQuery, statusFilter]);
+  }, [rawApplications, searchQuery, statusFilter]);
 
   const handleOpenEdit = (career) => {
     setEditingCareer(career);
@@ -195,8 +232,22 @@ export default function AdminCareers() {
     }
   };
 
-  const handleAppStatusChange = (appId, newStatus, applicantName) => {
+  const handleAppStatusChange = async (appId, newStatus, applicantName) => {
     try {
+      if (isSupabaseConfigured() && supabase) {
+        const { error } = await supabase
+          .from('job_applications')
+          .update({ status: newStatus })
+          .eq('id', appId);
+        if (error) throw error;
+      }
+
+      if (cloudApplications !== null) {
+        setCloudApplications((prev) =>
+          prev.map((app) => (app.id === appId ? { ...app, status: newStatus } : app))
+        );
+      }
+
       dispatch({
         type: 'UPDATE_JOB_APPLICATION_STATUS',
         payload: { id: appId, status: newStatus },
@@ -210,10 +261,24 @@ export default function AdminCareers() {
     }
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     try {
       if (deleteTarget.isJobApplication) {
+        if (isSupabaseConfigured() && supabase) {
+          const { error } = await supabase
+            .from('job_applications')
+            .delete()
+            .eq('id', deleteTarget.id);
+          if (error) throw error;
+        }
+
+        if (cloudApplications !== null) {
+          setCloudApplications((prev) =>
+            prev.filter((app) => app.id !== deleteTarget.id)
+          );
+        }
+
         dispatch({ type: 'DELETE_JOB_APPLICATION', payload: deleteTarget.id });
         showSuccess(`Job application for "${deleteTarget.name}" deleted.`, 'Deleted');
       } else {
@@ -287,8 +352,19 @@ export default function AdminCareers() {
           }`}
         >
           <FileText size={14} />
-          <span>Candidate Applications ({jobApplications?.length || 0})</span>
+          <span>Candidate Applications ({rawApplications?.length || 0})</span>
         </button>
+
+        {activeTab === 'applications' && isSupabaseConfigured() && (
+          <button
+            onClick={fetchApplications}
+            disabled={loadingApps}
+            className="ml-auto mb-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-stone-600 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw size={12} className={loadingApps ? 'animate-spin' : ''} />
+            <span>Refresh</span>
+          </button>
+        )}
       </div>
 
       {/* TAB 1: JOB LISTINGS */}
