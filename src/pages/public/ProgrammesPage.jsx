@@ -31,7 +31,7 @@ const iconMap = {
 };
 
 export default function ProgrammesPage() {
-  const { programmes, siteInfo } = useSite();
+  const { programmes, siteInfo, isLoading } = useSite();
 
   const activeProgrammes = (programmes || []).filter(
     (p) => p.status === 'active' || p.status === 'published' || !p.status
@@ -47,10 +47,23 @@ export default function ProgrammesPage() {
 
       <div className="site-container py-12 sm:py-16">
         <div className="mb-8">
-          <DemoBadge message="The 6 programme descriptions below reflect proposed community developmental framework designed for Mannin Maindhan Grama Arakkattalai. Verified baseline surveys and targets will be added continuously." />
+          <DemoBadge message="The programme descriptions below reflect verified community developmental initiatives designed for Mannin Maindhan Grama Arakkattalai. Baseline surveys and targets are updated continuously from our field database." />
         </div>
 
-        {activeProgrammes.length === 0 ? (
+        {isLoading ? (
+          <div className="space-y-8 animate-pulse">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="bg-white border border-stone-200 rounded-3xl p-8 flex flex-col md:flex-row gap-6">
+                <div className="w-full md:w-1/3 h-52 bg-stone-100 rounded-2xl"></div>
+                <div className="w-full md:w-2/3 space-y-4">
+                  <div className="h-6 bg-stone-100 rounded w-1/4"></div>
+                  <div className="h-8 bg-stone-100 rounded w-3/4"></div>
+                  <div className="h-16 bg-stone-100 rounded w-full"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : activeProgrammes.length === 0 ? (
           <div className="bg-white border border-stone-200 rounded-3xl p-12 text-center text-stone-500">
             <p className="text-base font-semibold">No active programmes currently published.</p>
             <p className="text-xs text-stone-400 mt-1">Check back soon or configure programmes in the admin dashboard.</p>

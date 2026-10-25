@@ -71,7 +71,7 @@ export default function ProgrammesSection() {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100/80 text-[#173B2A] border border-emerald-200 mb-3">
-            <span>Our 6 Core Verticals</span>
+            <span>Our Core Development Verticals</span>
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#173B2A] tracking-tight">
             Integrated Rural Development Programmes
@@ -99,7 +99,7 @@ export default function ProgrammesSection() {
           </div>
         </div>
 
-        {/* 6 Programmes Grid */}
+        {/* Programmes Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
           {filteredProgrammes.map((prog) => {
             const Icon = programmeIconMap[prog.icon] || GraduationCap;

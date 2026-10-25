@@ -114,21 +114,27 @@ export async function createProgramme(programmeData) {
   }
 
   const id = programmeData.id || `prog-${Date.now()}`;
-  const slug = programmeData.slug || programmeData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const cleanTitle = (programmeData.title || '').trim();
+  const slug =
+    (programmeData.slug || cleanTitle)
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || `prog-${Date.now()}`;
 
   const payload = {
     id,
     slug,
-    title: programmeData.title,
-    full_title: programmeData.fullTitle || programmeData.title,
-    title_tamil: programmeData.titleTamil || '',
+    title: cleanTitle,
+    full_title: (programmeData.fullTitle || cleanTitle).trim(),
+    title_tamil: (programmeData.titleTamil || '').trim(),
     category: programmeData.category,
     icon: programmeData.icon || 'GraduationCap',
     image_url: programmeData.imageUrl,
-    description: programmeData.description,
-    details: programmeData.details || '',
-    highlights: programmeData.highlights || [],
-    projects: programmeData.projects || [],
+    description: (programmeData.description || '').trim(),
+    details: (programmeData.details || '').trim(),
+    highlights: Array.isArray(programmeData.highlights) ? programmeData.highlights : [],
+    projects: Array.isArray(programmeData.projects) ? programmeData.projects : [],
     status: programmeData.status || 'active',
     display_order: Number(programmeData.displayOrder || 0),
     updated_at: new Date().toISOString(),

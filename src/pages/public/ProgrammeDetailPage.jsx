@@ -36,7 +36,7 @@ const iconMap = {
 
 export default function ProgrammeDetailPage() {
   const { slug } = useParams();
-  const { programmes } = useSite();
+  const { programmes, isLoading } = useSite();
   const { openDonationModal } = useDonationModal();
 
   // Media Modal state for viewing photographs and video
@@ -53,21 +53,44 @@ export default function ProgrammeDetailPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const cleanSlug = (slug || '').toLowerCase().trim();
+  const cleanSlug = (slug || '').toLowerCase().trim().replace(/^-+|-+$/g, '');
 
   // Find programme matching either slug, id, or id without 'prog-' prefix
   const programme = (programmes || []).find((p) => {
-    const pSlug = (p.slug || '').toLowerCase().trim();
+    const pSlug = (p.slug || '').toLowerCase().trim().replace(/^-+|-+$/g, '');
     const pId = (p.id || '').toLowerCase().trim();
     const pIdClean = pId.replace(/^prog-/, '');
+    const pTitleSlug = (p.title || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
 
     return (
       pSlug === cleanSlug ||
       pId === cleanSlug ||
       pIdClean === cleanSlug ||
-      p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug
+      pTitleSlug === cleanSlug
     );
   });
+
+  if (isLoading) {
+    return (
+      <div className="bg-[#FAF8F2] min-h-screen pb-20 animate-pulse">
+        <div className="bg-white border-b border-stone-200 py-3">
+          <div className="site-container h-6 bg-stone-100 rounded w-48"></div>
+        </div>
+        <div className="site-container pt-8">
+          <div className="bg-white border border-stone-200 rounded-3xl p-8 mb-10">
+            <div className="h-6 bg-stone-100 rounded w-1/4 mb-4"></div>
+            <div className="h-10 bg-stone-100 rounded w-3/4 mb-3"></div>
+            <div className="h-4 bg-stone-100 rounded w-1/2 mb-6"></div>
+            <div className="h-20 bg-stone-100 rounded w-full"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!programme) {
     return (
@@ -84,7 +107,7 @@ export default function ProgrammeDetailPage() {
           className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-[#173B2A] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#176B36]"
         >
           <ArrowLeft size={14} />
-          <span>Back to All 6 Programmes</span>
+          <span>Back to All Programmes</span>
         </Link>
       </div>
     );

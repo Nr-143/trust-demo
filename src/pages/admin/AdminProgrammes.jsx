@@ -79,7 +79,7 @@ const PRESET_IMAGES = [
 ];
 
 export default function AdminProgrammes() {
-  const { programmes } = useSite();
+  const { programmes, reloadSiteData } = useSite();
   const dispatch = useSiteDispatch();
   const { showSuccess, showError } = useToast();
 
@@ -161,6 +161,9 @@ export default function AdminProgrammes() {
         type: 'ADD_PROGRAMME',
         payload: created,
       });
+      if (typeof reloadSiteData === 'function') {
+        reloadSiteData();
+      }
       showSuccess(`New programme "${data.title}" saved to database successfully!`, 'Created');
       setCreateModalOpen(false);
       createForm.reset();
@@ -180,6 +183,9 @@ export default function AdminProgrammes() {
         type: 'UPDATE_PROGRAMME',
         payload: updated,
       });
+      if (typeof reloadSiteData === 'function') {
+        reloadSiteData();
+      }
       showSuccess(`Programme "${data.title}" updated in database!`, 'Updated');
       setEditingProgramme(null);
     } catch (err) {
@@ -195,6 +201,9 @@ export default function AdminProgrammes() {
         type: 'UPDATE_PROGRAMME',
         payload: updated,
       });
+      if (typeof reloadSiteData === 'function') {
+        reloadSiteData();
+      }
       showSuccess(
         newStatus === 'active'
           ? `"${prog.title}" is now Published & Active on public site.`
@@ -214,6 +223,9 @@ export default function AdminProgrammes() {
         type: 'UPDATE_PROGRAMME',
         payload: updated,
       });
+      if (typeof reloadSiteData === 'function') {
+        reloadSiteData();
+      }
       showSuccess(
         newStatus === 'active'
           ? `"${prog.title}" has been restored to Active.`
@@ -230,6 +242,9 @@ export default function AdminProgrammes() {
     try {
       await deleteProgramme(deleteTarget.id);
       dispatch({ type: 'DELETE_PROGRAMME', payload: deleteTarget.id });
+      if (typeof reloadSiteData === 'function') {
+        reloadSiteData();
+      }
       showSuccess(`Programme "${deleteTarget.title}" permanently deleted from database.`, 'Deleted');
       setDeleteTarget(null);
     } catch (err) {
