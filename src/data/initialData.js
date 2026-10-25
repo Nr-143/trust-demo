@@ -23,6 +23,7 @@ export const initialData = {
     founded: '2024',
     logoFull: '/images/logo-full.jpeg',
     logoBadge: '/images/logo-badge.jpeg',
+    heroImage: '/images/hero-village.jpg',
     missionStatement:
       'To empower rural communities across Dharmapuri and Tamil Nadu by providing sustainable access to quality education, safe drinking water, holistic healthcare, drug awareness, and eco-friendly livelihood solutions.',
     visionStatement:
@@ -96,6 +97,37 @@ export const initialData = {
       details:
         'Focuses on reducing drop-out rates, promoting foundational literacy and numeracy, and creating safe, well-lit village study spaces.',
       highlights: ['Village Study Centres', 'Notebook & School Kit Drives', 'Higher Education Guidance'],
+      projects: [
+        {
+          id: 'proj-edu-1',
+          title: 'Village Evening Study Support Circles',
+          description:
+            'Organising supervised evening learning circles with volunteer tutors to provide homework assistance and foundational numeracy support for rural school children.',
+          location: 'Palacode Taluk (Specific hamlet centres pending trust confirmation)',
+          date: 'Proposed Initiative (2025 Cycle)',
+          images: [
+            'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&auto=format&fit=crop&q=80',
+          ],
+          videoUrl: null,
+          isPlaceholder: true,
+          placeholderNotice: 'Project information will be added after confirmation.',
+        },
+        {
+          id: 'proj-edu-2',
+          title: 'School Learning Kit & Notebook Support Drive',
+          description:
+            'Annual educational supply drives providing essential writing books, mathematical kits, and school bags to underprivileged students across rural government schools.',
+          location: 'Rural schools across Dharmapuri district (Partner schools pending confirmation)',
+          date: 'Upcoming Academic Cycle',
+          images: [
+            'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=800&auto=format&fit=crop&q=80',
+          ],
+          videoUrl: null,
+          isPlaceholder: true,
+          placeholderNotice: 'Project information will be added after confirmation.',
+        },
+      ],
       status: 'active',
       isDemo: true,
     },
@@ -114,6 +146,37 @@ export const initialData = {
       details:
         'Supports women-led self-help micro-enterprises, organic cultivation practices, value addition to local farm produce, and vocational training in tailoring, crafts, and digital skills.',
       highlights: ['Women Self-Help Groups', 'Organic Farming Workshops', 'Micro-Enterprise & Skill Training'],
+      projects: [
+        {
+          id: 'proj-live-1',
+          title: 'Women Self-Help Group Tailoring & Handicrafts Collective',
+          description:
+            'Vocational skill-building modules designed to equip rural women with sewing, tailoring, and eco-friendly packaging skills to generate home-based auxiliary income.',
+          location: 'Eruthukuttahalli & neighbouring clusters (Centre venue pending confirmation)',
+          date: 'Planning Phase (2025)',
+          images: [
+            'https://images.unsplash.com/photo-1590402494682-cd3fb53b1f70?w=800&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1544717305-2782549b5136?w=800&auto=format&fit=crop&q=80',
+          ],
+          videoUrl: null,
+          isPlaceholder: true,
+          placeholderNotice: 'Project information will be added after confirmation.',
+        },
+        {
+          id: 'proj-live-2',
+          title: 'Dryland Organic Farming & Millet Processing Demonstrations',
+          description:
+            'Hands-on demonstrations for smallholder farmers on organic bio-inputs, traditional millets cultivation, and direct rural market linkages.',
+          location: 'Dharmapuri agricultural tracts (Demonstration plots to be confirmed)',
+          date: 'Seasonal Agricultural Window',
+          images: [
+            'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=800&auto=format&fit=crop&q=80',
+          ],
+          videoUrl: null,
+          isPlaceholder: true,
+          placeholderNotice: 'Project information will be added after confirmation.',
+        },
+      ],
       status: 'active',
       isDemo: true,
     },
@@ -132,6 +195,37 @@ export const initialData = {
       details:
         'Collaborates with village elders, local schools, and rural youth sports clubs to organize cricket, kabaddi, and athletic tournaments alongside substance abuse awareness workshops.',
       highlights: ['Substance Awareness Drives', 'Village Sports Leagues', 'Youth & Family Counselling'],
+      projects: [
+        {
+          id: 'proj-sport-1',
+          title: 'Annual Rural Youth Kabaddi & Volleyball Tournament',
+          description:
+            'Grassroots athletic tournaments organised across rural hamlets to build physical endurance, cultivate sportsman spirit, and channel youth energy into community sports.',
+          location: 'Palacode Community Grounds (Tournament venue pending confirmation)',
+          date: 'Upcoming Season',
+          images: [
+            'https://images.unsplash.com/photo-1526676037777-05a232554f77?w=800&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&auto=format&fit=crop&q=80',
+          ],
+          videoUrl: null,
+          isPlaceholder: true,
+          placeholderNotice: 'Project information will be added after confirmation.',
+        },
+        {
+          id: 'proj-sport-2',
+          title: 'Substance Abuse Awareness & Youth De-Addiction Counselling',
+          description:
+            'Community awareness campaigns and family counselling sessions aimed at deterring drug and tobacco usage among rural teenagers and young adults.',
+          location: 'Village panchayat centres (Schedule to be finalized)',
+          date: 'Awareness Campaign Cycle',
+          images: [
+            'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=800&auto=format&fit=crop&q=80',
+          ],
+          videoUrl: null,
+          isPlaceholder: true,
+          placeholderNotice: 'Project information will be added after confirmation.',
+        },
+      ],
       status: 'active',
       isDemo: true,
     },
@@ -150,6 +244,37 @@ export const initialData = {
       details:
         'Preserves native trees such as Neem, Pungan, Peepal, and Tamarind suited to Dharmapuri climatic conditions, combined with rural solar lighting points and clean energy literacy.',
       highlights: ['Native Tree Plantations', 'Solar Street Illumination', 'School Green Clubs'],
+      projects: [
+        {
+          id: 'proj-env-1',
+          title: 'Native Tree Sapling Plantation & Seed-Ball Dispersal Drive',
+          description:
+            'Mass community planting of indigenous tree varieties suited to semi-arid climates (Neem, Tamarind, Pungan) to enhance green canopy and reduce soil erosion.',
+          location: 'Palacode roadsides & village commons (Planting sites pending confirmation)',
+          date: 'Monsoon Plantation Schedule',
+          images: [
+            'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=800&auto=format&fit=crop&q=80',
+          ],
+          videoUrl: null,
+          isPlaceholder: true,
+          placeholderNotice: 'Project information will be added after confirmation.',
+        },
+        {
+          id: 'proj-env-2',
+          title: 'Village Solar Lighting & Clean Energy Literacy',
+          description:
+            'Surveys and installations of standalone solar LED street units in remote hamlet lanes to increase safety and promote renewable energy awareness.',
+          location: 'Selected unelectrified hamlet stretches (Site list pending survey)',
+          date: 'Technical Survey Phase',
+          images: [
+            'https://images.unsplash.com/photo-1509391365360-2e959784a276?w=800&auto=format&fit=crop&q=80',
+          ],
+          videoUrl: null,
+          isPlaceholder: true,
+          placeholderNotice: 'Project information will be added after confirmation.',
+        },
+      ],
       status: 'active',
       isDemo: true,
     },
@@ -168,6 +293,37 @@ export const initialData = {
       details:
         'Combines volunteer-led village cleanliness drives and menstrual hygiene awareness with doorstep health screenings, geriatric checkups, eye camps, and basic medicines.',
       highlights: ['Free Medical Screenings', 'Village Cleanliness Drives', 'Hygiene & Health Awareness'],
+      projects: [
+        {
+          id: 'proj-san-1',
+          title: 'Comprehensive Rural Preventive Health Screening Camp',
+          description:
+            'Free medical camps providing geriatric health assessments, blood pressure checks, diabetes screening, and eye examinations for village elders and farm labourers.',
+          location: 'Eruthukuttahalli Community Center (Partner medical team pending confirmation)',
+          date: 'Quarterly Medical Schedule',
+          images: [
+            'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=80',
+          ],
+          videoUrl: null,
+          isPlaceholder: true,
+          placeholderNotice: 'Project information will be added after confirmation.',
+        },
+        {
+          id: 'proj-san-2',
+          title: 'Village Cleanliness (Shramdaan) & Drain Clearance Initiative',
+          description:
+            'Youth volunteer campaigns to clear stagnant street drain lines, eliminate mosquito breeding grounds, and conduct household hygiene demonstrations.',
+          location: 'Selected village wards across Palacode (Ward list to be confirmed)',
+          date: 'Community Shramdaan Calendar',
+          images: [
+            'https://images.unsplash.com/photo-1532629345422-7515f3d16bb9?w=800&auto=format&fit=crop&q=80',
+          ],
+          videoUrl: null,
+          isPlaceholder: true,
+          placeholderNotice: 'Project information will be added after confirmation.',
+        },
+      ],
       status: 'active',
       isDemo: true,
     },
@@ -186,6 +342,37 @@ export const initialData = {
       details:
         'Re-establishes customary community water stewardship (Kudimaramathu), ensuring agriculture and livestock have sufficient seasonal water reserves.',
       highlights: ['Traditional Pond Desilting', 'Inflow Channel Clearance', 'Rainwater Harvesting Checks'],
+      projects: [
+        {
+          id: 'proj-wat-1',
+          title: 'Traditional Village Pond (Oorani) Revival & Desilting',
+          description:
+            'Deepening historical rain retention ponds and strengthening earthen bunds to augment monsoon water harvesting for domestic cattle and recharge shallow village wells.',
+          location: 'Palacode Taluk waterbodies (Oorani registry pending confirmation)',
+          date: 'Pre-Monsoon Season',
+          images: [
+            'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1541252260730-0412e8e2108e?w=800&auto=format&fit=crop&q=80',
+          ],
+          videoUrl: null,
+          isPlaceholder: true,
+          placeholderNotice: 'Project information will be added after confirmation.',
+        },
+        {
+          id: 'proj-wat-2',
+          title: 'Agricultural Feeder Canal Clearance & Scrub Removal',
+          description:
+            'Community-led clearance of invasive Prosopis juliflora and silt blockage along natural irrigation feeder channels to ensure unobstructed monsoon runoff to local tanks.',
+          location: 'Village tank canal network (Channel stretch pending verification)',
+          date: 'Seasonal Canal Maintenance',
+          images: [
+            'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&auto=format&fit=crop&q=80',
+          ],
+          videoUrl: null,
+          isPlaceholder: true,
+          placeholderNotice: 'Project information will be added after confirmation.',
+        },
+      ],
       status: 'active',
       isDemo: true,
     },

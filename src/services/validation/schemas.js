@@ -29,6 +29,7 @@ export const siteInfoSchema = z.object({
   founded: z.string().default('2024'),
   logoFull: z.string().optional(),
   logoBadge: z.string().optional(),
+  heroImage: z.string().optional().default('/images/hero-village.jpg'),
   missionStatement: z.string().optional().default(''),
   visionStatement: z.string().optional().default(''),
   announcementBanner: z.string().optional().default(''),
@@ -51,6 +52,22 @@ export const programmeSchema = z.object({
   description: z.string().min(10, 'Short description is required'),
   details: z.string().optional(),
   highlights: z.array(z.string()).optional().default([]),
+  projects: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        title: z.string().min(2),
+        description: z.string().optional().default(''),
+        location: z.string().optional(),
+        date: z.string().optional(),
+        images: z.array(z.string()).optional().default([]),
+        videoUrl: z.string().optional().nullable(),
+        isPlaceholder: z.boolean().optional().default(true),
+        placeholderNotice: z.string().optional(),
+      })
+    )
+    .optional()
+    .default([]),
   status: z.enum(['active', 'draft', 'archived']).default('active'),
   isDemo: z.boolean().default(true),
   createdAt: z.string().optional(),

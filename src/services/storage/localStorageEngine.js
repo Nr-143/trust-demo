@@ -91,9 +91,13 @@ function mergeWithDefaults(savedData, defaults) {
     }
   }
 
-  // Ensure programmes have consistent slug
+  // Ensure programmes have consistent slug and project collections
   if (Array.isArray(merged.programmes)) {
     merged.programmes = merged.programmes.map((p) => {
+      const defaultProg = Array.isArray(defaults.programmes)
+        ? defaults.programmes.find((dp) => dp.id === p.id || dp.slug === p.slug)
+        : null;
+
       const slug =
         p.slug ||
         (p.id?.replace(/^prog-/, '') || p.title)
@@ -103,9 +107,16 @@ function mergeWithDefaults(savedData, defaults) {
           .replace(/&/g, '')
           .replace(/\s+/g, '-')
           .replace(/[^\w-]+/g, '');
+
+      const projects =
+        Array.isArray(p.projects) && p.projects.length > 0
+          ? p.projects
+          : deepClone(defaultProg?.projects || []);
+
       return {
         ...p,
         slug,
+        projects,
       };
     });
   }

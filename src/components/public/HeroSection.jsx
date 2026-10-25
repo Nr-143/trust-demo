@@ -110,46 +110,12 @@ export default function HeroSection() {
               {/* Main Natural Photo Container */}
               <div className="relative rounded-2xl overflow-hidden bg-white shadow-lg border border-stone-200">
                 <img
-                  src="https://images.unsplash.com/photo-1590402494682-cd3fb53b1f70?w=1000&auto=format&fit=crop&q=80"
-                  alt="Rural community development activities in Tamil Nadu"
-                  className="w-full h-80 sm:h-96 lg:h-[430px] object-cover hover:scale-102 transition-transform duration-500"
+                  src={siteInfo.heroImage || '/images/hero-village.jpg'}
+                  alt="Mannin Maindhan Grama Arakattalai sustainable village development in Tamil Nadu"
+                  className="w-full h-80 sm:h-96 lg:h-[430px] object-cover object-center hover:scale-102 transition-transform duration-500"
                   loading="eager"
                   onError={handleImageFallback}
                 />
-
-                {/* Gradient vignette at bottom */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-
-                {/* Floating Emblem Badge */}
-                <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-xs p-2 rounded-xl shadow-md border border-stone-200/80 flex items-center gap-2.5">
-                  <img
-                    src={siteInfo.logoBadge || '/images/logo-badge.jpeg'}
-                    alt="MMG Trust Badge"
-                    className="h-10 w-10 rounded-full object-cover ring-2 ring-emerald-600/30"
-                    onError={(e) => {
-                      e.currentTarget.src = '/images/logo-full.jpeg';
-                    }}
-                  />
-                  <div className="pr-1 text-left">
-                    <p className="text-[11px] font-bold text-[#173B2A] leading-tight">MMG Trust</p>
-                    <p className="text-[10px] text-gray-500 font-tamil leading-tight">மண்ணின் மைந்தன்</p>
-                  </div>
-                </div>
-
-                {/* Bottom Caption Card on Image */}
-                <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-xs p-4 rounded-xl shadow-md border border-stone-200/80">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-[#173B2A] uppercase tracking-wider">
-                      Grassroots Impact
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">
-                      Community Active
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-600 leading-snug">
-                    Serving Eruthukuttahalli, Palacode, and neighbouring agrarian hamlets with sustainable rural solutions.
-                  </p>
-                </div>
               </div>
 
             </div>
