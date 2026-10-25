@@ -45,6 +45,40 @@ export function cn(...classes) {
 }
 
 /**
+ * Format raw WhatsApp digits for clean UI display (e.g. +91 99942 91195).
+ */
+export function formatWhatsAppDisplay(rawNumber) {
+  if (!rawNumber) return '+91 99942 91195';
+  const digits = String(rawNumber).replace(/\D/g, '');
+  if (!digits) return '+91 99942 91195';
+  if (digits.length === 12 && digits.startsWith('91')) {
+    return `+91 ${digits.slice(2, 7)} ${digits.slice(7)}`;
+  }
+  if (digits.length === 10) {
+    return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+  }
+  return `+${digits}`;
+}
+
+/**
+ * Generate a clean, standards-compliant WhatsApp click-to-chat URL.
+ */
+export function getWhatsAppUrl(rawNumber, message = 'Hello Mannin Maindhan Grama Arakkattalai, I would like to connect with your team.') {
+  const digits = String(rawNumber || '919994291195').replace(/\D/g, '');
+  const cleanNumber = digits.length === 10 ? `91${digits}` : (digits || '919994291195');
+  return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
+}
+
+/**
+ * Extract dialable string for tel: links.
+ */
+export function getDialablePhone(phone) {
+  if (!phone) return '+919994291195';
+  const cleaned = String(phone).replace(/[^0-9+]/g, '');
+  return cleaned || '+919994291195';
+}
+
+/**
  * Safe branded fallback SVG data URI when external photos are unreachable or offline.
  */
 export const FALLBACK_IMAGE_DATA_URI =

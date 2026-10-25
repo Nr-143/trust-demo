@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Users, Heart, CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
 import { useSite } from '../../context/SiteContext';
+import { getWhatsAppUrl } from '../../utils/helpers';
 
 export default function VolunteerCTASection() {
   const { siteInfo } = useSite();
@@ -60,7 +61,7 @@ export default function VolunteerCTASection() {
                 </Link>
 
                 <a
-                  href={siteInfo.whatsappUrl || 'https://wa.me/919994291195'}
+                  href={siteInfo.whatsappUrl || getWhatsAppUrl(siteInfo.whatsappNumber)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-medium text-sm border border-white/20 transition-colors"

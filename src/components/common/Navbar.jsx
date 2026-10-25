@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Menu, X, Phone, Mail, MapPin, Heart, MessageCircle, ChevronRight, ShieldCheck } from 'lucide-react';
 import { useSite, useDonationModal } from '../../context/SiteContext';
+import { getWhatsAppUrl, getDialablePhone } from '../../utils/helpers';
 
 const navLinks = [
   { to: '/', label: 'Home' },
@@ -83,7 +84,7 @@ export default function Navbar() {
           {/* Contact Details */}
           <div className="flex items-center gap-4 sm:gap-6 min-w-0">
             <a
-              href={`tel:${siteInfo.phoneRaw || '+919994291195'}`}
+              href={`tel:${getDialablePhone(siteInfo.phoneRaw || siteInfo.phone)}`}
               className="inline-flex items-center gap-1.5 hover:text-accent transition-colors shrink-0"
               title="Call Organization"
               aria-label={`Call organization at ${siteInfo.phone || '+91 9994291195'}`}
@@ -93,25 +94,25 @@ export default function Navbar() {
             </a>
 
             <a
-              href={`mailto:${siteInfo.email || 'manninmaindhangramatrust@gmail.com'}`}
+              href={`mailto:${siteInfo.email}`}
               className="hidden md:inline-flex items-center gap-1.5 hover:text-accent transition-colors truncate"
               title="Email Organization"
               aria-label={`Email organization at ${siteInfo.email}`}
             >
               <Mail size={13} className="text-accent shrink-0" />
-              <span className="truncate">{siteInfo.email || 'manninmaindhangramatrust@gmail.com'}</span>
+              <span className="truncate">{siteInfo.email}</span>
             </a>
 
             <div className="hidden 2xl:inline-flex items-center gap-1.5 text-white/70 shrink-0">
               <MapPin size={13} className="text-accent shrink-0" />
-              <span>Palacode, Dharmapuri, Tamil Nadu</span>
+              <span>{siteInfo.locationShort || (siteInfo.district ? `${siteInfo.district}, ${siteInfo.state || "Tamil Nadu"}` : "Palacode, Dharmapuri, Tamil Nadu")}</span>
             </div>
           </div>
 
           {/* Quick Actions (WhatsApp & Admin) */}
           <div className="flex items-center gap-3 shrink-0">
             <a
-              href={siteInfo.whatsappUrl || 'https://wa.me/919994291195'}
+              href={siteInfo.whatsappUrl || getWhatsAppUrl(siteInfo.whatsappNumber)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-600/80 hover:bg-emerald-600 text-white text-[11px] font-medium transition-colors"
@@ -185,7 +186,7 @@ export default function Navbar() {
           {/* AREA 3: RIGHT — Desktop Action Buttons (xl+ only) */}
           <div className="hidden xl:flex items-center gap-2 2xl:gap-3 shrink-0">
             <a
-              href={siteInfo.whatsappUrl || 'https://wa.me/919994291195'}
+              href={siteInfo.whatsappUrl || getWhatsAppUrl(siteInfo.whatsappNumber)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center h-9 w-9 2xl:h-10 2xl:w-10 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors border border-emerald-200/60"
@@ -196,7 +197,7 @@ export default function Navbar() {
             </a>
 
             <a
-              href={`tel:${siteInfo.phoneRaw || '+919994291195'}`}
+              href={`tel:${getDialablePhone(siteInfo.phoneRaw || siteInfo.phone)}`}
               className="inline-flex items-center justify-center h-9 w-9 2xl:h-10 2xl:w-10 rounded-full bg-stone-100 text-[#173B2A] hover:bg-stone-200 transition-colors border border-stone-200"
               title="Call Us Directly"
               aria-label="Call Us"
@@ -322,7 +323,7 @@ export default function Navbar() {
                 {/* Direct Contact Buttons */}
                 <div className="grid grid-cols-2 gap-2.5">
                   <a
-                    href={`tel:${siteInfo.phoneRaw || '+919994291195'}`}
+                    href={`tel:${getDialablePhone(siteInfo.phoneRaw || siteInfo.phone)}`}
                     className="flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-white hover:bg-stone-100 active:bg-stone-200 text-stone-800 text-xs font-semibold border border-stone-200 min-h-[44px] transition-colors"
                     aria-label={`Call ${siteInfo.phone}`}
                   >
@@ -331,7 +332,7 @@ export default function Navbar() {
                   </a>
 
                   <a
-                    href={siteInfo.whatsappUrl || 'https://wa.me/919994291195'}
+                    href={siteInfo.whatsappUrl || getWhatsAppUrl(siteInfo.whatsappNumber)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-800 text-xs font-semibold border border-emerald-200/80 min-h-[44px] transition-colors"

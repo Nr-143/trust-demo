@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Heart, Mail, Phone, MapPin, MessageCircle, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useSite, useDonationModal } from '../../context/SiteContext';
+import { formatWhatsAppDisplay, getWhatsAppUrl, getDialablePhone } from '../../utils/helpers';
 
 export default function Footer() {
   const { siteInfo } = useSite();
@@ -152,10 +153,10 @@ export default function Footer() {
               <li className="flex items-center gap-2.5">
                 <Phone size={16} className="text-accent shrink-0" />
                 <a
-                  href={`tel:${siteInfo.phoneRaw || '+919994291195'}`}
+                  href={`tel:${getDialablePhone(siteInfo.phoneRaw || siteInfo.phone)}`}
                   className="text-white/80 hover:text-white transition-colors"
                 >
-                  {siteInfo.phone}
+                  {siteInfo.phone || '+91 99942 91195'}
                 </a>
               </li>
 
@@ -172,12 +173,12 @@ export default function Footer() {
               <li className="flex items-center gap-2.5">
                 <MessageCircle size={16} className="text-accent shrink-0" />
                 <a
-                  href={siteInfo.whatsappUrl || 'https://wa.me/919994291195'}
+                  href={siteInfo.whatsappUrl || getWhatsAppUrl(siteInfo.whatsappNumber)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-white/80 hover:text-white transition-colors"
                 >
-                  WhatsApp: +91 99942 91195
+                  WhatsApp: {formatWhatsAppDisplay(siteInfo.whatsappNumber)}
                 </a>
               </li>
             </ul>

@@ -7,6 +7,7 @@ import PageHeader from '../../components/common/PageHeader';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import { supabase, isSupabaseConfigured } from '../../services/supabaseClient';
+import { formatWhatsAppDisplay, getWhatsAppUrl, getDialablePhone } from '../../utils/helpers';
 
 const contactSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -117,10 +118,10 @@ export default function ContactPage() {
                   <div>
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Direct Phone</p>
                     <a
-                      href={`tel:${siteInfo.phoneRaw || '+919994291195'}`}
+                      href={`tel:${getDialablePhone(siteInfo.phoneRaw || siteInfo.phone)}`}
                       className="text-sm sm:text-base font-bold text-primary-dark hover:text-primary transition-colors"
                     >
-                      {siteInfo.phone}
+                      {siteInfo.phone || '+91 99942 91195'}
                     </a>
                     <p className="text-[11px] text-gray-400">Available Mon–Sat, 9am–6pm</p>
                   </div>
@@ -134,12 +135,12 @@ export default function ContactPage() {
                   <div>
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">WhatsApp Line</p>
                     <a
-                      href={siteInfo.whatsappUrl || 'https://wa.me/919994291195'}
+                      href={siteInfo.whatsappUrl || getWhatsAppUrl(siteInfo.whatsappNumber)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm sm:text-base font-bold text-emerald-700 hover:text-emerald-800 transition-colors"
                     >
-                      +91 99942 91195
+                      {formatWhatsAppDisplay(siteInfo.whatsappNumber)}
                     </a>
                     <p className="text-[11px] text-gray-400">Fast messaging & document sharing</p>
                   </div>
@@ -172,6 +173,11 @@ export default function ContactPage() {
                     <p className="text-xs sm:text-sm text-gray-700 leading-relaxed font-medium mt-0.5">
                       {siteInfo.address}
                     </p>
+                    {(siteInfo.district || siteInfo.state || siteInfo.pincode) && (
+                      <p className="text-xs text-gray-500 mt-1 font-medium">
+                        {[siteInfo.district, siteInfo.state, siteInfo.pincode].filter(Boolean).join(', ')}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -185,7 +191,7 @@ export default function ContactPage() {
                 or location guidance.
               </p>
               <a
-                href={siteInfo.whatsappUrl || 'https://wa.me/919994291195'}
+                href={siteInfo.whatsappUrl || getWhatsAppUrl(siteInfo.whatsappNumber)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-2xs transition-colors"

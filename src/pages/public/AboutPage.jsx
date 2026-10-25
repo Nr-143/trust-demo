@@ -1,6 +1,7 @@
 import PageHeader from '../../components/common/PageHeader';
 import { useSite } from '../../context/SiteContext';
 import { Heart, Target, Eye, Users, MapPin, Phone, Mail, ShieldCheck } from 'lucide-react';
+import { getDialablePhone } from '../../utils/helpers';
 
 export default function AboutPage() {
   const { siteInfo, isLoading } = useSite();
@@ -116,14 +117,21 @@ export default function AboutPage() {
           <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-xs text-gray-600">
             <span className="flex items-center gap-1.5">
               <MapPin size={13} className="text-[#176B36]" />
-              <span>{siteInfo.address}</span>
+              <span>
+                {siteInfo.address}
+                {(siteInfo.district || siteInfo.state || siteInfo.pincode) && (
+                  <span className="block text-gray-500 text-[11px] mt-0.5">
+                    {[siteInfo.district, siteInfo.state, siteInfo.pincode].filter(Boolean).join(', ')}
+                  </span>
+                )}
+              </span>
             </span>
           </div>
 
           <div className="mt-2 flex flex-wrap items-center justify-center gap-6 text-xs text-gray-600">
             <span className="flex items-center gap-1.5">
               <Phone size={13} className="text-[#176B36]" />
-              <a href={`tel:${siteInfo.phoneRaw}`} className="hover:text-primary">
+              <a href={`tel:${getDialablePhone(siteInfo.phoneRaw || siteInfo.phone)}`} className="hover:text-primary">
                 {siteInfo.phone}
               </a>
             </span>

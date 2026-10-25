@@ -32,7 +32,7 @@ export default function HeroSection() {
               </span>
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-stone-200/70 text-stone-700">
                 <MapPin size={11} className="text-primary" />
-                <span>Dharmapuri, Tamil Nadu</span>
+                <span>{siteInfo.locationShort || (siteInfo.district ? `${siteInfo.district}, ${siteInfo.state || "Tamil Nadu"}` : "Dharmapuri, Tamil Nadu")}</span>
               </span>
             </div>
 

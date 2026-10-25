@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import { saveSiteContent } from '../../services/supabaseService';
+import { getDialablePhone, getWhatsAppUrl } from '../../utils/helpers';
 import {
   Save,
   Megaphone,
@@ -98,11 +99,24 @@ export default function AdminContent() {
 
   const onSubmit = async (formData) => {
     try {
+      const cleanPhoneRaw = getDialablePhone(formData.phone);
+      const cleanWhatsAppDigits = (formData.whatsappNumber || '919994291195').replace(/\D/g, '');
+      const fullWhatsAppNumber = cleanWhatsAppDigits.length === 10 ? `91${cleanWhatsAppDigits}` : (cleanWhatsAppDigits || '919994291195');
+      const whatsappUrl = getWhatsAppUrl(fullWhatsAppNumber);
+
+      const locationParts = [formData.district, formData.state].filter(Boolean);
+      const locationShort = locationParts.length > 0
+        ? `${locationParts.join(', ')}${formData.pincode ? ` - ${formData.pincode}` : ''}`
+        : siteInfo.locationShort || 'Palacode, Dharmapuri, Tamil Nadu';
+
       // Keep existing non-editable logo references and computed values
       const mergedData = {
         ...siteInfo,
         ...formData,
-        whatsappUrl: `https://wa.me/${formData.whatsappNumber || '919994291195'}?text=Hello%20Mannin%20Maindhan%20Grama%20Arakkattalai%2C%20I%20would%20like%20to%20connect%20with%20your%20team.`,
+        phoneRaw: cleanPhoneRaw,
+        whatsappNumber: fullWhatsAppNumber,
+        whatsappUrl,
+        locationShort,
       };
 
       await saveSiteContent(mergedData);
