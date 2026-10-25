@@ -118,7 +118,7 @@ export default function AdminDashboard() {
           </div>
           <h1 className="text-2xl font-bold text-primary-dark">Admin Control Dashboard</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Real-time content management, verified submissions, and campaign records for {siteInfo.name}.
+            Real-time content management, verified submissions, and campaign records for {siteInfo?.name || 'Mannin Maindhan Grama Arakkattalai'}.
           </p>
         </div>
 

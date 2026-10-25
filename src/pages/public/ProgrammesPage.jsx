@@ -31,7 +31,7 @@ const iconMap = {
 };
 
 export default function ProgrammesPage() {
-  const { programmes } = useSite();
+  const { programmes, siteInfo } = useSite();
 
   const activeProgrammes = (programmes || []).filter(
     (p) => p.status === 'active' || p.status === 'published' || !p.status
@@ -42,7 +42,7 @@ export default function ProgrammesPage() {
       <PageHeader
         title="Our Community Programmes"
         titleTamil="எங்கள் கிராம வளர்ச்சி திட்டங்கள்"
-        description={`Comprehensive grassroots developmental initiatives serving rural communities across ${siteInfo.district || 'Palacode and Dharmapuri'} district.`}
+        description={`Comprehensive grassroots developmental initiatives serving rural communities across ${siteInfo?.district || 'Palacode and Dharmapuri'} district.`}
       />
 
       <div className="site-container py-12 sm:py-16">

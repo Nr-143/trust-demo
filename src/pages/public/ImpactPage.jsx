@@ -77,7 +77,7 @@ export default function ImpactPage() {
                 Activity Across All 6 Verticals
               </h2>
               <p className="text-xs sm:text-sm text-gray-500">
-                Community coverage overview across {siteInfo.district || 'Palacode Taluk and Dharmapuri'} rural regions
+                Community coverage overview across {siteInfo?.district || 'Palacode Taluk and Dharmapuri'} rural regions
               </p>
             </div>
           </div>
