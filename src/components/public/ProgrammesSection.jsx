@@ -32,7 +32,15 @@ export default function ProgrammesSection() {
   const { programmes } = useSite();
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const categories = ['All', 'Education', 'Water & Health', 'Environment', 'Livelihood'];
+  const categories = [
+    'All',
+    'Education',
+    'Livelihood & Women',
+    'Youth & Sports',
+    'Environment & Energy',
+    'Sanitation & Health',
+    'Water Management',
+  ];
 
   const activeProgrammes = (programmes || []).filter(
     (p) => p.status === 'active' || p.status === 'published' || !p.status
@@ -43,16 +51,16 @@ export default function ProgrammesSection() {
       ? activeProgrammes
       : activeProgrammes.filter((p) => {
           if (selectedCategory === 'Education') return p.category.includes('Education');
-          if (selectedCategory === 'Water & Health')
-            return (
-              p.category.includes('Water') ||
-              p.category.includes('Health') ||
-              p.category.includes('Sanitation')
-            );
-          if (selectedCategory === 'Environment')
+          if (selectedCategory === 'Livelihood & Women')
+            return p.category.includes('Livelihood') || p.category.includes('Women');
+          if (selectedCategory === 'Youth & Sports')
+            return p.category.includes('Drug') || p.category.includes('Sports');
+          if (selectedCategory === 'Environment & Energy')
             return p.category.includes('Environment') || p.category.includes('Energy');
-          if (selectedCategory === 'Livelihood')
-            return p.category.includes('Livelihood') || p.category.includes('Community');
+          if (selectedCategory === 'Sanitation & Health')
+            return p.category.includes('Sanitation') || p.category.includes('Healthcare');
+          if (selectedCategory === 'Water Management')
+            return p.category.includes('Water Management') || p.category.includes('Water Conservation');
           return true;
         });
 
@@ -63,14 +71,14 @@ export default function ProgrammesSection() {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100/80 text-[#173B2A] border border-emerald-200 mb-3">
-            <span>Our 9 Core Verticals</span>
+            <span>Our 6 Core Verticals</span>
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#173B2A] tracking-tight">
             Integrated Rural Development Programmes
           </h2>
           <p className="mt-3 text-base text-gray-600 leading-relaxed font-normal">
-            Addressing deep-rooted rural challenges through 9 distinct pillars spanning education,
-            clean drinking water, youth empowerment, healthcare, and sustainable agriculture.
+            Addressing deep-rooted rural challenges through 6 focused verticals spanning education,
+            women-led livelihood, sports and youth development, clean energy, sanitation and health, and community water stewardship.
           </p>
 
           {/* Quick Filter Pill Buttons */}
@@ -91,7 +99,7 @@ export default function ProgrammesSection() {
           </div>
         </div>
 
-        {/* 9 Programmes Grid */}
+        {/* 6 Programmes Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
           {filteredProgrammes.map((prog) => {
             const Icon = programmeIconMap[prog.icon] || GraduationCap;

@@ -86,7 +86,7 @@ export default function HeroSection() {
             <div className="pt-6 border-t border-stone-200/80 grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div className="flex items-center gap-2">
                 <CheckCircle size={16} className="text-[#176B36] shrink-0" />
-                <span className="text-xs font-medium text-gray-700">9 Core Verticals</span>
+                <span className="text-xs font-medium text-gray-700">6 Core Verticals</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle size={16} className="text-[#176B36] shrink-0" />

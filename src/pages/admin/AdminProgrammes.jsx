@@ -39,13 +39,10 @@ const programmeFormSchema = z.object({
 
 const PRESET_ICONS = [
   { id: 'GraduationCap', label: 'Education', icon: GraduationCap },
-  { id: 'Briefcase', label: 'Livelihoods', icon: Briefcase },
-  { id: 'ShieldCheck', label: 'Protection', icon: ShieldCheck },
-  { id: 'Trees', label: 'Environment', icon: Trees },
-  { id: 'SunMedium', label: 'Solar Energy', icon: SunMedium },
-  { id: 'Sparkles', label: 'Sanitation', icon: Sparkles },
-  { id: 'HeartPulse', label: 'Healthcare', icon: HeartPulse },
-  { id: 'Droplet', label: 'Drinking Water', icon: Droplet },
+  { id: 'Briefcase', label: 'Livelihood & Women', icon: Briefcase },
+  { id: 'ShieldCheck', label: 'Drug-Free & Sports', icon: ShieldCheck },
+  { id: 'Trees', label: 'Environment & Energy', icon: Trees },
+  { id: 'HeartPulse', label: 'Sanitation & Healthcare', icon: HeartPulse },
   { id: 'Waves', label: 'Water Management', icon: Waves },
 ];
 
@@ -511,14 +508,11 @@ export default function AdminProgrammes() {
                   </label>
                   <select {...createForm.register('category')} className={inputClasses}>
                     <option value="Education">Education</option>
-                    <option value="Livelihood">Livelihood Development</option>
-                    <option value="Social Welfare">Drug-Free Communities</option>
-                    <option value="Environment">Environmental Protection</option>
-                    <option value="Energy">Renewable Energy</option>
-                    <option value="Sanitation">Village Sanitation</option>
-                    <option value="Healthcare">Community Healthcare</option>
-                    <option value="Water">Drinking Water</option>
-                    <option value="Agriculture">Community Water Management</option>
+                    <option value="Livelihood Development and Women Empowerment">Livelihood Development and Women Empowerment</option>
+                    <option value="Drug-Free Communities and Sports Development">Drug-Free Communities and Sports Development</option>
+                    <option value="Environmental Protection and Renewable Energy">Environmental Protection and Renewable Energy</option>
+                    <option value="Sanitation and Healthcare">Sanitation and Healthcare</option>
+                    <option value="Community Water Management">Community Water Management</option>
                   </select>
                 </div>
 
@@ -640,14 +634,11 @@ export default function AdminProgrammes() {
                   </label>
                   <select {...editForm.register('category')} className={inputClasses}>
                     <option value="Education">Education</option>
-                    <option value="Livelihood">Livelihood Development</option>
-                    <option value="Social Welfare">Drug-Free Communities</option>
-                    <option value="Environment">Environmental Protection</option>
-                    <option value="Energy">Renewable Energy</option>
-                    <option value="Sanitation">Village Sanitation</option>
-                    <option value="Healthcare">Community Healthcare</option>
-                    <option value="Water">Drinking Water</option>
-                    <option value="Agriculture">Community Water Management</option>
+                    <option value="Livelihood Development and Women Empowerment">Livelihood Development and Women Empowerment</option>
+                    <option value="Drug-Free Communities and Sports Development">Drug-Free Communities and Sports Development</option>
+                    <option value="Environmental Protection and Renewable Energy">Environmental Protection and Renewable Energy</option>
+                    <option value="Sanitation and Healthcare">Sanitation and Healthcare</option>
+                    <option value="Community Water Management">Community Water Management</option>
                   </select>
                 </div>
 

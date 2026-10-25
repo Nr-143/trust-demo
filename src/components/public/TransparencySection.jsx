@@ -16,7 +16,7 @@ export default function TransparencySection() {
     {
       title: 'Community Programmes',
       titleTamil: 'செயல்திட்டங்கள்',
-      description: 'Overview of 9 active development verticals and village coverage.',
+      description: 'Overview of 6 active development verticals and village coverage.',
       to: '/programmes',
       badge: 'Operations',
     },

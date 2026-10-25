@@ -8,7 +8,7 @@
 import { initialData } from '../../data/initialData.js';
 
 export const STORAGE_KEY = 'mmg_trust_db_v3';
-export const STORAGE_VERSION = '3.0.0';
+export const STORAGE_VERSION = '4.0.0';
 
 /**
  * Generate a cryptographically secure or robust UUID v4 identifier.
@@ -80,6 +80,14 @@ function mergeWithDefaults(savedData, defaults) {
   for (const coll of arrayCollections) {
     if (!Array.isArray(merged[coll])) {
       merged[coll] = Array.isArray(defaults[coll]) ? deepClone(defaults[coll]) : [];
+    }
+  }
+
+  // Seamlessly migrate legacy 9-programme structure to the exact 6 verticals
+  if (Array.isArray(merged.programmes)) {
+    const hasOldDrinkingWater = merged.programmes.some((p) => p.id === 'prog-drinking-water');
+    if (hasOldDrinkingWater || merged.programmes.length === 9) {
+      merged.programmes = deepClone(defaults.programmes);
     }
   }
 

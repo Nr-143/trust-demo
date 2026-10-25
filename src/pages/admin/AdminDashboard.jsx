@@ -257,7 +257,7 @@ export default function AdminDashboard() {
                   </div>
                   <div>
                     <p className="text-xs font-bold text-stone-800">Add or Edit Programmes</p>
-                    <p className="text-[11px] text-stone-500">9 focus development verticals</p>
+                    <p className="text-[11px] text-stone-500">6 focus development verticals</p>
                   </div>
                 </div>
                 <ArrowRight size={14} className="text-stone-400 group-hover:translate-x-1 transition-transform" />

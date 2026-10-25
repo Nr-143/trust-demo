@@ -66,7 +66,7 @@ export default function ImpactPage() {
           })}
         </div>
 
-        {/* Breakdown by 9 Programmes */}
+        {/* Breakdown by 6 Programmes */}
         <div className="bg-white border border-stone-200 rounded-3xl p-8 sm:p-10 shadow-2xs mb-12">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2.5 rounded-xl bg-emerald-100 text-[#176B36]">
@@ -74,7 +74,7 @@ export default function ImpactPage() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-[#173B2A]">
-                Activity Across All 9 Verticals
+                Activity Across All 6 Verticals
               </h2>
               <p className="text-xs sm:text-sm text-gray-500">
                 Community coverage overview across Palacode Taluk and Dharmapuri rural regions
@@ -82,7 +82,7 @@ export default function ImpactPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {programmes.map((p) => (
               <div
                 key={p.id}

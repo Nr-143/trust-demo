@@ -16,7 +16,7 @@ export default function HomePage() {
       {/* 2. Impact Section with Configurable Stat Cards */}
       <ImpactSection />
 
-      {/* 3. Programmes Section (All 9 Distinct Verticals) */}
+      {/* 3. Programmes Section (All 6 Distinct Verticals) */}
       <ProgrammesSection />
 
       {/* 4. Featured Campaigns (3 Demonstration Causes) */}

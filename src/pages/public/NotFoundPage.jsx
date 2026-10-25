@@ -42,7 +42,7 @@ export default function NotFoundPage() {
             className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white hover:bg-stone-50 text-[#173B2A] text-xs font-semibold border border-stone-200 shadow-2xs transition-colors"
           >
             <FolderKanban size={15} className="text-primary" />
-            <span>Our 9 Verticals</span>
+            <span>Our 6 Verticals</span>
           </Link>
 
           <Link

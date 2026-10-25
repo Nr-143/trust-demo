@@ -81,22 +81,19 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Core Programmes (9 verticals) */}
+          {/* Core Programmes (6 verticals) */}
           <div className="lg:col-span-3">
             <h3 className="font-semibold text-sm mb-4 text-accent tracking-wide uppercase">
-              Our 9 Focus Verticals
+              Our 6 Focus Verticals
             </h3>
             <ul className="space-y-2 text-sm">
               {[
-                { name: 'Rural Education', to: '/programmes#prog-education' },
-                { name: 'Livelihood Development', to: '/programmes#prog-livelihood' },
-                { name: 'Drug-Free Communities', to: '/programmes#prog-drug-free' },
-                { name: 'Environmental Protection', to: '/programmes#prog-environment' },
-                { name: 'Renewable Energy', to: '/programmes#prog-renewable-energy' },
-                { name: 'Village Sanitation', to: '/programmes#prog-sanitation' },
-                { name: 'Community Healthcare', to: '/programmes#prog-healthcare' },
-                { name: 'Safe Drinking Water', to: '/programmes#prog-drinking-water' },
-                { name: 'Water Management', to: '/programmes#prog-water-management' },
+                { name: 'Education', to: '/programmes#prog-education' },
+                { name: 'Livelihood & Women Empowerment', to: '/programmes#prog-livelihood-women' },
+                { name: 'Drug-Free & Sports Development', to: '/programmes#prog-drug-free-sports' },
+                { name: 'Environment & Renewable Energy', to: '/programmes#prog-environment-energy' },
+                { name: 'Sanitation & Healthcare', to: '/programmes#prog-sanitation-healthcare' },
+                { name: 'Community Water Management', to: '/programmes#prog-water-management' },
               ].map((prog) => (
                 <li key={prog.name}>
                   <Link
