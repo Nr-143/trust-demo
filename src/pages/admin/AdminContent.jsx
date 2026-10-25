@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
@@ -64,6 +64,37 @@ export default function AdminContent() {
         'Mannin Maindhan Grama Arakkattalai. All rights reserved. Registered Charitable Trust.',
     },
   });
+
+  // Keep form in sync when fresh siteInfo arrives from Supabase
+  useEffect(() => {
+    if (siteInfo && !isDirty) {
+      reset({
+        name: siteInfo.name || '',
+        nameTamil: siteInfo.nameTamil || '',
+        shortName: siteInfo.shortName || '',
+        tagline: siteInfo.tagline || '',
+        taglineTamil: siteInfo.taglineTamil || '',
+        heroHeading: siteInfo.heroHeading || '',
+        heroSubheading: siteInfo.heroSubheading || '',
+        primaryCtaText: siteInfo.primaryCtaText || 'Support Our Mission',
+        secondaryCtaText: siteInfo.secondaryCtaText || 'Become a Volunteer',
+        missionStatement: siteInfo.missionStatement || '',
+        visionStatement: siteInfo.visionStatement || '',
+        announcementBanner: siteInfo.announcementBanner || '',
+        announcementActive: siteInfo.announcementActive ?? true,
+        email: siteInfo.email || '',
+        phone: siteInfo.phone || '',
+        whatsappNumber: siteInfo.whatsappNumber || '',
+        address: siteInfo.address || '',
+        district: siteInfo.district || '',
+        state: siteInfo.state || '',
+        pincode: siteInfo.pincode || '',
+        founded: siteInfo.founded || '',
+        footerAboutText: siteInfo.footerAboutText || '',
+        footerCopyright: siteInfo.footerCopyright || '',
+      });
+    }
+  }, [siteInfo, reset, isDirty]);
 
   const onSubmit = async (formData) => {
     try {

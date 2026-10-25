@@ -3,14 +3,14 @@ import { useSite } from '../../context/SiteContext';
 import { Heart, Target, Eye, Users, MapPin, Phone, Mail, ShieldCheck } from 'lucide-react';
 
 export default function AboutPage() {
-  const { siteInfo } = useSite();
+  const { siteInfo, isLoading } = useSite();
 
   return (
     <>
       <PageHeader
-        title="About Mannin Maindhan Grama Arakkattalai"
-        titleTamil="எங்களைப் பற்றி • மண்ணின் மைந்தன் கிராம அறக்கட்டளை"
-        description="A grassroots rural development trust anchored in Dharmapuri, working directly with village communities to foster sustainable, self-reliant change."
+        title={siteInfo.name ? `About ${siteInfo.name}` : "About Mannin Maindhan Grama Arakkattalai"}
+        titleTamil={siteInfo.nameTamil ? `எங்களைப் பற்றி • ${siteInfo.nameTamil}` : "எங்களைப் பற்றி • மண்ணின் மைந்தன் கிராம அறக்கட்டளை"}
+        description={siteInfo.tagline || "A grassroots rural development trust anchored in Dharmapuri, working directly with village communities to foster sustainable, self-reliant change."}
       />
 
       <div className="site-container py-12 sm:py-16">
@@ -24,11 +24,19 @@ export default function AboutPage() {
               </div>
               <h2 className="text-xl font-bold text-[#173B2A]">Our Mission</h2>
             </div>
-            <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
-              To empower rural hamlets and agrarian families in Tamil Nadu through holistic initiatives
-              spanning foundational education, safe drinking water, preventive healthcare, native afforestation,
-              and sustainable livelihood skills — ensuring dignity and lasting self-reliance for every villager.
-            </p>
+            {isLoading ? (
+              <div className="space-y-2 animate-pulse py-2">
+                <div className="h-4 bg-stone-200 rounded w-full"></div>
+                <div className="h-4 bg-stone-200 rounded w-5/6"></div>
+                <div className="h-4 bg-stone-200 rounded w-4/6"></div>
+              </div>
+            ) : (
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-line">
+                {siteInfo.missionStatement || (
+                  <span className="text-stone-400 italic">No mission statement provided.</span>
+                )}
+              </p>
+            )}
           </div>
 
           <div className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 shadow-2xs">
@@ -38,11 +46,19 @@ export default function AboutPage() {
               </div>
               <h2 className="text-xl font-bold text-[#173B2A]">Our Vision</h2>
             </div>
-            <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
-              A vibrant Tamil Nadu where every rural village thrives with clean water security, well-equipped
-              learning spaces for children, accessible primary healthcare, green ecological canopy, and
-              empowered rural youth leading community progress.
-            </p>
+            {isLoading ? (
+              <div className="space-y-2 animate-pulse py-2">
+                <div className="h-4 bg-stone-200 rounded w-full"></div>
+                <div className="h-4 bg-stone-200 rounded w-5/6"></div>
+                <div className="h-4 bg-stone-200 rounded w-4/6"></div>
+              </div>
+            ) : (
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-line">
+                {siteInfo.visionStatement || (
+                  <span className="text-stone-400 italic">No vision statement provided.</span>
+                )}
+              </p>
+            )}
           </div>
         </div>
 

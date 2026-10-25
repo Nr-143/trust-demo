@@ -11,6 +11,11 @@ import { initialData } from '../data/initialData';
 // Helper to normalize Supabase errors
 function handleDbError(operation, error) {
   console.error(`[Supabase Error in ${operation}]:`, error);
+  if (error?.code === 'PGRST205' || error?.message?.includes('schema cache')) {
+    throw new Error(
+      `Database table not found. Please run the 'supabase/schema.sql' script in your Supabase SQL Editor to initialize the tables.`
+    );
+  }
   throw new Error(error.message || `Database operation failed during ${operation}.`);
 }
 
