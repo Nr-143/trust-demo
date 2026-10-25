@@ -90,7 +90,7 @@ export default function AboutPage() {
         {/* Trust Profile & Verified Contact */}
         <div className="bg-white border border-stone-200 rounded-3xl p-8 sm:p-10 shadow-2xs text-center max-w-3xl mx-auto">
           <img
-            src={siteInfo.logoFull || '/images/logo-full.jpeg'}
+            src={siteInfo.logoFull || '/images/originalLogo.jpeg'}
             alt={siteInfo.name}
             className="h-28 w-28 rounded-full object-cover mx-auto mb-4 ring-4 ring-emerald-500/20"
           />

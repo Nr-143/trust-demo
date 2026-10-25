@@ -55,11 +55,11 @@ export default function Footer() {
           <div className="lg:col-span-4">
             <div className="flex items-center gap-3.5 mb-4">
               <img
-                src={siteInfo.logoBadge || '/images/logo-badge.jpeg'}
+                src={siteInfo.logoBadge || '/images/originalLogo.jpeg'}
                 alt={siteInfo.shortName}
                 className="h-12 w-12 rounded-full object-cover ring-2 ring-emerald-500/40 bg-white"
                 onError={(e) => {
-                  e.currentTarget.src = '/images/logo-full.jpeg';
+                  e.currentTarget.src = '/images/originalLogo.jpeg';
                 }}
               />
               <div>
@@ -207,11 +207,6 @@ export default function Footer() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/60">
             <p>
               © {currentYear} {siteInfo.footerCopyright || `${siteInfo.name} (${siteInfo.nameTamil}). All rights reserved.`}
-            </p>
-            <p className="flex items-center gap-1.5">
-              <span>Empowering rural Dharmapuri with</span>
-              <Heart size={13} className="text-red-400 fill-current" />
-              <span>community dedication</span>
             </p>
           </div>
         </div>

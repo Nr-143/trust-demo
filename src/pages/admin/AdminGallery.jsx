@@ -17,8 +17,8 @@ import { saveImageFile } from '../../services/storage/idbImageStorage';
 import ConfirmModal from '../../components/common/ConfirmModal';
 
 const PRESET_GALLERY_ASSETS = [
-  { label: 'NGO Emblem Logo', url: '/images/logo-badge.jpeg' },
-  { label: 'NGO Banner Logo', url: '/images/logo-full.jpeg' },
+  { label: 'NGO Emblem Logo', url: '/images/originalLogo.jpeg' },
+  { label: 'NGO Banner Logo', url: '/images/originalLogo.jpeg' },
   {
     label: 'Rural School Classroom',
     url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800&auto=format&fit=crop&q=80',
@@ -308,7 +308,7 @@ export default function AdminGallery() {
                   alt={item.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   onError={(e) => {
-                    e.currentTarget.src = '/images/logo-badge.jpeg';
+                    e.currentTarget.src = '/images/originalLogo.jpeg';
                   }}
                 />
 

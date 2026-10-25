@@ -38,7 +38,7 @@ export default function HeroSection() {
 
             {/* Sub-label Organization Identity */}
             <p className="text-xs sm:text-sm font-semibold tracking-wider uppercase text-[#176B36] mb-2">
-              Mannin Maindhan Grama Arakattalai
+              {siteInfo.name || 'Mannin Maindhan Grama Arakkattalai'}
             </p>
 
             {/* Compelling Main Heading */}

@@ -65,11 +65,11 @@ export default function AdminSidebar({ isOpen, onClose }) {
         <div className="px-5 py-4 border-b border-stone-200">
           <div className="flex items-center gap-3">
             <img
-              src={siteInfo.logoBadge || '/images/logo-badge.jpeg'}
+              src={siteInfo.logoBadge || '/images/originalLogo.jpeg'}
               alt={siteInfo.shortName}
               className="h-9 w-9 rounded-full object-cover ring-2 ring-emerald-600/30 bg-white"
               onError={(e) => {
-                e.currentTarget.src = '/images/logo-full.jpeg';
+                e.currentTarget.src = '/images/originalLogo.jpeg';
               }}
             />
             <div className="min-w-0">

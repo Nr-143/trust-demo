@@ -146,11 +146,11 @@ export default function Navbar() {
             >
               <div className="relative shrink-0">
                 <img
-                  src={siteInfo.logoBadge || '/images/logo-badge.jpeg'}
+                  src={siteInfo.logoBadge || '/images/originalLogo.jpeg'}
                   alt={siteInfo.shortName || 'MMG Trust Logo'}
                   className="h-11 w-11 sm:h-13 sm:w-13 xl:h-14 xl:w-14 2xl:h-15 2xl:w-15 rounded-full object-cover ring-2 ring-emerald-700/25 group-hover:ring-emerald-700 transition-all shadow-xs"
                   onError={(e) => {
-                    e.currentTarget.src = '/images/logo-full.jpeg';
+                    e.currentTarget.src = '/images/originalLogo.jpeg';
                   }}
                 />
               </div>
@@ -257,11 +257,11 @@ export default function Navbar() {
               <div className="p-4 sm:p-5 border-b border-stone-200 bg-[#FAF8F2] flex items-center justify-between">
                 <div className="flex items-center gap-3 min-w-0">
                   <img
-                    src={siteInfo.logoBadge || '/images/logo-badge.jpeg'}
+                    src={siteInfo.logoBadge || '/images/originalLogo.jpeg'}
                     alt={siteInfo.shortName}
                     className="h-11 w-11 rounded-full object-cover ring-2 ring-emerald-700/25 shrink-0 shadow-xs"
                     onError={(e) => {
-                      e.currentTarget.src = '/images/logo-full.jpeg';
+                      e.currentTarget.src = '/images/originalLogo.jpeg';
                     }}
                   />
                   <div className="min-w-0">

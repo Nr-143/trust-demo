@@ -47,8 +47,8 @@ const ASSET_PRESETS = [
   { name: 'Tree Plantation', url: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=800&auto=format&fit=crop&q=80' },
   { name: 'Solar Panels', url: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?w=800&auto=format&fit=crop&q=80' },
   { name: 'Community Medical', url: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=800&auto=format&fit=crop&q=80' },
-  { name: 'NGO Emblem Logo', url: '/images/logo-badge.jpeg' },
-  { name: 'NGO Full Banner', url: '/images/logo-full.jpeg' },
+  { name: 'NGO Emblem Logo', url: '/images/originalLogo.jpeg' },
+  { name: 'NGO Full Banner', url: '/images/originalLogo.jpeg' },
 ];
 
 export default function AdminCampaigns() {

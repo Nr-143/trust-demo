@@ -7,8 +7,8 @@
 
 import { initialData } from '../../data/initialData.js';
 
-export const STORAGE_KEY = 'mmg_trust_db_v3';
-export const STORAGE_VERSION = '4.0.0';
+export const STORAGE_KEY = 'mmg_trust_db_v4';
+export const STORAGE_VERSION = '5.0.0';
 
 /**
  * Generate a cryptographically secure or robust UUID v4 identifier.
@@ -52,8 +52,36 @@ function mergeWithDefaults(savedData, defaults) {
     ...(savedData.siteInfo || {}),
   };
 
-  if (merged.siteInfo?.name === 'Mannin Maindhan Grama Arakattalai') {
+  if (
+    !merged.siteInfo?.name ||
+    merged.siteInfo?.name === 'Mannin Maindhan Grama Arakattalai'
+  ) {
     merged.siteInfo.name = defaults.siteInfo.name;
+  }
+
+  // Update logo paths to originalLogo
+  if (
+    !merged.siteInfo?.logoBadge ||
+    merged.siteInfo?.logoBadge === '/images/logo-badge.jpeg' ||
+    merged.siteInfo?.logoBadge === '/images/logo-full.jpeg'
+  ) {
+    merged.siteInfo.logoBadge = '/images/originalLogo.jpeg';
+  }
+  if (
+    !merged.siteInfo?.logoFull ||
+    merged.siteInfo?.logoFull === '/images/logo-full.jpeg' ||
+    merged.siteInfo?.logoFull === '/images/logo-badge.jpeg'
+  ) {
+    merged.siteInfo.logoFull = '/images/originalLogo.jpeg';
+  }
+
+  // Update hero image to ensure client-supplied hero-village.jpg is always used
+  if (
+    !merged.siteInfo?.heroImage ||
+    merged.siteInfo?.heroImage.includes('unsplash') ||
+    merged.siteInfo?.heroImage.includes('531206715517')
+  ) {
+    merged.siteInfo.heroImage = '/images/hero-village.jpg';
   }
 
   // Ensure impact object has structure
@@ -164,6 +192,15 @@ export function loadDatabase() {
   if (typeof window === 'undefined' || !window.localStorage) {
     return deepClone(initialData);
   }
+
+  // Clear obsolete cached database versions so new client images/logos load immediately
+  ['mmg_trust_db', 'mmg_trust_db_v1', 'mmg_trust_db_v2', 'mmg_trust_db_v3'].forEach((oldKey) => {
+    try {
+      window.localStorage.removeItem(oldKey);
+    } catch {
+      // ignore
+    }
+  });
 
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);

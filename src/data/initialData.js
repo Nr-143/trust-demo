@@ -14,15 +14,15 @@ export const initialData = {
     phoneRaw: '+919994291195',
     whatsappNumber: '919994291195',
     whatsappUrl:
-      'https://wa.me/919994291195?text=Hello%20Mannin%20Maindhan%20Grama%20Arakattalai%2C%20I%20would%20like%20to%20connect%20with%20your%20team.',
+      'https://wa.me/919994291195?text=Hello%20Mannin%20Maindhan%20Grama%20Arakkattalai%2C%20I%20would%20like%20to%20connect%20with%20your%20team.',
     address: '2/119, Eruthukuttahalli village, Palacode taluk, Dharmapuri - 636808',
     locationShort: 'Palacode, Dharmapuri - 636808',
     district: 'Dharmapuri',
     state: 'Tamil Nadu',
     pincode: '636808',
     founded: '2024',
-    logoFull: '/images/logo-full.jpeg',
-    logoBadge: '/images/logo-badge.jpeg',
+    logoFull: '/images/originalLogo.jpeg',
+    logoBadge: '/images/originalLogo.jpeg',
     heroImage: '/images/hero-village.jpg',
     missionStatement:
       'To empower rural communities across Dharmapuri and Tamil Nadu by providing sustainable access to quality education, safe drinking water, holistic healthcare, drug awareness, and eco-friendly livelihood solutions.',
@@ -34,7 +34,7 @@ export const initialData = {
     secondaryCtaText: 'Become a Volunteer',
     footerAboutText:
       'A community-rooted charitable trust dedicated to holistic rural development in Dharmapuri and across Tamil Nadu through education, clean water, healthcare, environmental protection, and sustainable livelihoods.',
-    footerCopyright: 'Mannin Maindhan Grama Arakattalai. All rights reserved. Registered Charitable Trust.',
+    footerCopyright: 'Mannin Maindhan Grama Arakkattalai. All rights reserved. Registered Charitable Trust.',
   },
 
   impact: {
