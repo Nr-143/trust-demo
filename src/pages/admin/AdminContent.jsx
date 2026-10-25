@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
+import { saveSiteContent } from '../../services/supabaseService';
 import {
   Save,
   Megaphone,
@@ -64,7 +65,7 @@ export default function AdminContent() {
     },
   });
 
-  const onSubmit = (formData) => {
+  const onSubmit = async (formData) => {
     try {
       // Keep existing non-editable logo references and computed values
       const mergedData = {
@@ -73,11 +74,12 @@ export default function AdminContent() {
         whatsappUrl: `https://wa.me/${formData.whatsappNumber || '919994291195'}?text=Hello%20Mannin%20Maindhan%20Grama%20Arakkattalai%2C%20I%20would%20like%20to%20connect%20with%20your%20team.`,
       };
 
+      await saveSiteContent(mergedData);
       dispatch({ type: 'UPDATE_SITE_INFO', payload: mergedData });
-      showSuccess('Website copy & configuration updated and saved!', 'Content Saved');
+      showSuccess('Website copy & configuration saved to Supabase and live on public site!', 'Content Saved');
       reset(formData);
     } catch (err) {
-      showError(err.message || 'Failed to save website content', 'Validation Error');
+      showError(err.message || 'Failed to save website content to database', 'Save Error');
     }
   };
 
@@ -465,7 +467,7 @@ export default function AdminContent() {
             ) : (
               <span className="text-emerald-700 font-medium flex items-center gap-1">
                 <CheckCircle size={14} className="text-emerald-600" />
-                All changes in sync with LocalStorage
+                Persistent in Supabase Database
               </span>
             )}
           </div>

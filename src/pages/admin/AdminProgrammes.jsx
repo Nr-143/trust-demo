@@ -2,6 +2,11 @@ import { useState, useMemo } from 'react';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import {
+  createProgramme,
+  updateProgramme,
+  deleteProgramme,
+} from '../../services/supabaseService';
+import {
   FolderKanban,
   Plus,
   Search,
@@ -145,81 +150,90 @@ export default function AdminProgrammes() {
     });
   };
 
-  const handleCreateSubmit = (data) => {
+  const handleCreateSubmit = async (data) => {
     try {
+      const payload = {
+        ...data,
+        highlights: ['Community Engagement', 'Volunteer Participation', 'Sustainable Impact'],
+      };
+      const created = await createProgramme(payload);
       dispatch({
         type: 'ADD_PROGRAMME',
-        payload: {
-          ...data,
-          highlights: ['Community Engagement', 'Volunteer Participation', 'Sustainable Impact'],
-          isDemo: false,
-        },
+        payload: created,
       });
-      showSuccess(`New programme "${data.title}" created successfully!`, 'Created');
+      showSuccess(`New programme "${data.title}" saved to database successfully!`, 'Created');
       setCreateModalOpen(false);
       createForm.reset();
     } catch (err) {
-      showError(err.message || 'Failed to create programme', 'Error');
+      showError(err.message || 'Failed to create programme in database', 'Error');
     }
   };
 
-  const handleEditSubmit = (data) => {
+  const handleEditSubmit = async (data) => {
     try {
       if (!editingProgramme) return;
+      const updated = await updateProgramme(editingProgramme.id, {
+        ...editingProgramme,
+        ...data,
+      });
       dispatch({
         type: 'UPDATE_PROGRAMME',
-        payload: {
-          id: editingProgramme.id,
-          ...editingProgramme,
-          ...data,
-        },
+        payload: updated,
       });
-      showSuccess(`Programme "${data.title}" updated successfully!`, 'Updated');
+      showSuccess(`Programme "${data.title}" updated in database!`, 'Updated');
       setEditingProgramme(null);
     } catch (err) {
-      showError(err.message || 'Failed to update programme', 'Error');
+      showError(err.message || 'Failed to update programme in database', 'Error');
     }
   };
 
-  const handleTogglePublish = (prog) => {
+  const handleTogglePublish = async (prog) => {
     try {
-      if (prog.status === 'active') {
-        dispatch({
-          type: 'UPDATE_PROGRAMME',
-          payload: { id: prog.id, status: 'draft' },
-        });
-        showSuccess(`"${prog.title}" has been set to Draft (Unpublished).`, 'Unpublished');
-      } else {
-        dispatch({ type: 'PUBLISH_PROGRAMME', payload: prog.id });
-        showSuccess(`"${prog.title}" is now Published & Active on public site.`, 'Published');
-      }
+      const newStatus = prog.status === 'active' ? 'draft' : 'active';
+      const updated = await updateProgramme(prog.id, { ...prog, status: newStatus });
+      dispatch({
+        type: 'UPDATE_PROGRAMME',
+        payload: updated,
+      });
+      showSuccess(
+        newStatus === 'active'
+          ? `"${prog.title}" is now Published & Active on public site.`
+          : `"${prog.title}" has been set to Draft (Unpublished).`,
+        newStatus === 'active' ? 'Published' : 'Unpublished'
+      );
     } catch (err) {
-      showError(err.message || 'Failed to change status');
+      showError(err.message || 'Failed to change status in database');
     }
   };
 
-  const handleToggleArchive = (prog) => {
+  const handleToggleArchive = async (prog) => {
     try {
-      if (prog.status === 'archived') {
-        dispatch({ type: 'PUBLISH_PROGRAMME', payload: prog.id });
-        showSuccess(`"${prog.title}" has been restored to Active.`, 'Restored');
-      } else {
-        dispatch({ type: 'ARCHIVE_PROGRAMME', payload: prog.id });
-        showSuccess(`"${prog.title}" moved to Archived.`, 'Archived');
-      }
+      const newStatus = prog.status === 'archived' ? 'active' : 'archived';
+      const updated = await updateProgramme(prog.id, { ...prog, status: newStatus });
+      dispatch({
+        type: 'UPDATE_PROGRAMME',
+        payload: updated,
+      });
+      showSuccess(
+        newStatus === 'active'
+          ? `"${prog.title}" has been restored to Active.`
+          : `"${prog.title}" moved to Archived.`,
+        newStatus === 'active' ? 'Restored' : 'Archived'
+      );
     } catch (err) {
-      showError(err.message || 'Failed to archive');
+      showError(err.message || 'Failed to update archive status');
     }
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     try {
+      await deleteProgramme(deleteTarget.id);
       dispatch({ type: 'DELETE_PROGRAMME', payload: deleteTarget.id });
-      showSuccess(`Programme "${deleteTarget.title}" deleted from database.`, 'Deleted');
+      showSuccess(`Programme "${deleteTarget.title}" permanently deleted from database.`, 'Deleted');
       setDeleteTarget(null);
     } catch (err) {
-      showError(err.message || 'Failed to delete programme');
+      showError(err.message || 'Failed to delete programme from database');
     }
   };
 
@@ -762,7 +776,7 @@ export default function AdminProgrammes() {
       <ConfirmModal
         isOpen={Boolean(deleteTarget)}
         title="Delete Programme"
-        message={`Are you sure you want to delete "${deleteTarget?.title}"? This record will be permanently removed from LocalStorage.`}
+        message={`Are you sure you want to delete "${deleteTarget?.title}"? This record will be permanently removed from the Supabase database.`}
         confirmText="Delete Programme"
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteTarget(null)}

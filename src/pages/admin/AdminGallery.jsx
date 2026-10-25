@@ -2,6 +2,12 @@ import { useState, useMemo } from 'react';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import {
+  createGalleryItem,
+  updateGalleryItem,
+  deleteGalleryItem,
+  uploadGalleryMedia,
+} from '../../services/supabaseService';
+import {
   Image as ImageIcon,
   Plus,
   Search,
@@ -13,7 +19,6 @@ import {
   Upload,
   Eye,
 } from 'lucide-react';
-import { saveImageFile } from '../../services/storage/idbImageStorage';
 import ConfirmModal from '../../components/common/ConfirmModal';
 
 const PRESET_GALLERY_ASSETS = [
@@ -108,40 +113,41 @@ export default function AdminGallery() {
       setUploading(true);
 
       if (selectedFile) {
-        const stored = await saveImageFile(selectedFile);
-        finalUrl = stored.previewUrl;
+        const uploaded = await uploadGalleryMedia(selectedFile);
+        finalUrl = uploaded.publicUrl;
       }
 
       if (!finalUrl) {
-        showError('Please enter an image URL or choose a file');
+        showError('Please enter an image URL or choose a file to upload');
         setUploading(false);
         return;
       }
 
-      dispatch({
-        type: 'ADD_GALLERY_ITEM',
-        payload: {
-          title,
-          category,
-          imageUrl: finalUrl,
-          status,
-          isDemo: false,
-        },
+      const created = await createGalleryItem({
+        title,
+        category,
+        imageUrl: finalUrl,
+        status,
       });
 
-      showSuccess(`Photo "${title}" added to gallery!`, 'Saved');
+      dispatch({
+        type: 'ADD_GALLERY_ITEM',
+        payload: created,
+      });
+
+      showSuccess(`Photo "${title}" saved to Supabase gallery!`, 'Saved');
       setTitle('');
       setImageUrl('');
       setSelectedFile(null);
       setCreateModalOpen(false);
     } catch (err) {
-      showError(err.message || 'Failed to add image');
+      showError(err.message || 'Failed to save image to gallery');
     } finally {
       setUploading(false);
     }
   };
 
-  const handleEditSubmit = (e) => {
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
     if (!editTitle.trim()) {
       showError('Please enter an image caption');
@@ -150,47 +156,56 @@ export default function AdminGallery() {
 
     try {
       if (!editingItem) return;
-      dispatch({
-        type: 'UPDATE_GALLERY_ITEM',
-        payload: {
-          id: editingItem.id,
-          ...editingItem,
-          title: editTitle,
-          category: editCategory,
-          imageUrl: editImageUrl,
-          status: editStatus,
-        },
+      const updated = await updateGalleryItem(editingItem.id, {
+        ...editingItem,
+        title: editTitle,
+        category: editCategory,
+        imageUrl: editImageUrl,
+        status: editStatus,
       });
 
-      showSuccess(`Photo caption & status updated!`, 'Updated');
+      dispatch({
+        type: 'UPDATE_GALLERY_ITEM',
+        payload: updated,
+      });
+
+      showSuccess(`Photo caption & status updated in database!`, 'Updated');
       setEditingItem(null);
     } catch (err) {
-      showError(err.message || 'Failed to update photo');
+      showError(err.message || 'Failed to update photo in database');
     }
   };
 
-  const handleToggleStatus = (item) => {
+  const handleToggleStatus = async (item) => {
     try {
-      if (item.status === 'published') {
-        dispatch({ type: 'ARCHIVE_GALLERY_ITEM', payload: item.id });
-        showSuccess(`"${item.title}" moved to archived.`, 'Archived');
-      } else {
-        dispatch({ type: 'PUBLISH_GALLERY_ITEM', payload: item.id });
-        showSuccess(`"${item.title}" published to public gallery.`, 'Published');
-      }
+      const nextStatus = item.status === 'published' ? 'archived' : 'published';
+      const updated = await updateGalleryItem(item.id, { ...item, status: nextStatus });
+
+      dispatch({
+        type: 'UPDATE_GALLERY_ITEM',
+        payload: updated,
+      });
+
+      showSuccess(
+        nextStatus === 'published'
+          ? `"${item.title}" published to public gallery.`
+          : `"${item.title}" moved to archived.`,
+        nextStatus === 'published' ? 'Published' : 'Archived'
+      );
     } catch (err) {
       showError(err.message || 'Failed to toggle status');
     }
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     try {
+      await deleteGalleryItem(deleteTarget.id);
       dispatch({ type: 'DELETE_GALLERY_ITEM', payload: deleteTarget.id });
-      showSuccess(`Image "${deleteTarget.title || 'Selected'}" deleted.`, 'Deleted');
+      showSuccess(`Image "${deleteTarget.title || 'Selected'}" permanently deleted from database.`, 'Deleted');
       setDeleteTarget(null);
     } catch (err) {
-      showError(err.message || 'Failed to remove image');
+      showError(err.message || 'Failed to remove image from database');
     }
   };
 
@@ -487,7 +502,7 @@ export default function AdminGallery() {
               {/* Local File Upload */}
               <div className="p-3 bg-stone-50 border border-dashed border-stone-300 rounded-xl">
                 <label className="block text-xs font-bold text-stone-700 mb-1">
-                  Or Upload Local File (IndexedDB)
+                  Or Upload Local File to Supabase Storage
                 </label>
                 <input
                   type="file"
@@ -496,7 +511,7 @@ export default function AdminGallery() {
                   className="text-xs text-stone-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-dark cursor-pointer"
                 />
                 <p className="text-[11px] text-stone-400 mt-1">
-                  Saved directly inside browser IndexedDB to prevent LocalStorage quota overflow.
+                  Uploads securely to the Supabase Storage 'gallery-media' bucket.
                 </p>
               </div>
 

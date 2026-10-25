@@ -2,6 +2,11 @@ import { useState, useMemo } from 'react';
 import { useSite, useSiteDispatch, useDonationModal } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import {
+  createCampaign,
+  updateCampaign,
+  deleteCampaign,
+} from '../../services/supabaseService';
+import {
   Megaphone,
   Plus,
   Search,
@@ -52,11 +57,12 @@ const ASSET_PRESETS = [
 ];
 
 export default function AdminCampaigns() {
-  const { campaigns, demoDonations } = useSite();
+  const { campaigns, donationPledges, demoDonations } = useSite();
   const dispatch = useSiteDispatch();
   const { openDonationModal } = useDonationModal();
   const { showSuccess, showError } = useToast();
 
+  const pledgesList = donationPledges || demoDonations || [];
   const [activeTab, setActiveTab] = useState('campaigns'); // 'campaigns' | 'donations'
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -137,73 +143,79 @@ export default function AdminCampaigns() {
     });
   };
 
-  const handleCreateSubmit = (data) => {
+  const handleCreateSubmit = async (data) => {
     try {
+      const created = await createCampaign(data);
       dispatch({
         type: 'ADD_CAMPAIGN',
-        payload: {
-          ...data,
-          isDemo: false,
-        },
+        payload: created,
       });
-      showSuccess(`Campaign "${data.title}" created successfully!`, 'Created');
+      showSuccess(`Campaign "${data.title}" saved to database successfully!`, 'Created');
       setCreateModalOpen(false);
       createForm.reset();
     } catch (err) {
-      showError(err.message || 'Failed to create campaign', 'Error');
+      showError(err.message || 'Failed to create campaign in database', 'Error');
     }
   };
 
-  const handleEditSubmit = (data) => {
+  const handleEditSubmit = async (data) => {
     try {
       if (!editingCampaign) return;
+      const updated = await updateCampaign(editingCampaign.id, {
+        ...editingCampaign,
+        ...data,
+      });
       dispatch({
         type: 'UPDATE_CAMPAIGN',
-        payload: {
-          id: editingCampaign.id,
-          ...editingCampaign,
-          ...data,
-        },
+        payload: updated,
       });
-      showSuccess(`Campaign "${data.title}" updated successfully!`, 'Updated');
+      showSuccess(`Campaign "${data.title}" updated in database!`, 'Updated');
       setEditingCampaign(null);
     } catch (err) {
-      showError(err.message || 'Failed to update campaign', 'Error');
+      showError(err.message || 'Failed to update campaign in database', 'Error');
     }
   };
 
-  const handleTogglePublish = (camp) => {
+  const handleTogglePublish = async (camp) => {
     try {
       const isCurrentlyPublished =
         camp.publicationStatus === 'published' ||
         (!camp.publicationStatus && camp.status === 'active');
 
-      if (isCurrentlyPublished) {
-        dispatch({
-          type: 'UPDATE_CAMPAIGN',
-          payload: { id: camp.id, publicationStatus: 'draft' },
-        });
-        showSuccess(`"${camp.title}" unlisted and set to Draft.`, 'Unpublished');
-      } else {
-        dispatch({
-          type: 'UPDATE_CAMPAIGN',
-          payload: { id: camp.id, publicationStatus: 'published', status: 'active' },
-        });
-        showSuccess(`"${camp.title}" published to public listings.`, 'Published');
-      }
+      const nextPubStatus = isCurrentlyPublished ? 'draft' : 'published';
+      const nextStatus = isCurrentlyPublished ? 'draft' : 'active';
+
+      const updated = await updateCampaign(camp.id, {
+        ...camp,
+        publicationStatus: nextPubStatus,
+        status: nextStatus,
+      });
+
+      dispatch({
+        type: 'UPDATE_CAMPAIGN',
+        payload: updated,
+      });
+
+      showSuccess(
+        isCurrentlyPublished
+          ? `"${camp.title}" unlisted and set to Draft.`
+          : `"${camp.title}" published to public listings.`,
+        isCurrentlyPublished ? 'Unpublished' : 'Published'
+      );
     } catch (err) {
-      showError(err.message || 'Failed to toggle status');
+      showError(err.message || 'Failed to toggle status in database');
     }
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     try {
+      await deleteCampaign(deleteTarget.id);
       dispatch({ type: 'DELETE_CAMPAIGN', payload: deleteTarget.id });
-      showSuccess(`Campaign "${deleteTarget.title}" deleted from LocalStorage.`, 'Deleted');
+      showSuccess(`Campaign "${deleteTarget.title}" permanently deleted from database.`, 'Deleted');
       setDeleteTarget(null);
     } catch (err) {
-      showError(err.message || 'Failed to delete campaign');
+      showError(err.message || 'Failed to delete campaign from database');
     }
   };
 
@@ -296,7 +308,7 @@ export default function AdminCampaigns() {
           }`}
         >
           <Heart size={14} />
-          <span>Donation Activity Log ({demoDonations?.length || 0})</span>
+          <span>Donation Pledges ({pledgesList.length})</span>
         </button>
       </div>
 
@@ -505,20 +517,20 @@ export default function AdminCampaigns() {
           )}
         </>
       ) : (
-        /* Donations Tab */
+        /* Donations / Pledges Tab */
         <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-2xs">
           <div className="p-4 bg-stone-50 border-b border-stone-200 flex items-center justify-between">
             <h3 className="text-xs font-bold text-stone-700 uppercase tracking-wider">
-              Simulated Donor Transactions Log
+              Verified Supporter Pledges & Inquiries
             </h3>
             <span className="text-xs text-stone-500">
-              {demoDonations?.length || 0} demo records saved in LocalStorage
+              {pledgesList.length} records saved in Supabase
             </span>
           </div>
 
-          {!demoDonations || demoDonations.length === 0 ? (
+          {!pledgesList || pledgesList.length === 0 ? (
             <div className="p-10 text-center text-xs text-stone-500">
-              No demo pledges recorded yet. Click &quot;Simulate Donation&quot; to test.
+              No supporter pledges recorded yet. Pledges submitted from campaign detail pages will appear here.
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -527,12 +539,12 @@ export default function AdminCampaigns() {
                   <tr>
                     <th className="px-5 py-3">Supporter Name</th>
                     <th className="px-4 py-3">Campaign Pledged</th>
-                    <th className="px-4 py-3">Demo Amount</th>
+                    <th className="px-4 py-3">Pledge Amount</th>
                     <th className="px-4 py-3">Timestamp</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
-                  {demoDonations.map((d) => (
+                  {pledgesList.map((d) => (
                     <tr key={d.id} className="hover:bg-stone-50/50">
                       <td className="px-5 py-3 font-semibold text-primary-dark">
                         {d.donorName}

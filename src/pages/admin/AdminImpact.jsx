@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
+import {
+  createImpactMetric,
+  updateImpactMetric,
+  deleteImpactMetric,
+} from '../../services/supabaseService';
 import { Edit2, Save, X, Plus, Trash2, CheckCircle2 } from 'lucide-react';
 import ConfirmModal from '../../components/common/ConfirmModal';
 
@@ -28,48 +33,51 @@ export default function AdminImpact() {
     setEditDesc(stat.description || '');
   };
 
-  const handleSaveEdit = (id) => {
+  const handleSaveEdit = async (id) => {
     try {
+      const payload = {
+        id,
+        value: editValue,
+        label: editLabel,
+        description: editDesc,
+      };
+      const updated = await updateImpactMetric(id, payload);
       dispatch({
         type: 'UPDATE_IMPACT_STAT',
-        payload: {
-          id,
-          value: editValue,
-          label: editLabel,
-          description: editDesc,
-        },
+        payload: updated,
       });
       setEditingId(null);
-      showSuccess(`Impact metric "${editLabel}" updated in LocalStorage.`, 'Saved');
+      showSuccess(`Impact metric "${editLabel}" saved to database.`, 'Saved');
     } catch (err) {
-      showError(err.message || 'Failed to update metric');
+      showError(err.message || 'Failed to update metric in database');
     }
   };
 
-  const handleAddStat = (e) => {
+  const handleAddStat = async (e) => {
     e.preventDefault();
     if (!newLabel || !newValue) {
       showError('Please provide both label and value');
       return;
     }
     try {
+      const payload = {
+        label: newLabel,
+        value: newValue,
+        description: newDesc,
+        icon: 'CheckCircle2',
+      };
+      const created = await createImpactMetric(payload);
       dispatch({
         type: 'ADD_IMPACT_STAT',
-        payload: {
-          label: newLabel,
-          value: newValue,
-          description: newDesc,
-          icon: 'CheckCircle2',
-          isDemo: false,
-        },
+        payload: created,
       });
       setNewLabel('');
       setNewValue('');
       setNewDesc('');
       setNewStatModal(false);
-      showSuccess('New metric added to impact statistics.', 'Metric Added');
+      showSuccess('New metric saved to database and live on impact page.', 'Metric Added');
     } catch (err) {
-      showError(err.message || 'Failed to add metric');
+      showError(err.message || 'Failed to add metric to database');
     }
   };
 
@@ -77,14 +85,15 @@ export default function AdminImpact() {
     setDeleteTarget({ id, label });
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
     try {
+      await deleteImpactMetric(deleteTarget.id);
       dispatch({ type: 'DELETE_IMPACT_STAT', payload: deleteTarget.id });
-      showSuccess(`Metric "${deleteTarget.label}" removed.`, 'Deleted');
+      showSuccess(`Metric "${deleteTarget.label}" permanently deleted from database.`, 'Deleted');
       setDeleteTarget(null);
     } catch (err) {
-      showError(err.message || 'Failed to delete metric');
+      showError(err.message || 'Failed to delete metric from database');
     }
   };
 
@@ -230,7 +239,7 @@ export default function AdminImpact() {
 
             <h2 className="text-lg font-bold text-[#173B2A] mb-1">Add Custom Impact Metric</h2>
             <p className="text-xs text-gray-500 mb-4">
-              Stored in LocalStorage and immediately visible on public impact cards.
+              Saved directly to the database and immediately visible on public impact cards.
             </p>
 
             <form onSubmit={handleAddStat} className="space-y-3.5">

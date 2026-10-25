@@ -18,7 +18,7 @@ export default function HeroSection() {
       <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-100/40 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
       <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-100/30 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20" />
 
-      <div className="relative site-container py-10 sm:py-14 md:py-16 lg:py-20 xl:py-22">
+      <div className="relative site-container pt-5 sm:pt-6 md:pt-7 lg:pt-8 xl:pt-9 pb-10 sm:pb-12 md:pb-14 lg:pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-10 lg:gap-12 xl:gap-14 items-center">
           
           {/* Left Column: NGO Information & Copy */}

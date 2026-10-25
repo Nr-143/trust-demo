@@ -28,6 +28,7 @@ export default function AdminDashboard() {
     careers,
     gallery,
     impact,
+    donationPledges,
     demoDonations,
     contactEnquiries,
     siteInfo,
@@ -37,7 +38,7 @@ export default function AdminDashboard() {
 
   const volList = volunteerApplications || volunteers || [];
   const enqList = contactEnquiries || [];
-  const donationsList = demoDonations || [];
+  const donationsList = donationPledges || demoDonations || [];
   const progList = programmes || [];
   const campList = campaigns || [];
 
@@ -79,9 +80,9 @@ export default function AdminDashboard() {
       color: 'bg-blue-50 text-blue-700',
     },
     {
-      label: 'Demo Contributions',
+      label: 'Supporter Pledges',
       count: formatCurrency(totalDonationsAmount),
-      sublabel: `${donationsList.length} pledged records`,
+      sublabel: `${donationsList.length} recorded pledges`,
       icon: Heart,
       to: '/admin/campaigns',
       color: 'bg-rose-50 text-rose-700',
@@ -110,14 +111,14 @@ export default function AdminDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-              Frontend Client Prototype
+            <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
+              Supabase Central Management
             </span>
           </div>
           <h1 className="text-2xl font-bold text-primary-dark">Admin Control Dashboard</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Content management, campaign progress, and demonstration records for {siteInfo.name}.
+            Real-time content management, verified submissions, and campaign records for {siteInfo.name}.
           </p>
         </div>
 
@@ -135,16 +136,8 @@ export default function AdminDashboard() {
             className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-[#FF9800] hover:bg-amber-600 text-white rounded-xl shadow-xs transition-colors cursor-pointer"
           >
             <Heart size={14} className="fill-white/30" />
-            <span>Test Pledge</span>
+            <span>Record Pledge</span>
           </button>
-        </div>
-      </div>
-
-      {/* Simulated Data Notice Banner */}
-      <div className="bg-amber-50 border border-amber-200/90 rounded-2xl p-4 flex items-start gap-3.5">
-        <AlertCircle size={20} className="text-amber-700 shrink-0 mt-0.5" />
-        <div className="text-xs text-amber-900 leading-relaxed">
-          <strong className="font-bold">Simulated Demonstration Environment:</strong> This admin dashboard is a frontend client prototype designed for demonstrating content management to the NGO leadership. All records (programmes, campaigns, pledges, volunteers) are stored locally in your browser (LocalStorage & IndexedDB) and update the public website in real time without a backend server.
         </div>
       </div>
 

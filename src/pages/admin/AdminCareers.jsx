@@ -25,6 +25,11 @@ import { z } from 'zod';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import { formatDate } from '../../utils/helpers';
 import { supabase, isSupabaseConfigured } from '../../services/supabaseClient';
+import {
+  createCareer,
+  updateCareer,
+  deleteCareer,
+} from '../../services/supabaseService';
 
 const careerFormSchema = z.object({
   title: z.string().min(3, 'Position title is required'),
@@ -152,83 +157,88 @@ export default function AdminCareers() {
     });
   };
 
-  const handleCreateSubmit = (data) => {
+  const handleCreateSubmit = async (data) => {
     try {
+      const created = await createCareer(data);
       dispatch({
         type: 'ADD_CAREER',
-        payload: {
-          ...data,
-          postedDate: new Date().toISOString().slice(0, 10),
-          isDemo: false,
-        },
+        payload: created,
       });
-      showSuccess(`Career opportunity "${data.title}" posted successfully!`, 'Posted');
+      showSuccess(`Career opportunity "${data.title}" saved to database!`, 'Posted');
       setCreateModalOpen(false);
       createForm.reset();
     } catch (err) {
-      showError(err.message || 'Failed to post career position');
+      showError(err.message || 'Failed to save career position to database');
     }
   };
 
-  const handleEditSubmit = (data) => {
+  const handleEditSubmit = async (data) => {
     try {
       if (!editingCareer) return;
+      const updated = await updateCareer(editingCareer.id, {
+        ...editingCareer,
+        ...data,
+      });
       dispatch({
         type: 'UPDATE_CAREER',
-        payload: {
-          id: editingCareer.id,
-          ...editingCareer,
-          ...data,
-        },
+        payload: updated,
       });
-      showSuccess(`Position "${data.title}" updated successfully!`, 'Updated');
+      showSuccess(`Position "${data.title}" updated in database!`, 'Updated');
       setEditingCareer(null);
     } catch (err) {
-      showError(err.message || 'Failed to update position');
+      showError(err.message || 'Failed to update position in database');
     }
   };
 
-  const handleTogglePublish = (career) => {
+  const handleTogglePublish = async (career) => {
     try {
       const isPub =
         career.publicationStatus === 'published' ||
         (!career.publicationStatus && career.status === 'open');
 
-      if (isPub) {
-        dispatch({
-          type: 'UPDATE_CAREER',
-          payload: { id: career.id, publicationStatus: 'draft' },
-        });
-        showSuccess(`"${career.title}" unlisted and set to Draft.`, 'Unpublished');
-      } else {
-        dispatch({
-          type: 'UPDATE_CAREER',
-          payload: { id: career.id, publicationStatus: 'published', status: 'open' },
-        });
-        showSuccess(`"${career.title}" published to public careers page.`, 'Published');
-      }
+      const nextPub = isPub ? 'draft' : 'published';
+      const nextStatus = isPub ? 'draft' : 'open';
+
+      const updated = await updateCareer(career.id, {
+        ...career,
+        publicationStatus: nextPub,
+        status: nextStatus,
+      });
+
+      dispatch({
+        type: 'UPDATE_CAREER',
+        payload: updated,
+      });
+
+      showSuccess(
+        isPub ? `"${career.title}" unlisted and set to Draft.` : `"${career.title}" published to public careers page.`,
+        isPub ? 'Unpublished' : 'Published'
+      );
     } catch (err) {
-      showError(err.message || 'Failed to update status');
+      showError(err.message || 'Failed to update status in database');
     }
   };
 
-  const handleArchiveCareer = (career) => {
+  const handleArchiveCareer = async (career) => {
     try {
-      if (career.status === 'archived') {
-        dispatch({
-          type: 'UPDATE_CAREER',
-          payload: { id: career.id, status: 'open', publicationStatus: 'published' },
-        });
-        showSuccess(`"${career.title}" restored from archive.`, 'Restored');
-      } else {
-        dispatch({
-          type: 'UPDATE_CAREER',
-          payload: { id: career.id, status: 'archived', publicationStatus: 'archived' },
-        });
-        showSuccess(`"${career.title}" moved to archived.`, 'Archived');
-      }
+      const isArchived = career.status === 'archived';
+      const updated = await updateCareer(career.id, {
+        ...career,
+        status: isArchived ? 'open' : 'archived',
+        publicationStatus: isArchived ? 'published' : 'archived',
+      });
+
+      dispatch({
+        type: 'UPDATE_CAREER',
+        payload: updated,
+      });
+
+      showSuccess(
+        isArchived ? `"${career.title}" restored from archive.` : `"${career.title}" moved to archived.`,
+        isArchived ? 'Restored' : 'Archived'
+      );
     } catch (err) {
-      showError(err.message || 'Failed to archive position');
+      showError(err.message || 'Failed to update archive status in database');
     }
   };
 
@@ -282,8 +292,9 @@ export default function AdminCareers() {
         dispatch({ type: 'DELETE_JOB_APPLICATION', payload: deleteTarget.id });
         showSuccess(`Job application for "${deleteTarget.name}" deleted.`, 'Deleted');
       } else {
+        await deleteCareer(deleteTarget.id);
         dispatch({ type: 'DELETE_CAREER', payload: deleteTarget.id });
-        showSuccess(`Position "${deleteTarget.title}" deleted.`, 'Deleted');
+        showSuccess(`Position "${deleteTarget.title}" permanently deleted from database.`, 'Deleted');
       }
       setDeleteTarget(null);
     } catch (err) {

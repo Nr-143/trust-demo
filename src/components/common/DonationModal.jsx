@@ -2,20 +2,22 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Heart, X, CheckCircle, ShieldCheck, Sparkles } from 'lucide-react';
+import { Heart, X, CheckCircle, ShieldCheck, Sparkles, Loader2 } from 'lucide-react';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import { formatCurrency } from '../../utils/helpers';
+import { createDonationPledge } from '../../services/supabaseService';
 
 const donationFormSchema = z.object({
   campaignId: z.string().min(1, 'Please select a campaign'),
-  donorName: z.string().min(2, 'Please enter your name'),
+  donorName: z.string().min(2, 'Please enter your full name (at least 2 characters)'),
   donorEmail: z.string().email('Please enter a valid email address'),
-  amount: z.number().min(10, 'Minimum contribution is ₹10'),
+  donorPhone: z.string().optional(),
+  amount: z.number().min(10, 'Minimum contribution pledge is ₹10'),
   message: z.string().optional(),
 });
 
-const presetAmounts = [100, 500, 1000, 2000];
+const presetAmounts = [500, 1000, 2500, 5000];
 
 export default function DonationModal({ isOpen, onClose, defaultCampaignId = null }) {
   const { campaigns } = useSite();
@@ -25,8 +27,9 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
   const [selectedPreset, setSelectedPreset] = useState(1000);
   const [isSuccess, setIsSuccess] = useState(false);
   const [lastDonation, setLastDonation] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const activeCampaigns = campaigns.filter((c) => c.status === 'active');
+  const activeCampaigns = (campaigns || []).filter((c) => c.status === 'active');
   const initialCampId = defaultCampaignId || activeCampaigns[0]?.id || '';
 
   const {
@@ -35,7 +38,7 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
     setValue,
     watch,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(donationFormSchema),
     defaultValues: {
@@ -43,6 +46,7 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
       amount: 1000,
       donorName: '',
       donorEmail: '',
+      donorPhone: '',
       message: '',
     },
   });
@@ -54,30 +58,39 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
     setValue('amount', val, { shouldValidate: true });
   };
 
-  const onSubmit = (formData) => {
+  const onSubmit = async (formData) => {
+    setSubmitting(true);
     try {
-      const targetCamp = campaigns.find((c) => c.id === formData.campaignId);
+      const targetCamp = (campaigns || []).find((c) => c.id === formData.campaignId);
       const campaignTitle = targetCamp ? targetCamp.title : 'Rural Development Fund';
 
       const payload = {
-        ...formData,
+        campaignId: formData.campaignId,
         campaignTitle,
+        amount: formData.amount,
+        donorName: formData.donorName,
+        donorEmail: formData.donorEmail,
+        donorPhone: formData.donorPhone,
+        message: formData.message,
       };
 
-      // Dispatch to shared state (which updates state and persists via donationsRepository)
+      const savedPledge = await createDonationPledge(payload);
+
       dispatch({
-        type: 'RECORD_DONATION',
-        payload,
+        type: 'RECORD_PLEDGE',
+        payload: savedPledge,
       });
 
-      setLastDonation({ ...payload, campaignTitle });
+      setLastDonation(savedPledge);
       setIsSuccess(true);
       showSuccess(
-        `Thank you ${formData.donorName}! Demo contribution of ${formatCurrency(formData.amount)} recorded for ${campaignTitle}.`,
-        'Demonstration Pledge Recorded'
+        `Thank you ${formData.donorName}! Your pledge of ${formatCurrency(formData.amount)} has been recorded.`,
+        'Pledge Recorded'
       );
     } catch (err) {
-      showError(err.message || 'Failed to record demonstration donation', 'Error');
+      showError(err.message || 'Failed to record donation pledge', 'Submission Error');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -100,7 +113,7 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
         <div className="bg-[#173B2A] text-white p-6 sm:p-7 relative">
           <button
             onClick={handleClose}
-            className="absolute top-5 right-5 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+            className="absolute top-5 right-5 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors cursor-pointer"
             aria-label="Close modal"
           >
             <X size={18} />
@@ -111,7 +124,7 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
               <Heart size={18} className="fill-current" />
             </span>
             <span className="text-xs font-semibold text-accent uppercase tracking-wider">
-              Demonstration Contribution
+              Community Contribution Pledge
             </span>
           </div>
 
@@ -119,7 +132,7 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
             Support Our Rural Mission
           </h2>
           <p className="text-xs text-white/75 mt-1 leading-relaxed">
-            Test our real-time campaign funding mechanism. Updates campaign metrics immediately across the site.
+            Record your contribution commitment. Our team will contact you directly with official trust 80G tax receipt and banking transfer details.
           </p>
         </div>
 
@@ -135,18 +148,16 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
               </h3>
               <p className="text-sm text-gray-600 mt-2 max-w-sm mx-auto leading-relaxed">
                 Thank you, <strong className="text-gray-900">{lastDonation.donorName}</strong>.
-                Your demo contribution of{' '}
-                <strong className="text-[#176B36]">{formatCurrency(lastDonation.amount)}</strong> has
-                been credited to <strong className="text-gray-900">{lastDonation.campaignTitle}</strong>.
+                Your contribution pledge of{' '}
+                <strong className="text-[#176B36]">{formatCurrency(lastDonation.amount)}</strong> for{' '}
+                <strong className="text-gray-900">{lastDonation.campaignTitle}</strong> has been saved directly in our Supabase database.
               </p>
 
-              <div className="mt-5 p-4 rounded-2xl bg-amber-50 border border-amber-200/80 text-xs text-amber-900 text-left">
+              <div className="mt-5 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 text-left">
                 <div className="flex items-start gap-2">
-                  <Sparkles size={16} className="text-accent shrink-0 mt-0.5" />
+                  <ShieldCheck size={16} className="text-emerald-700 shrink-0 mt-0.5" />
                   <p>
-                    <strong>Data Layer Verification:</strong> The campaign's progress bar and donor count
-                    have been updated in shared state and saved to LocalStorage. You can refresh the page
-                    or open another tab to observe the immediate change!
+                    <strong>Next Steps:</strong> An authorized trustee from Mannin Maindhan Grama Arakkattalai will reach out to <strong>{lastDonation.donorEmail}</strong> with official NGO banking transfer details and 80G tax exemption confirmation.
                   </p>
                 </div>
               </div>
@@ -154,9 +165,9 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
               <div className="mt-6 flex justify-center gap-3">
                 <button
                   onClick={handleClose}
-                  className="px-6 py-2.5 rounded-xl bg-[#176B36] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#173B2A] transition-colors"
+                  className="px-6 py-2.5 rounded-xl bg-[#176B36] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#173B2A] transition-colors cursor-pointer"
                 >
-                  Done
+                  Close
                 </button>
               </div>
             </div>
@@ -165,7 +176,7 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
               {/* Campaign Picker */}
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Choose Campaign *
+                  Target Initiative / Campaign *
                 </label>
                 <select
                   {...register('campaignId')}
@@ -173,7 +184,7 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
                 >
                   {activeCampaigns.map((camp) => (
                     <option key={camp.id} value={camp.id}>
-                      {camp.title} ({formatCurrency(camp.raisedAmount)} raised of {formatCurrency(camp.goalAmount)})
+                      {camp.title} ({formatCurrency(camp.goalAmount)} target)
                     </option>
                   ))}
                 </select>
@@ -185,15 +196,15 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
               {/* Preset Amounts */}
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-2">
-                  Select Contribution Amount (INR) *
+                  Select Pledge Amount (INR) *
                 </label>
-                <div className="grid grid-cols-5 gap-1.5 sm:gap-2 mb-2">
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mb-2">
                   {presetAmounts.map((amt) => (
                     <button
                       key={amt}
                       type="button"
                       onClick={() => handleSelectPreset(amt)}
-                      className={`py-2 text-xs font-bold rounded-xl border transition-all ${
+                      className={`py-2 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
                         currentAmount === amt
                           ? 'bg-[#176B36] text-white border-[#176B36] shadow-xs'
                           : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200'
@@ -210,7 +221,7 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
                     type="number"
                     {...register('amount', { valueAsNumber: true })}
                     className="w-full pl-8 pr-3.5 py-2 text-sm font-semibold border border-stone-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none"
-                    placeholder="Custom amount"
+                    placeholder="Custom pledge amount"
                   />
                 </div>
                 {errors.amount && (
@@ -250,23 +261,36 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
                 </div>
               </div>
 
-              {/* Optional message */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Dedication or Note (optional)
-                </label>
-                <input
-                  {...register('message')}
-                  className="w-full px-3.5 py-2 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none"
-                  placeholder="e.g. In memory of / For clean drinking water..."
-                />
+              {/* Phone and Note */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Phone (optional)
+                  </label>
+                  <input
+                    type="tel"
+                    {...register('donorPhone')}
+                    className="w-full px-3.5 py-2 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none"
+                    placeholder="+91 98421 XXXXX"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Note / Dedication (optional)
+                  </label>
+                  <input
+                    {...register('message')}
+                    className="w-full px-3.5 py-2 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none"
+                    placeholder="e.g. In memory of / For clean drinking water..."
+                  />
+                </div>
               </div>
 
-              {/* Demo notice */}
+              {/* Trust Transparency Note */}
               <div className="p-3 rounded-xl bg-stone-50 border border-stone-200 text-[11px] text-gray-500 flex items-start gap-2">
                 <ShieldCheck size={14} className="text-emerald-700 shrink-0 mt-0.5" />
                 <span>
-                  This is a front-end demonstration pledge. No real payment card or bank account will be charged.
+                  Online card payments are currently being integrated. Submitting this pledge records your verified intention with the NGO team.
                 </span>
               </div>
 
@@ -274,11 +298,20 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
               <div className="pt-2">
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#FF9800] hover:bg-amber-600 active:bg-amber-700 text-white font-bold text-xs uppercase tracking-wider shadow-sm transition-colors disabled:opacity-50"
+                  disabled={submitting}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold text-xs uppercase tracking-wider shadow-sm transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  <Heart size={16} className="fill-white/30" />
-                  <span>Submit Demonstration Pledge</span>
+                  {submitting ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Saving Pledge to Database...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Heart size={16} className="fill-white/30" />
+                      <span>Confirm Contribution Pledge</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -288,4 +321,3 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
     </div>
   );
 }
-

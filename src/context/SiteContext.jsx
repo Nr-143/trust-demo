@@ -1,27 +1,13 @@
 /**
- * SiteContext - Central Shared State & Synchronization Layer
+ * SiteContext - Central Database-Backed Shared State Layer
  *
- * Provides reactive shared state across all public and admin views,
- * cross-tab synchronization via the browser storage event, and
- * validation-backed persistence to LocalStorage.
+ * Provides reactive data across all public and admin views.
+ * Authoritative data is persisted directly in Supabase.
  */
 
-import { createContext, useContext, useReducer, useEffect, useState } from 'react';
-import * as dbEngine from '../services/storage/localStorageEngine';
-import {
-  contentRepository,
-  programmesRepository,
-  campaignsRepository,
-  impactRepository,
-  volunteerOpportunitiesRepository,
-  volunteerApplicationsRepository,
-  careersRepository,
-  jobApplicationsRepository,
-  galleryRepository,
-  storiesRepository,
-  enquiriesRepository,
-  donationsRepository,
-} from '../services/repositories';
+import { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
+import { initialData } from '../data/initialData.js';
+import { fetchAllApplicationData } from '../services/supabaseService.js';
 import DonationModal from '../components/common/DonationModal';
 
 const SiteContext = createContext(null);
@@ -30,262 +16,214 @@ const DonationModalContext = createContext(null);
 
 function siteReducer(state, action) {
   switch (action.type) {
-    // 1. Cross-Tab or Manual Database Synchronization
-    case 'SYNC_FROM_STORAGE':
-      return { ...action.payload };
+    case 'SET_INITIAL_STATE':
+      return {
+        ...state,
+        ...action.payload,
+        isLoading: false,
+      };
 
-    case 'IMPORT_DATABASE': {
-      dbEngine.saveDatabase(action.payload);
-      return { ...action.payload };
-    }
+    case 'SET_LOADING':
+      return { ...state, isLoading: action.payload };
 
-    case 'RESET_STATE': {
-      const resetData = dbEngine.resetDatabase();
-      return { ...resetData };
-    }
-
-    // 2. Website Content (siteInfo)
+    // 1. Website Content (siteInfo)
     case 'UPDATE_SITE_INFO': {
-      const { updatedDatabase } = contentRepository.update(action.payload);
-      return { ...updatedDatabase };
+      return {
+        ...state,
+        siteInfo: { ...state.siteInfo, ...action.payload },
+      };
     }
 
-    // 3. Programmes
+    // 2. Programmes
     case 'ADD_PROGRAMME': {
-      const { updatedDatabase } = programmesRepository.create(action.payload);
-      return { ...updatedDatabase };
+      const programmes = state.programmes || [];
+      return {
+        ...state,
+        programmes: [action.payload, ...programmes],
+      };
     }
     case 'UPDATE_PROGRAMME': {
-      const { updatedDatabase } = programmesRepository.update(action.payload.id, action.payload);
-      return { ...updatedDatabase };
+      const programmes = (state.programmes || []).map((p) =>
+        p.id === action.payload.id ? { ...p, ...action.payload } : p
+      );
+      return { ...state, programmes };
     }
     case 'DELETE_PROGRAMME': {
-      const { updatedDatabase } = programmesRepository.delete(action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'PUBLISH_PROGRAMME': {
-      const { updatedDatabase } = programmesRepository.publish(action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'ARCHIVE_PROGRAMME': {
-      const { updatedDatabase } = programmesRepository.archive(action.payload);
-      return { ...updatedDatabase };
+      const programmes = (state.programmes || []).filter((p) => p.id !== action.payload);
+      return { ...state, programmes };
     }
 
-    // 4. Campaigns
+    // 3. Campaigns
     case 'ADD_CAMPAIGN': {
-      const { updatedDatabase } = campaignsRepository.create(action.payload);
-      return { ...updatedDatabase };
+      const campaigns = state.campaigns || [];
+      return {
+        ...state,
+        campaigns: [action.payload, ...campaigns],
+      };
     }
     case 'UPDATE_CAMPAIGN': {
-      const { updatedDatabase } = campaignsRepository.update(action.payload.id, action.payload);
-      return { ...updatedDatabase };
+      const campaigns = (state.campaigns || []).map((c) =>
+        c.id === action.payload.id ? { ...c, ...action.payload } : c
+      );
+      return { ...state, campaigns };
     }
     case 'DELETE_CAMPAIGN': {
-      const { updatedDatabase } = campaignsRepository.delete(action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'PUBLISH_CAMPAIGN': {
-      const { updatedDatabase } = campaignsRepository.publish(action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'ARCHIVE_CAMPAIGN': {
-      const { updatedDatabase } = campaignsRepository.archive(action.payload);
-      return { ...updatedDatabase };
+      const campaigns = (state.campaigns || []).filter((c) => c.id !== action.payload);
+      return { ...state, campaigns };
     }
 
-    // 5. Impact Statistics
+    // 4. Impact Statistics
     case 'UPDATE_IMPACT': {
-      const { updatedDatabase } = impactRepository.updateMeta(action.payload);
-      return { ...updatedDatabase };
+      return {
+        ...state,
+        impact: { ...state.impact, ...action.payload },
+      };
     }
     case 'ADD_IMPACT_STAT': {
-      const { updatedDatabase } = impactRepository.createStat(action.payload);
-      return { ...updatedDatabase };
+      const stats = state.impact?.stats || [];
+      return {
+        ...state,
+        impact: {
+          ...state.impact,
+          stats: [...stats, action.payload],
+        },
+      };
     }
     case 'UPDATE_IMPACT_STAT': {
-      const { updatedDatabase } = impactRepository.updateStat(action.payload.id, action.payload);
-      return { ...updatedDatabase };
+      const stats = (state.impact?.stats || []).map((s) =>
+        s.id === action.payload.id ? { ...s, ...action.payload } : s
+      );
+      return {
+        ...state,
+        impact: { ...state.impact, stats },
+      };
     }
     case 'DELETE_IMPACT_STAT': {
-      const { updatedDatabase } = impactRepository.deleteStat(action.payload);
-      return { ...updatedDatabase };
+      const stats = (state.impact?.stats || []).filter((s) => s.id !== action.payload);
+      return {
+        ...state,
+        impact: { ...state.impact, stats },
+      };
     }
 
-    // 6. Volunteer Applications
+    // 5. Volunteer Applications
     case 'ADD_VOLUNTEER':
     case 'ADD_VOLUNTEER_APPLICATION': {
-      const { updatedDatabase } = volunteerApplicationsRepository.create(action.payload);
-      // Synchronize legacy `volunteers` array
-      updatedDatabase.volunteers = updatedDatabase.volunteerApplications;
-      dbEngine.saveDatabase(updatedDatabase);
-      return { ...updatedDatabase };
+      const list = state.volunteerApplications || [];
+      const updated = [action.payload, ...list];
+      return {
+        ...state,
+        volunteerApplications: updated,
+        volunteers: updated,
+      };
     }
     case 'UPDATE_VOLUNTEER':
-    case 'UPDATE_VOLUNTEER_APPLICATION': {
-      const { updatedDatabase } = volunteerApplicationsRepository.update(action.payload.id, action.payload);
-      updatedDatabase.volunteers = updatedDatabase.volunteerApplications;
-      dbEngine.saveDatabase(updatedDatabase);
-      return { ...updatedDatabase };
+    case 'UPDATE_VOLUNTEER_APPLICATION':
+    case 'SET_VOLUNTEER_APPLICATION_STATUS': {
+      const list = (state.volunteerApplications || []).map((v) =>
+        v.id === action.payload.id ? { ...v, ...action.payload } : v
+      );
+      return {
+        ...state,
+        volunteerApplications: list,
+        volunteers: list,
+      };
     }
     case 'DELETE_VOLUNTEER':
     case 'DELETE_VOLUNTEER_APPLICATION': {
-      const { updatedDatabase } = volunteerApplicationsRepository.delete(action.payload);
-      updatedDatabase.volunteers = updatedDatabase.volunteerApplications;
-      dbEngine.saveDatabase(updatedDatabase);
-      return { ...updatedDatabase };
-    }
-    case 'APPROVE_VOLUNTEER_APPLICATION': {
-      const { updatedDatabase } = volunteerApplicationsRepository.approve(action.payload);
-      updatedDatabase.volunteers = updatedDatabase.volunteerApplications;
-      dbEngine.saveDatabase(updatedDatabase);
-      return { ...updatedDatabase };
-    }
-    case 'SET_VOLUNTEER_APPLICATION_STATUS': {
-      const { updatedDatabase } = volunteerApplicationsRepository.update(action.payload.id, {
-        status: action.payload.status,
-      });
-      updatedDatabase.volunteers = updatedDatabase.volunteerApplications;
-      dbEngine.saveDatabase(updatedDatabase);
-      return { ...updatedDatabase };
-    }
-    case 'ARCHIVE_VOLUNTEER_APPLICATION': {
-      const { updatedDatabase } = volunteerApplicationsRepository.archive(action.payload);
-      updatedDatabase.volunteers = updatedDatabase.volunteerApplications;
-      dbEngine.saveDatabase(updatedDatabase);
-      return { ...updatedDatabase };
+      const list = (state.volunteerApplications || []).filter((v) => v.id !== action.payload);
+      return {
+        ...state,
+        volunteerApplications: list,
+        volunteers: list,
+      };
     }
 
-    // 7. Volunteer Opportunities
-    case 'ADD_VOLUNTEER_OPPORTUNITY': {
-      const { updatedDatabase } = volunteerOpportunitiesRepository.create(action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'UPDATE_VOLUNTEER_OPPORTUNITY': {
-      const { updatedDatabase } = volunteerOpportunitiesRepository.update(action.payload.id, action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'DELETE_VOLUNTEER_OPPORTUNITY': {
-      const { updatedDatabase } = volunteerOpportunitiesRepository.delete(action.payload);
-      return { ...updatedDatabase };
-    }
-
-    // 8. Careers
+    // 6. Careers
     case 'ADD_CAREER': {
-      const { updatedDatabase } = careersRepository.create(action.payload);
-      return { ...updatedDatabase };
+      const careers = state.careers || [];
+      return {
+        ...state,
+        careers: [action.payload, ...careers],
+      };
     }
     case 'UPDATE_CAREER': {
-      const { updatedDatabase } = careersRepository.update(action.payload.id, action.payload);
-      return { ...updatedDatabase };
+      const careers = (state.careers || []).map((c) =>
+        c.id === action.payload.id ? { ...c, ...action.payload } : c
+      );
+      return { ...state, careers };
     }
     case 'DELETE_CAREER': {
-      const { updatedDatabase } = careersRepository.delete(action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'CLOSE_CAREER': {
-      const { updatedDatabase } = careersRepository.close(action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'PUBLISH_CAREER': {
-      const { updatedDatabase } = careersRepository.publish(action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'UNPUBLISH_CAREER': {
-      const { updatedDatabase } = careersRepository.unpublish(action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'ARCHIVE_CAREER': {
-      const { updatedDatabase } = careersRepository.archive(action.payload);
-      return { ...updatedDatabase };
+      const careers = (state.careers || []).filter((c) => c.id !== action.payload);
+      return { ...state, careers };
     }
 
-    // 9. Job Applications
+    // 7. Job Applications
     case 'ADD_JOB_APPLICATION': {
-      const { updatedDatabase } = jobApplicationsRepository.create(action.payload);
-      return { ...updatedDatabase };
+      const apps = state.jobApplications || [];
+      return {
+        ...state,
+        jobApplications: [action.payload, ...apps],
+      };
     }
     case 'UPDATE_JOB_APPLICATION_STATUS': {
-      const { updatedDatabase } = jobApplicationsRepository.update(action.payload.id, {
-        status: action.payload.status,
-      });
-      return { ...updatedDatabase };
+      const apps = (state.jobApplications || []).map((a) =>
+        a.id === action.payload.id ? { ...a, status: action.payload.status } : a
+      );
+      return { ...state, jobApplications: apps };
     }
     case 'DELETE_JOB_APPLICATION': {
-      const { updatedDatabase } = jobApplicationsRepository.delete(action.payload);
-      return { ...updatedDatabase };
+      const apps = (state.jobApplications || []).filter((a) => a.id !== action.payload);
+      return { ...state, jobApplications: apps };
     }
 
-    // 9. Gallery Items
+    // 8. Gallery Items
     case 'ADD_GALLERY_ITEM': {
-      const { updatedDatabase } = galleryRepository.create(action.payload);
-      return { ...updatedDatabase };
+      const gallery = state.gallery || [];
+      return {
+        ...state,
+        gallery: [action.payload, ...gallery],
+      };
     }
     case 'UPDATE_GALLERY_ITEM': {
-      const { updatedDatabase } = galleryRepository.update(action.payload.id, action.payload);
-      return { ...updatedDatabase };
+      const gallery = (state.gallery || []).map((g) =>
+        g.id === action.payload.id ? { ...g, ...action.payload } : g
+      );
+      return { ...state, gallery };
     }
     case 'DELETE_GALLERY_ITEM': {
-      const { updatedDatabase } = galleryRepository.delete(action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'PUBLISH_GALLERY_ITEM': {
-      const { updatedDatabase } = galleryRepository.publish(action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'ARCHIVE_GALLERY_ITEM': {
-      const { updatedDatabase } = galleryRepository.archive(action.payload);
-      return { ...updatedDatabase };
+      const gallery = (state.gallery || []).filter((g) => g.id !== action.payload);
+      return { ...state, gallery };
     }
 
-    // 10. Stories
-    case 'ADD_STORY': {
-      const { updatedDatabase } = storiesRepository.create(action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'UPDATE_STORY': {
-      const { updatedDatabase } = storiesRepository.update(action.payload.id, action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'DELETE_STORY': {
-      const { updatedDatabase } = storiesRepository.delete(action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'PUBLISH_STORY': {
-      const { updatedDatabase } = storiesRepository.publish(action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'ARCHIVE_STORY': {
-      const { updatedDatabase } = storiesRepository.archive(action.payload);
-      return { ...updatedDatabase };
-    }
-
-    // 11. Contact Enquiries
+    // 9. Contact Enquiries
     case 'ADD_CONTACT_ENQUIRY': {
-      const { updatedDatabase } = enquiriesRepository.create(action.payload);
-      return { ...updatedDatabase };
+      const enqs = state.contactEnquiries || [];
+      return {
+        ...state,
+        contactEnquiries: [action.payload, ...enqs],
+      };
     }
     case 'UPDATE_CONTACT_ENQUIRY': {
-      const { updatedDatabase } = enquiriesRepository.update(action.payload.id, action.payload);
-      return { ...updatedDatabase };
+      const enqs = (state.contactEnquiries || []).map((e) =>
+        e.id === action.payload.id ? { ...e, ...action.payload } : e
+      );
+      return { ...state, contactEnquiries: enqs };
     }
     case 'DELETE_CONTACT_ENQUIRY': {
-      const { updatedDatabase } = enquiriesRepository.delete(action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'MARK_ENQUIRY_READ': {
-      const { updatedDatabase } = enquiriesRepository.markAsRead(action.payload);
-      return { ...updatedDatabase };
-    }
-    case 'MARK_ENQUIRY_RESPONDED': {
-      const { updatedDatabase } = enquiriesRepository.markAsResponded(action.payload);
-      return { ...updatedDatabase };
+      const enqs = (state.contactEnquiries || []).filter((e) => e.id !== action.payload);
+      return { ...state, contactEnquiries: enqs };
     }
 
-    // 12. Demo Donations
+    // 10. Donation Pledges
+    case 'RECORD_PLEDGE':
     case 'RECORD_DONATION': {
-      const { updatedDatabase } = donationsRepository.recordDonation(action.payload);
-      return { ...updatedDatabase };
+      const pledges = state.donationPledges || state.demoDonations || [];
+      return {
+        ...state,
+        donationPledges: [action.payload, ...pledges],
+        demoDonations: [action.payload, ...pledges],
+      };
     }
 
     default:
@@ -294,12 +232,27 @@ function siteReducer(state, action) {
 }
 
 export function SiteProvider({ children }) {
-  // Load state once on mount from resilient LocalStorage engine
-  const [state, dispatch] = useReducer(siteReducer, null, () => {
-    return dbEngine.loadDatabase();
+  const [state, dispatch] = useReducer(siteReducer, {
+    ...initialData,
+    donationPledges: [],
+    isLoading: true,
   });
 
-  // Global Donation Modal Controller
+  const loadData = useCallback(async () => {
+    try {
+      const cloudData = await fetchAllApplicationData();
+      dispatch({ type: 'SET_INITIAL_STATE', payload: cloudData });
+    } catch (err) {
+      console.error('[SiteContext] Failed to load data from Supabase:', err);
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Global Donation / Contribution Pledge Modal Controller
   const [donationModalState, setDonationModalState] = useState({
     isOpen: false,
     campaignId: null,
@@ -313,32 +266,13 @@ export function SiteProvider({ children }) {
     setDonationModalState({ isOpen: false, campaignId: null });
   };
 
-  // Multi-tab synchronization: listen to storage event on window
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const handleStorageChange = (e) => {
-      if (e.key === dbEngine.STORAGE_KEY && e.newValue) {
-        try {
-          const freshData = JSON.parse(e.newValue);
-          dispatch({ type: 'SYNC_FROM_STORAGE', payload: freshData });
-        } catch (err) {
-          console.error('Failed to parse storage update from another browser tab:', err);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
   return (
-    <SiteContext.Provider value={state}>
+    <SiteContext.Provider value={{ ...state, reloadSiteData: loadData }}>
       <SiteDispatchContext.Provider value={dispatch}>
         <DonationModalContext.Provider value={{ openDonationModal, closeDonationModal }}>
           {children}
 
-          {/* Global Interactive Donation Modal */}
+          {/* Global Contribution Pledge Modal */}
           <DonationModal
             isOpen={donationModalState.isOpen}
             onClose={closeDonationModal}
