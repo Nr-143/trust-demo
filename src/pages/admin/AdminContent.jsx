@@ -373,28 +373,16 @@ export default function AdminContent() {
                 <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
                   Short / Acronym Name
                 </label>
-                <input {...register('shortName')} className={inputClasses} />
+                <input {...register('shortName')} className={inputClasses} placeholder="e.g. MMG Trust" />
+                <p className="text-[11px] text-stone-400 mt-1">Used in sidebar and logo labels</p>
               </div>
               <div>
                 <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
                   Founded Year
                 </label>
-                <input {...register('founded')} className={inputClasses} />
+                <input {...register('founded')} className={inputClasses} placeholder="e.g. 2024" />
+                <p className="text-[11px] text-stone-400 mt-1">Trust establishment year</p>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
-                Tagline (English)
-              </label>
-              <input {...register('tagline')} className={inputClasses} />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
-                Tagline (Tamil)
-              </label>
-              <input {...register('taglineTamil')} className={`${inputClasses} font-tamil`} />
             </div>
           </div>
         )}

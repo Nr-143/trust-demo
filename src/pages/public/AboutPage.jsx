@@ -10,7 +10,7 @@ export default function AboutPage() {
       <PageHeader
         title={siteInfo.name ? `About ${siteInfo.name}` : "About Mannin Maindhan Grama Arakkattalai"}
         titleTamil={siteInfo.nameTamil ? `எங்களைப் பற்றி • ${siteInfo.nameTamil}` : "எங்களைப் பற்றி • மண்ணின் மைந்தன் கிராம அறக்கட்டளை"}
-        description={siteInfo.tagline || "A grassroots rural development trust anchored in Dharmapuri, working directly with village communities to foster sustainable, self-reliant change."}
+        description="A grassroots rural development trust anchored in Dharmapuri, working directly with village communities to foster sustainable, self-reliant change."
       />
 
       <div className="site-container py-12 sm:py-16">
