@@ -31,7 +31,7 @@ export default function VolunteerCTASection() {
               <p className="text-sm sm:text-base text-white/80 leading-relaxed mb-6 font-normal">
                 Whether you are a student, teacher, doctor, software professional, or farmer — your
                 presence makes an enduring difference. Help teach children, organize village medical
-                checkups, or plant native saplings in Palacode.
+                checkups, or plant native saplings in {siteInfo.district || "Palacode"}.
               </p>
 
               {/* Roles Checklist */}

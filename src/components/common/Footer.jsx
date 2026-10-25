@@ -22,13 +22,13 @@ export default function Footer() {
                 Have questions or want to partner with us on the ground?
               </h2>
               <p className="text-sm text-white/75 mt-1">
-                Reach out directly via phone or WhatsApp. Our field coordination team in Dharmapuri is ready to connect.
+                Reach out directly via phone or WhatsApp. Our field coordination team in {siteInfo.district || 'Dharmapuri'} is ready to connect.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-3 shrink-0">
               <a
-                href={siteInfo.whatsappUrl || 'https://wa.me/919994291195'}
+                href={siteInfo.whatsappUrl || getWhatsAppUrl(siteInfo.whatsappNumber)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-colors"
@@ -38,11 +38,11 @@ export default function Footer() {
               </a>
 
               <a
-                href={`tel:${siteInfo.phoneRaw || '+919994291195'}`}
+                href={`tel:${getDialablePhone(siteInfo.phoneRaw || siteInfo.phone)}`}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white/10 hover:bg-white/15 text-white text-sm font-semibold border border-white/20 transition-colors"
               >
                 <Phone size={16} />
-                <span>Call {siteInfo.phone}</span>
+                <span>Call {siteInfo.phone || '+91 99942 91195'}</span>
               </a>
             </div>
           </div>

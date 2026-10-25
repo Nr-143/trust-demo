@@ -90,7 +90,7 @@ export default function HeroSection() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle size={16} className="text-[#176B36] shrink-0" />
-                <span className="text-xs font-medium text-gray-700">Palacode & Dharmapuri</span>
+                <span className="text-xs font-medium text-gray-700">{siteInfo.district ? `${siteInfo.district} & Surrounds` : "Palacode & Dharmapuri"}</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle size={16} className="text-[#176B36] shrink-0" />

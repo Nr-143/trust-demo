@@ -73,7 +73,7 @@ export default function Navbar() {
           className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-white text-xs py-1.5 px-4 text-center font-medium shadow-2xs"
         >
           <div className="site-container flex items-center justify-center gap-2">
-            <span className="truncate">{siteInfo.announcementBanner}</span>
+            <span className="text-center leading-snug">{siteInfo.announcementBanner}</span>
           </div>
         </aside>
       )}

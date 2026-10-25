@@ -7,6 +7,7 @@
 
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { initialData } from '../data/initialData';
+import { getDialablePhone, getWhatsAppUrl } from '../utils/helpers';
 
 // Helper to normalize Supabase errors
 function handleDbError(operation, error) {
@@ -35,7 +36,23 @@ export async function fetchSiteContent() {
 
     if (error) throw error;
     if (data && data.data) {
-      return { ...initialData.siteInfo, ...data.data };
+      const merged = { ...initialData.siteInfo, ...data.data };
+
+      // Ensure computed dialable and messaging links reflect current database values
+      if (merged.phone) {
+        merged.phoneRaw = getDialablePhone(merged.phone);
+      }
+      if (merged.whatsappNumber) {
+        const cleanDigits = String(merged.whatsappNumber).replace(/\D/g, '');
+        merged.whatsappNumber = cleanDigits.length === 10 ? `91${cleanDigits}` : cleanDigits;
+        merged.whatsappUrl = getWhatsAppUrl(merged.whatsappNumber);
+      }
+      if (merged.district || merged.state) {
+        const parts = [merged.district, merged.state].filter(Boolean);
+        merged.locationShort = `${parts.join(', ')}${merged.pincode ? ` - ${merged.pincode}` : ''}`;
+      }
+
+      return merged;
     }
     return initialData.siteInfo;
   } catch (err) {

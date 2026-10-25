@@ -98,7 +98,7 @@ export default function ContactPage() {
       <PageHeader
         title="Contact Us"
         titleTamil="எங்களை தொடர்பு கொள்ளுங்கள்"
-        description="Have questions, partnership queries, or want to visit our field office in Palacode? We are here to connect."
+        description={`Have questions, partnership queries, or want to visit our field office in ${siteInfo.district || 'Palacode'}? We are here to connect.`}
       />
 
       <div className="site-container py-12 sm:py-16">
