@@ -4,8 +4,6 @@ import ProgrammesSection from '../../components/public/ProgrammesSection';
 import FeaturedCampaignsSection from '../../components/public/FeaturedCampaignsSection';
 import CommunityStoriesSection from '../../components/public/CommunityStoriesSection';
 import VolunteerCTASection from '../../components/public/VolunteerCTASection';
-import TransparencySection from '../../components/public/TransparencySection';
-import QuickContactBar from '../../components/public/QuickContactBar';
 
 export default function HomePage() {
   return (
@@ -27,12 +25,6 @@ export default function HomePage() {
 
       {/* 6. Volunteer Call-To-Action */}
       <VolunteerCTASection />
-
-      {/* 7. Transparency & Governance */}
-      <TransparencySection />
-
-      {/* 8. Quick Contact & Verified Client Information */}
-      <QuickContactBar />
     </div>
   );
 }

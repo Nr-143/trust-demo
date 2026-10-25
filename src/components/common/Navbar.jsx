@@ -135,30 +135,30 @@ export default function Navbar() {
 
       {/* 3. Main Navigation Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-3 sm:gap-4">
+        <div className="flex items-center justify-between h-20 sm:h-[84px] xl:h-[88px] gap-3 sm:gap-4">
           
           {/* AREA 1: LEFT — NGO Logo & Title */}
           <div className="flex items-center min-w-0 flex-1 xl:flex-initial">
             <Link
               to="/"
-              className="flex items-center gap-2.5 sm:gap-3.5 group min-w-0 py-1"
-              aria-label="Mannin Maindhan Grama Arakattalai - Home"
+              className="flex items-center gap-3 sm:gap-3.5 xl:gap-4 group min-w-0 py-1"
+              aria-label="Mannin Maindhan Grama Arakkattalai - Home"
             >
               <div className="relative shrink-0">
                 <img
                   src={siteInfo.logoBadge || '/images/logo-badge.jpeg'}
                   alt={siteInfo.shortName || 'MMG Trust Logo'}
-                  className="h-10 w-10 sm:h-12 sm:w-12 xl:h-13 xl:w-13 rounded-full object-cover ring-2 ring-emerald-700/20 group-hover:ring-emerald-700 transition-all shadow-xs"
+                  className="h-11 w-11 sm:h-13 sm:w-13 xl:h-14 xl:w-14 2xl:h-15 2xl:w-15 rounded-full object-cover ring-2 ring-emerald-700/25 group-hover:ring-emerald-700 transition-all shadow-xs"
                   onError={(e) => {
                     e.currentTarget.src = '/images/logo-full.jpeg';
                   }}
                 />
               </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[13px] sm:text-base xl:text-[17px] 2xl:text-lg font-bold text-[#173B2A] tracking-tight leading-snug group-hover:text-primary transition-colors truncate">
-                  {siteInfo.name || 'Mannin Maindhan Grama Arakattalai'}
+              <div className="flex flex-col min-w-0 justify-center">
+                <span className="text-[14px] xs:text-[15px] sm:text-[17px] md:text-[18px] xl:text-[17.5px] 2xl:text-[20px] font-extrabold text-[#173B2A] tracking-tight leading-snug group-hover:text-primary transition-colors truncate">
+                  {siteInfo.name || 'Mannin Maindhan Grama Arakkattalai'}
                 </span>
-                <span className="text-[10px] sm:text-xs xl:text-[12px] text-stone-500 font-tamil font-medium leading-tight truncate">
+                <span className="text-[11px] xs:text-[12px] sm:text-[13px] md:text-[13.5px] xl:text-[13px] 2xl:text-[14.5px] text-stone-600 font-tamil font-semibold leading-tight mt-0.5 truncate">
                   {siteInfo.nameTamil || 'மண்ணின் மைந்தன் கிராம அறக்கட்டளை'}
                 </span>
               </div>
@@ -259,16 +259,16 @@ export default function Navbar() {
                   <img
                     src={siteInfo.logoBadge || '/images/logo-badge.jpeg'}
                     alt={siteInfo.shortName}
-                    className="h-10 w-10 rounded-full object-cover ring-2 ring-emerald-700/20 shrink-0"
+                    className="h-11 w-11 rounded-full object-cover ring-2 ring-emerald-700/25 shrink-0 shadow-xs"
                     onError={(e) => {
                       e.currentTarget.src = '/images/logo-full.jpeg';
                     }}
                   />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-[#173B2A] truncate">
+                    <p className="text-[14px] font-extrabold text-[#173B2A] truncate">
                       {siteInfo.name}
                     </p>
-                    <p className="text-[10px] text-stone-500 font-tamil truncate">
+                    <p className="text-[11px] text-stone-600 font-tamil font-semibold truncate mt-0.5">
                       {siteInfo.nameTamil}
                     </p>
                   </div>

@@ -1,6 +1,6 @@
 export const initialData = {
   siteInfo: {
-    name: 'Mannin Maindhan Grama Arakattalai',
+    name: 'Mannin Maindhan Grama Arakkattalai',
     nameTamil: 'மண்ணின் மைந்தன் கிராம அறக்கட்டளை',
     shortName: 'MMG Trust',
     tagline: 'Building Stronger Villages. Creating Lasting Change.',

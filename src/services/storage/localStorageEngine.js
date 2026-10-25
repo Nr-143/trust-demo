@@ -52,6 +52,10 @@ function mergeWithDefaults(savedData, defaults) {
     ...(savedData.siteInfo || {}),
   };
 
+  if (merged.siteInfo?.name === 'Mannin Maindhan Grama Arakattalai') {
+    merged.siteInfo.name = defaults.siteInfo.name;
+  }
+
   // Ensure impact object has structure
   merged.impact = {
     ...defaults.impact,
