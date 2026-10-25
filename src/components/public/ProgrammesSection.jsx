@@ -103,6 +103,7 @@ export default function ProgrammesSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
           {filteredProgrammes.map((prog) => {
             const Icon = programmeIconMap[prog.icon] || GraduationCap;
+            const targetUrl = `/programmes/${prog.slug || prog.id}`;
             return (
               <article
                 key={prog.id}
@@ -111,22 +112,28 @@ export default function ProgrammesSection() {
                 <div>
                   {/* Photo Thumbnail */}
                   <div className="relative h-48 overflow-hidden bg-stone-100">
-                    <img
-                      src={prog.imageUrl}
-                      alt={prog.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
-                      onError={handleImageFallback}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <Link
+                      to={targetUrl}
+                      aria-label={`View ${prog.title} programme details`}
+                      className="block w-full h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#176B36]"
+                    >
+                      <img
+                        src={prog.imageUrl}
+                        alt={prog.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                        onError={handleImageFallback}
+                      />
+                    </Link>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
                     
                     {/* Category Pill Tag */}
-                    <span className="absolute top-3 left-3 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white/90 backdrop-blur-xs text-[#173B2A] shadow-xs">
+                    <span className="absolute top-3 left-3 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white/90 backdrop-blur-xs text-[#173B2A] shadow-xs pointer-events-none">
                       {prog.category}
                     </span>
 
                     {/* Floating Icon Circle */}
-                    <div className="absolute bottom-3 right-3 h-10 w-10 rounded-xl bg-white text-[#176B36] shadow-md flex items-center justify-center">
+                    <div className="absolute bottom-3 right-3 h-10 w-10 rounded-xl bg-white text-[#176B36] shadow-md flex items-center justify-center pointer-events-none">
                       <Icon size={20} />
                     </div>
                   </div>
@@ -134,7 +141,12 @@ export default function ProgrammesSection() {
                   {/* Body Content */}
                   <div className="p-5 sm:p-6">
                     <h3 className="text-lg font-bold text-[#173B2A] group-hover:text-[#176B36] transition-colors leading-snug">
-                      {prog.title}
+                      <Link
+                        to={targetUrl}
+                        className="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#176B36] rounded-xs"
+                      >
+                        {prog.title}
+                      </Link>
                     </h3>
 
                     {prog.titleTamil && (
@@ -161,13 +173,13 @@ export default function ProgrammesSection() {
                   </div>
                 </div>
 
-                {/* Footer with "Learn More" Link */}
+                {/* Footer with "Explore Programme" Link */}
                 <div className="px-5 sm:px-6 pb-5 pt-2">
                   <Link
-                    to={`/programmes#${prog.id}`}
-                    className="inline-flex items-center justify-between w-full px-4 py-2.5 rounded-xl bg-stone-50 hover:bg-emerald-50 text-xs font-semibold text-[#173B2A] hover:text-[#176B36] border border-stone-200 hover:border-emerald-200 transition-colors"
+                    to={targetUrl}
+                    className="inline-flex items-center justify-between w-full px-4 py-2.5 rounded-xl bg-stone-50 hover:bg-emerald-50 text-xs font-semibold text-[#173B2A] hover:text-[#176B36] border border-stone-200 hover:border-emerald-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#176B36]"
                   >
-                    <span>Learn More About Programme</span>
+                    <span>Explore Programme</span>
                     <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
                   </Link>
                 </div>

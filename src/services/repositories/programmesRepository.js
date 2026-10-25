@@ -15,6 +15,18 @@ class ProgrammesRepository extends BaseRepository {
     return this.getAll((p) => p.status === 'active');
   }
 
+  create(data) {
+    const slug =
+      data.slug ||
+      (data.title || '')
+        .toLowerCase()
+        .trim()
+        .replace(/&/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/[^\w-]+/g, '');
+    return super.create({ ...data, slug });
+  }
+
   getByCategory(category) {
     if (!category || category === 'All') return this.getActive();
     return this.getAll((p) => p.status === 'active' && p.category.toLowerCase().includes(category.toLowerCase()));

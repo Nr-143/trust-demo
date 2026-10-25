@@ -83,6 +83,7 @@ export const initialData = {
   programmes: [
     {
       id: 'prog-education',
+      slug: 'education',
       title: 'Education',
       fullTitle: 'Rural Education & Learning Centres',
       titleTamil: 'கிராமப்புற கல்வி மேம்பாடு',
@@ -100,6 +101,7 @@ export const initialData = {
     },
     {
       id: 'prog-livelihood-women',
+      slug: 'livelihood-development-women-empowerment',
       title: 'Livelihood Development and Women Empowerment',
       fullTitle: 'Rural Livelihood & Women Empowerment Initiative',
       titleTamil: 'வாழ்வாதாரம் மற்றும் மகளிர் மேம்பாடு',
@@ -117,9 +119,10 @@ export const initialData = {
     },
     {
       id: 'prog-drug-free-sports',
+      slug: 'drug-free-communities-sports-development',
       title: 'Drug-Free Communities and Sports Development',
       fullTitle: 'Drug-Free Society & Rural Sports Development',
-      titleTamil: 'போதையற்ற சமூகம் மற்றும் விளையாட்டு மேம்பாடு',
+      titleTamil: 'போதையற்ற சமமூக மற்றும் விளையாட்டு மேம்பாடு',
       category: 'Drug-Free Communities and Sports Development',
       icon: 'ShieldCheck',
       imageUrl:
@@ -134,6 +137,7 @@ export const initialData = {
     },
     {
       id: 'prog-environment-energy',
+      slug: 'environmental-protection-renewable-energy',
       title: 'Environmental Protection and Renewable Energy',
       fullTitle: 'Afforestation, Biodiversity & Clean Solar Energy',
       titleTamil: 'சுற்றுச்சூழல் பாதுகாப்பு மற்றும் புதுப்பிக்கத்தக்க ஆற்றல்',
@@ -151,6 +155,7 @@ export const initialData = {
     },
     {
       id: 'prog-sanitation-healthcare',
+      slug: 'sanitation-healthcare',
       title: 'Sanitation and Healthcare',
       fullTitle: 'Rural Sanitation & Community Health Initiatives',
       titleTamil: 'சுகாதாரம் மற்றும் மருத்துவ நல்வாழ்வு',
@@ -168,6 +173,7 @@ export const initialData = {
     },
     {
       id: 'prog-water-management',
+      slug: 'community-water-management',
       title: 'Community Water Management',
       fullTitle: 'Pond Restoration & Traditional Water Conservation',
       titleTamil: 'சமூக நீர் மேலாண்மை மற்றும் ஏரி புனரமைப்பு',

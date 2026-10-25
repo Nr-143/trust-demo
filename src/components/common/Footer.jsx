@@ -88,12 +88,12 @@ export default function Footer() {
             </h3>
             <ul className="space-y-2 text-sm">
               {[
-                { name: 'Education', to: '/programmes#prog-education' },
-                { name: 'Livelihood & Women Empowerment', to: '/programmes#prog-livelihood-women' },
-                { name: 'Drug-Free & Sports Development', to: '/programmes#prog-drug-free-sports' },
-                { name: 'Environment & Renewable Energy', to: '/programmes#prog-environment-energy' },
-                { name: 'Sanitation & Healthcare', to: '/programmes#prog-sanitation-healthcare' },
-                { name: 'Community Water Management', to: '/programmes#prog-water-management' },
+                { name: 'Education', to: '/programmes/education' },
+                { name: 'Livelihood & Women Empowerment', to: '/programmes/livelihood-development-women-empowerment' },
+                { name: 'Drug-Free & Sports Development', to: '/programmes/drug-free-communities-sports-development' },
+                { name: 'Environment & Renewable Energy', to: '/programmes/environmental-protection-renewable-energy' },
+                { name: 'Sanitation & Healthcare', to: '/programmes/sanitation-healthcare' },
+                { name: 'Community Water Management', to: '/programmes/community-water-management' },
               ].map((prog) => (
                 <li key={prog.name}>
                   <Link

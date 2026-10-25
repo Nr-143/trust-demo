@@ -41,6 +41,7 @@ export const siteInfoSchema = z.object({
 
 export const programmeSchema = z.object({
   id: z.string().min(1),
+  slug: z.string().optional(),
   title: z.string().min(2, 'Programme title is required'),
   fullTitle: z.string().optional(),
   titleTamil: z.string().optional(),

@@ -91,6 +91,25 @@ function mergeWithDefaults(savedData, defaults) {
     }
   }
 
+  // Ensure programmes have consistent slug
+  if (Array.isArray(merged.programmes)) {
+    merged.programmes = merged.programmes.map((p) => {
+      const slug =
+        p.slug ||
+        (p.id?.replace(/^prog-/, '') || p.title)
+          .toString()
+          .toLowerCase()
+          .trim()
+          .replace(/&/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/[^\w-]+/g, '');
+      return {
+        ...p,
+        slug,
+      };
+    });
+  }
+
   // Ensure campaigns have slug and publicationStatus
   if (Array.isArray(merged.campaigns)) {
     merged.campaigns = merged.campaigns.map((c) => {

@@ -6,6 +6,7 @@ import AdminLayout from './layouts/AdminLayout';
 import HomePage from './pages/public/HomePage';
 import AboutPage from './pages/public/AboutPage';
 import ProgrammesPage from './pages/public/ProgrammesPage';
+import ProgrammeDetailPage from './pages/public/ProgrammeDetailPage';
 import CampaignsPage from './pages/public/CampaignsPage';
 import CampaignDetailPage from './pages/public/CampaignDetailPage';
 import ImpactPage from './pages/public/ImpactPage';
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/programmes" element={<ProgrammesPage />} />
+        <Route path="/programmes/:slug" element={<ProgrammeDetailPage />} />
         <Route path="/campaigns" element={<CampaignsPage />} />
         <Route path="/campaigns/:slug" element={<CampaignDetailPage />} />
         <Route path="/impact" element={<ImpactPage />} />
