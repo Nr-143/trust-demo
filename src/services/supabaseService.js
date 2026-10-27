@@ -8,6 +8,7 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { initialData } from '../data/initialData';
 import { getDialablePhone, getWhatsAppUrl } from '../utils/helpers';
+import { processGalleryMedia } from './mediaProcessing';
 
 // Helper to normalize Supabase errors
 function handleDbError(operation, error) {
@@ -226,6 +227,7 @@ export async function fetchCampaigns() {
         startDate: c.start_date || c.startDate || '',
         endDate: c.end_date || c.endDate || '',
         imageUrl: c.image_url || c.imageUrl,
+        cloudinaryPublicId: c.cloudinary_public_id || c.cloudinaryPublicId || null,
         publicationStatus: c.publication_status || c.publicationStatus || 'published',
       }));
     }
@@ -258,7 +260,8 @@ export async function createCampaign(campaignData) {
     donors_count: Number(campaignData.donorsCount || 0),
     start_date: campaignData.startDate || '',
     end_date: campaignData.endDate || '',
-    image_url: campaignData.imageUrl,
+    image_url: campaignData.imageUrl || null,
+    cloudinary_public_id: campaignData.cloudinaryPublicId || null,
     status: campaignData.status || 'active',
     publication_status: campaignData.publicationStatus || 'published',
     location: campaignData.location || 'Dharmapuri, Tamil Nadu',
@@ -283,6 +286,7 @@ export async function createCampaign(campaignData) {
     startDate: data.start_date,
     endDate: data.end_date,
     imageUrl: data.image_url,
+    cloudinaryPublicId: data.cloudinary_public_id || null,
     publicationStatus: data.publication_status,
   };
 }
@@ -304,7 +308,8 @@ export async function updateCampaign(id, campaignData) {
     donors_count: Number(campaignData.donorsCount || 0),
     start_date: campaignData.startDate || '',
     end_date: campaignData.endDate || '',
-    image_url: campaignData.imageUrl,
+    image_url: campaignData.imageUrl || null,
+    cloudinary_public_id: campaignData.cloudinaryPublicId || null,
     status: campaignData.status || 'active',
     publication_status: campaignData.publicationStatus || 'published',
     location: campaignData.location,
@@ -330,6 +335,7 @@ export async function updateCampaign(id, campaignData) {
     startDate: data.start_date,
     endDate: data.end_date,
     imageUrl: data.image_url,
+    cloudinaryPublicId: data.cloudinary_public_id || null,
     publicationStatus: data.publication_status,
   };
 }
@@ -442,6 +448,8 @@ export async function fetchGalleryItems() {
       return data.map((g) => ({
         ...g,
         imageUrl: g.image_url || g.imageUrl,
+        mediaType: g.media_type || 'image',
+        cloudinaryPublicId: g.cloudinary_public_id || undefined,
       }));
     }
     return initialData.gallery;
@@ -452,28 +460,88 @@ export async function fetchGalleryItems() {
 }
 
 export async function uploadGalleryMedia(file) {
-  if (!isSupabaseConfigured() || !supabase) {
-    throw new Error('Supabase Storage is not available.');
+  if (!isSupabaseConfigured() || !supabase) throw new Error('Database is not configured.');
+
+  const { file: processedFile, mediaType } = await processGalleryMedia(file);
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw new Error('Could not verify the administrator session.');
+  const accessToken = sessionData.session?.access_token;
+  if (!accessToken) throw new Error('Administrator sign-in is required to upload media.');
+
+  const signatureResponse = await fetch('/api/cloudinary-signature', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ mediaType }),
+  });
+  if (signatureResponse.status === 404) {
+    throw new Error(
+      'Cloudinary upload API was not found. Stop the Vite-only server and start the app with "npm run dev:cloudinary".'
+    );
+  }
+  if (!signatureResponse.headers.get('content-type')?.includes('application/json')) {
+    throw new Error(
+      'Cloudinary upload API returned an unexpected response. Start the app with "npm run dev:cloudinary".'
+    );
+  }
+  const signatureData = await signatureResponse.json();
+  if (!signatureResponse.ok) {
+    throw new Error(signatureData.error || 'Could not authorize the Cloudinary upload.');
   }
 
-  const ext = file.name.split('.').pop() || 'jpg';
-  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
-  const filePath = `uploads/${fileName}`;
+  const formData = new FormData();
+  formData.append('file', processedFile);
+  formData.append('api_key', signatureData.apiKey);
+  formData.append('timestamp', String(signatureData.timestamp));
+  formData.append('public_id', signatureData.publicId);
+  formData.append('allowed_formats', signatureData.allowedFormats);
+  formData.append('overwrite', 'false');
+  formData.append('signature', signatureData.signature);
 
-  const { error: uploadError } = await supabase.storage
-    .from('gallery-media')
-    .upload(filePath, file, {
-      cacheControl: '3600',
-      upsert: true,
-    });
+  const uploadResponse = await fetch(
+    `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/${signatureData.resourceType}/upload`,
+    { method: 'POST', body: formData }
+  );
+  const uploadData = await uploadResponse.json();
+  if (!uploadResponse.ok) {
+    throw new Error(uploadData.error?.message || 'Cloudinary upload failed.');
+  }
 
-  if (uploadError) handleDbError('uploadGalleryMedia', uploadError);
-
-  const { data } = supabase.storage.from('gallery-media').getPublicUrl(filePath);
   return {
-    publicUrl: data.publicUrl,
-    storagePath: filePath,
+    publicUrl: uploadData.secure_url,
+    publicId: uploadData.public_id,
+    mediaType,
   };
+}
+
+export async function deleteCloudinaryMedia(publicId, mediaType) {
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw new Error('Could not verify the administrator session.');
+  const accessToken = sessionData.session?.access_token;
+  if (!accessToken) throw new Error('Administrator sign-in is required to delete media.');
+
+  const response = await fetch('/api/cloudinary-delete', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ publicId, mediaType }),
+  });
+  if (response.status === 404) {
+    throw new Error(
+      'Cloudinary delete API was not found. Stop the Vite-only server and start the app with "npm run dev:cloudinary".'
+    );
+  }
+  if (!response.headers.get('content-type')?.includes('application/json')) {
+    throw new Error(
+      'Cloudinary delete API returned an unexpected response. Start the app with "npm run dev:cloudinary".'
+    );
+  }
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || 'Cloudinary could not delete the media.');
 }
 
 export async function createGalleryItem(itemData) {
@@ -487,6 +555,8 @@ export async function createGalleryItem(itemData) {
     title: itemData.title,
     category: itemData.category || 'Events',
     image_url: itemData.imageUrl,
+    media_type: itemData.mediaType || 'image',
+    cloudinary_public_id: itemData.cloudinaryPublicId || null,
     status: itemData.status || 'published',
     display_order: Number(itemData.displayOrder || 0),
     updated_at: new Date().toISOString(),
@@ -499,7 +569,12 @@ export async function createGalleryItem(itemData) {
     .single();
 
   if (error) handleDbError('createGalleryItem', error);
-  return { ...data, imageUrl: data.image_url };
+  return {
+    ...data,
+    imageUrl: data.image_url,
+    mediaType: data.media_type || 'image',
+    cloudinaryPublicId: data.cloudinary_public_id || undefined,
+  };
 }
 
 export async function updateGalleryItem(id, itemData) {
@@ -511,6 +586,8 @@ export async function updateGalleryItem(id, itemData) {
     title: itemData.title,
     category: itemData.category,
     image_url: itemData.imageUrl,
+    media_type: itemData.mediaType || 'image',
+    cloudinary_public_id: itemData.cloudinaryPublicId || null,
     status: itemData.status,
     updated_at: new Date().toISOString(),
   };
@@ -523,13 +600,29 @@ export async function updateGalleryItem(id, itemData) {
     .single();
 
   if (error) handleDbError('updateGalleryItem', error);
-  return { ...data, imageUrl: data.image_url };
+  return {
+    ...data,
+    imageUrl: data.image_url,
+    mediaType: data.media_type || 'image',
+    cloudinaryPublicId: data.cloudinary_public_id || undefined,
+  };
 }
 
 export async function deleteGalleryItem(id) {
   if (!isSupabaseConfigured() || !supabase) {
     throw new Error('Database is not configured.');
   }
+  const { data: item, error: fetchError } = await supabase
+    .from('gallery_items')
+    .select('cloudinary_public_id,media_type')
+    .eq('id', id)
+    .single();
+  if (fetchError) handleDbError('deleteGalleryItem', fetchError);
+
+  if (item.cloudinary_public_id) {
+    await deleteCloudinaryMedia(item.cloudinary_public_id, item.media_type || 'image');
+  }
+
   const { error } = await supabase.from('gallery_items').delete().eq('id', id);
   if (error) handleDbError('deleteGalleryItem', error);
   return true;
@@ -736,4 +829,3 @@ export async function fetchAllApplicationData() {
     volunteerOpportunities: initialData.volunteerOpportunities || [],
   };
 }
-

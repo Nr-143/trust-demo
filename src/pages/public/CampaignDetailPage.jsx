@@ -223,12 +223,14 @@ export default function CampaignDetailPage() {
             {/* Hero Image Card */}
             <div className="bg-white border border-stone-200 rounded-3xl overflow-hidden shadow-2xs">
               <div className="relative h-72 sm:h-96 w-full bg-stone-100">
-                <img
-                  src={campaign.imageUrl}
-                  alt={campaign.title}
-                  className="w-full h-full object-cover"
-                  onError={handleImageFallback}
-                />
+                {campaign.imageUrl && (
+                  <img
+                    src={campaign.imageUrl}
+                    alt={campaign.title}
+                    className="w-full h-full object-cover"
+                    onError={handleImageFallback}
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                 {/* Top Badges */}
@@ -670,4 +672,3 @@ export default function CampaignDetailPage() {
     </div>
   );
 }
-

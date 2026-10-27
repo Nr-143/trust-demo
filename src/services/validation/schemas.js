@@ -88,7 +88,8 @@ export const campaignSchema = z.object({
   donorsCount: z.coerce.number().int().min(0, 'Donors count cannot be negative').default(0),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
-  imageUrl: z.string().min(1, 'Campaign image is required'),
+  imageUrl: z.string().optional(),
+  cloudinaryPublicId: z.string().nullable().optional(),
   status: z.enum(['active', 'completed', 'archived']).default('active'),
   publicationStatus: z.enum(['published', 'draft', 'archived']).default('published'),
   location: z.string().optional(),
@@ -169,6 +170,8 @@ export const galleryItemSchema = z.object({
   title: z.string().min(2, 'Image title is required'),
   category: z.string().min(2, 'Category is required'),
   imageUrl: z.string().min(1, 'Image source URL is required'),
+  mediaType: z.enum(['image', 'video']).default('image'),
+  cloudinaryPublicId: z.string().optional(),
   status: z.enum(['published', 'archived']).default('published'),
   isDemo: z.boolean().default(true),
   createdAt: z.string().optional(),
@@ -212,4 +215,3 @@ export const donationSchema = z.object({
   timestamp: z.string().default(() => new Date().toISOString()),
   isDemo: z.boolean().default(true),
 });
-

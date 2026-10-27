@@ -1,11 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSite, useSiteDispatch, useDonationModal } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import {
   createCampaign,
   updateCampaign,
   deleteCampaign,
+  deleteCloudinaryMedia,
+  uploadGalleryMedia,
 } from '../../services/supabaseService';
+import { getGalleryMediaType } from '../../services/mediaProcessing';
 import {
   Megaphone,
   Plus,
@@ -21,6 +24,7 @@ import {
   ExternalLink,
   Globe,
   CheckCircle,
+  Upload,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../utils/helpers';
 import { useForm } from 'react-hook-form';
@@ -39,7 +43,7 @@ const campaignFormSchema = z.object({
   donorsCount: z.coerce.number().int().min(0).default(0),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
-  imageUrl: z.string().min(1, 'Image URL or asset path is required'),
+  imageUrl: z.string().optional(),
   status: z.enum(['active', 'completed', 'archived']).default('active'),
   publicationStatus: z.enum(['published', 'draft', 'archived']).default('published'),
   location: z.string().optional(),
@@ -72,6 +76,14 @@ export default function AdminCampaigns() {
   const [editingCampaign, setEditingCampaign] = useState(null);
   const [viewingCampaign, setViewingCampaign] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [editImageFile, setEditImageFile] = useState(null);
+  const [editImagePreview, setEditImagePreview] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  useEffect(() => {
+    if (!editImagePreview) return undefined;
+    return () => URL.revokeObjectURL(editImagePreview);
+  }, [editImagePreview]);
 
   // Forms
   const createForm = useForm({
@@ -125,6 +137,8 @@ export default function AdminCampaigns() {
   // Handlers
   const handleOpenEdit = (campaign) => {
     setEditingCampaign(campaign);
+    setEditImageFile(null);
+    setEditImagePreview('');
     editForm.reset({
       title: campaign.title || '',
       slug: campaign.slug || '',
@@ -136,7 +150,7 @@ export default function AdminCampaigns() {
       donorsCount: campaign.donorsCount || 0,
       startDate: campaign.startDate || '2026-01-01',
       endDate: campaign.endDate || '2027-03-31',
-      imageUrl: campaign.imageUrl || ASSET_PRESETS[0].url,
+      imageUrl: campaign.imageUrl || '',
       status: campaign.status || 'active',
       publicationStatus: campaign.publicationStatus || 'published',
       location: campaign.location || 'Palacode Taluk',
@@ -159,11 +173,23 @@ export default function AdminCampaigns() {
   };
 
   const handleEditSubmit = async (data) => {
+    let uploadedMedia = null;
     try {
       if (!editingCampaign) return;
+      setUploadingImage(true);
+      if (editImageFile) {
+        uploadedMedia = await uploadGalleryMedia(editImageFile);
+      }
+
+      const previousImageUrl = editingCampaign.imageUrl || '';
+      const imageUrl = uploadedMedia?.publicUrl || data.imageUrl || '';
+      const imageChanged = Boolean(uploadedMedia) || imageUrl !== previousImageUrl;
       const updated = await updateCampaign(editingCampaign.id, {
         ...editingCampaign,
         ...data,
+        imageUrl,
+        cloudinaryPublicId: uploadedMedia?.publicId
+          || (imageChanged ? null : editingCampaign.cloudinaryPublicId || null),
       });
       dispatch({
         type: 'UPDATE_CAMPAIGN',
@@ -171,9 +197,47 @@ export default function AdminCampaigns() {
       });
       showSuccess(`Campaign "${data.title}" updated in database!`, 'Updated');
       setEditingCampaign(null);
+      setEditImageFile(null);
+      setEditImagePreview('');
+
+      if (imageChanged && editingCampaign.cloudinaryPublicId) {
+        try {
+          await deleteCloudinaryMedia(editingCampaign.cloudinaryPublicId, 'image');
+        } catch (cleanupError) {
+          showError(`Campaign updated, but the previous uploaded image could not be removed: ${cleanupError.message}`);
+        }
+      }
     } catch (err) {
-      showError(err.message || 'Failed to update campaign in database', 'Error');
+      let message = err.message || 'Failed to update campaign in database';
+      if (uploadedMedia?.publicId) {
+        try {
+          await deleteCloudinaryMedia(uploadedMedia.publicId, 'image');
+        } catch (cleanupError) {
+          message += ` Cleanup also failed: ${cleanupError.message}`;
+        }
+      }
+      showError(message, 'Error');
+    } finally {
+      setUploadingImage(false);
     }
+  };
+
+  const handleEditImageSelection = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (getGalleryMediaType(file) !== 'image') {
+      showError('Choose a JPEG, PNG, or WebP image file.');
+      return;
+    }
+    setEditImagePreview(URL.createObjectURL(file));
+    setEditImageFile(file);
+  };
+
+  const clearEditImage = () => {
+    setEditImageFile(null);
+    setEditImagePreview('');
+    editForm.setValue('imageUrl', '', { shouldDirty: true, shouldValidate: true });
   };
 
   const handleTogglePublish = async (camp) => {
@@ -386,11 +450,13 @@ export default function AdminCampaigns() {
                         <tr key={camp.id} className="hover:bg-stone-50/70 transition-colors">
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-3.5">
-                              <img
-                                src={camp.imageUrl}
-                                alt={camp.title}
-                                className="h-12 w-12 rounded-xl object-cover shrink-0 border border-stone-200 bg-stone-100"
-                              />
+                              {camp.imageUrl && (
+                                <img
+                                  src={camp.imageUrl}
+                                  alt={camp.title}
+                                  className="h-12 w-12 rounded-xl object-cover shrink-0 border border-stone-200 bg-stone-100"
+                                />
+                              )}
                               <div className="min-w-0 max-w-sm">
                                 <p className="font-bold text-primary-dark truncate text-sm">
                                   {camp.title}
@@ -749,6 +815,7 @@ export default function AdminCampaigns() {
             <div className="flex items-center justify-between pb-4 border-b border-stone-100">
               <h3 className="text-base font-bold text-primary-dark">Edit Campaign Configuration</h3>
               <button
+                disabled={uploadingImage}
                 onClick={() => setEditingCampaign(null)}
                 className="text-stone-400 hover:text-stone-600 p-1 rounded-lg"
               >
@@ -852,19 +919,63 @@ export default function AdminCampaigns() {
                 <textarea {...editForm.register('fullDescription')} rows={4} className={inputClasses} />
               </div>
 
-              {/* Asset selector */}
+              {/* Campaign image */}
               <div>
                 <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
-                  Select Local Asset or Cause Photo
+                  Campaign Image
                 </label>
-                <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-2">
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="h-24 w-36 shrink-0 overflow-hidden rounded-lg border border-stone-200 bg-stone-100">
+                    {(editImagePreview || editForm.watch('imageUrl')) && (
+                      <img
+                        src={editImagePreview || editForm.watch('imageUrl')}
+                        alt="Campaign image preview"
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-stone-100 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-200">
+                      <Upload size={14} />
+                      {editImageFile ? 'Choose another image' : 'Upload image'}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleEditImageSelection}
+                        disabled={uploadingImage}
+                        className="sr-only"
+                      />
+                    </label>
+                    {(editImagePreview || editForm.watch('imageUrl')) && (
+                      <button
+                        type="button"
+                        onClick={clearEditImage}
+                        disabled={uploadingImage}
+                        className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
+                      >
+                        <X size={14} />
+                        Remove image
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p className="mb-2 text-xs text-stone-500">
+                  Choose an image from this device or select a local preset below.
+                  {editImageFile ? ` Selected: ${editImageFile.name}` : ''}
+                </p>
+                <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
                   {ASSET_PRESETS.map((asset) => (
                     <button
                       key={asset.name}
                       type="button"
-                      onClick={() => editForm.setValue('imageUrl', asset.url)}
+                      disabled={uploadingImage}
+                      onClick={() => {
+                        setEditImageFile(null);
+                        setEditImagePreview('');
+                        editForm.setValue('imageUrl', asset.url, { shouldDirty: true, shouldValidate: true });
+                      }}
                       className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
-                        editForm.watch('imageUrl') === asset.url
+                        !editImageFile && editForm.watch('imageUrl') === asset.url
                           ? 'border-primary ring-2 ring-primary/30'
                           : 'border-transparent opacity-70 hover:opacity-100'
                       }`}
@@ -874,22 +985,23 @@ export default function AdminCampaigns() {
                     </button>
                   ))}
                 </div>
-                <input {...editForm.register('imageUrl')} className={inputClasses} />
               </div>
 
               <div className="pt-4 border-t border-stone-100 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setEditingCampaign(null)}
+                  disabled={uploadingImage}
                   className="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer"
+                  disabled={uploadingImage}
+                  className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer disabled:cursor-wait disabled:opacity-60"
                 >
-                  Save Campaign
+                  {uploadingImage ? (editImageFile ? 'Uploading & saving...' : 'Saving...') : 'Save Campaign'}
                 </button>
               </div>
             </form>

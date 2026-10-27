@@ -1,22 +1,21 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import {
   createGalleryItem,
   updateGalleryItem,
   deleteGalleryItem,
+  deleteCloudinaryMedia,
   uploadGalleryMedia,
 } from '../../services/supabaseService';
+import { getGalleryMediaType } from '../../services/mediaProcessing';
 import {
   Image as ImageIcon,
   Plus,
   Search,
   Edit,
   Trash2,
-  Archive,
-  CheckCircle,
   X,
-  Upload,
   Eye,
 } from 'lucide-react';
 import ConfirmModal from '../../components/common/ConfirmModal';
@@ -63,7 +62,20 @@ export default function AdminGallery() {
   const [imageUrl, setImageUrl] = useState('');
   const [status, setStatus] = useState('published');
   const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFilePreview, setSelectedFilePreview] = useState('');
   const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (!selectedFile) {
+      setSelectedFilePreview('');
+      return undefined;
+    }
+
+    const previewUrl = URL.createObjectURL(selectedFile);
+    setSelectedFilePreview(previewUrl);
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [selectedFile]);
 
   // Form states for edit
   const [editTitle, setEditTitle] = useState('');
@@ -100,6 +112,17 @@ export default function AdminGallery() {
     setEditStatus(item.status || 'published');
   };
 
+  const clearSelectedMedia = () => {
+    setImageUrl('');
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const closeCreateModal = () => {
+    setCreateModalOpen(false);
+    clearSelectedMedia();
+  };
+
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) {
@@ -109,12 +132,13 @@ export default function AdminGallery() {
 
     let finalUrl = imageUrl.trim();
 
+    let uploadedMedia = null;
     try {
       setUploading(true);
 
       if (selectedFile) {
-        const uploaded = await uploadGalleryMedia(selectedFile);
-        finalUrl = uploaded.publicUrl;
+        uploadedMedia = await uploadGalleryMedia(selectedFile);
+        finalUrl = uploadedMedia.publicUrl;
       }
 
       if (!finalUrl) {
@@ -127,6 +151,8 @@ export default function AdminGallery() {
         title,
         category,
         imageUrl: finalUrl,
+        mediaType: uploadedMedia?.mediaType || 'image',
+        cloudinaryPublicId: uploadedMedia?.publicId,
         status,
       });
 
@@ -135,13 +161,20 @@ export default function AdminGallery() {
         payload: created,
       });
 
-      showSuccess(`Photo "${title}" saved to Supabase gallery!`, 'Saved');
+      showSuccess(`Media "${title}" saved to the gallery.`, 'Saved');
       setTitle('');
-      setImageUrl('');
-      setSelectedFile(null);
+      clearSelectedMedia();
       setCreateModalOpen(false);
     } catch (err) {
-      showError(err.message || 'Failed to save image to gallery');
+      let message = err.message || 'Failed to save media to gallery';
+      if (uploadedMedia?.publicId) {
+        try {
+          await deleteCloudinaryMedia(uploadedMedia.publicId, uploadedMedia.mediaType);
+        } catch (cleanupError) {
+          message += ` Cleanup also failed: ${cleanupError.message}`;
+        }
+      }
+      showError(message);
     } finally {
       setUploading(false);
     }
@@ -156,11 +189,14 @@ export default function AdminGallery() {
 
     try {
       if (!editingItem) return;
+      const replacingMedia = editImageUrl.trim() !== editingItem.imageUrl;
       const updated = await updateGalleryItem(editingItem.id, {
         ...editingItem,
         title: editTitle,
         category: editCategory,
-        imageUrl: editImageUrl,
+        imageUrl: editImageUrl.trim(),
+        mediaType: replacingMedia ? 'image' : editingItem.mediaType || 'image',
+        cloudinaryPublicId: replacingMedia ? null : editingItem.cloudinaryPublicId,
         status: editStatus,
       });
 
@@ -169,8 +205,16 @@ export default function AdminGallery() {
         payload: updated,
       });
 
-      showSuccess(`Photo caption & status updated in database!`, 'Updated');
       setEditingItem(null);
+      if (replacingMedia && editingItem.cloudinaryPublicId) {
+        try {
+          await deleteCloudinaryMedia(editingItem.cloudinaryPublicId, editingItem.mediaType || 'image');
+        } catch (cleanupError) {
+          showError(`Gallery updated, but the previous Cloudinary file could not be removed: ${cleanupError.message}`);
+          return;
+        }
+      }
+      showSuccess('Gallery media details updated.', 'Updated');
     } catch (err) {
       showError(err.message || 'Failed to update photo in database');
     }
@@ -202,10 +246,13 @@ export default function AdminGallery() {
     try {
       await deleteGalleryItem(deleteTarget.id);
       dispatch({ type: 'DELETE_GALLERY_ITEM', payload: deleteTarget.id });
-      showSuccess(`Image "${deleteTarget.title || 'Selected'}" permanently deleted from database.`, 'Deleted');
+      showSuccess(
+        `Media "${deleteTarget.title || 'Selected'}" removed from the gallery and its Cloudinary asset (if present).`,
+        'Deleted'
+      );
       setDeleteTarget(null);
     } catch (err) {
-      showError(err.message || 'Failed to remove image from database');
+      showError(err.message || 'Failed to remove media from the gallery');
     }
   };
 
@@ -223,9 +270,9 @@ export default function AdminGallery() {
               Media Assets & Field Photos
             </span>
           </div>
-          <h1 className="text-2xl font-bold text-primary-dark">Photo Gallery Management</h1>
+          <h1 className="text-2xl font-bold text-primary-dark">Gallery Media Management</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Manage captions, categories, and publication visibility for photos across public pages.
+            Upload optimized images and videos, and manage their captions and publication visibility.
           </p>
         </div>
 
@@ -234,7 +281,7 @@ export default function AdminGallery() {
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-dark text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
         >
           <Plus size={16} />
-          <span>Add Photo</span>
+          <span> Add Media</span>
         </button>
       </div>
 
@@ -298,7 +345,7 @@ export default function AdminGallery() {
             </button>
           ))}
           <span className="ml-auto text-[11px] text-stone-400">
-            Showing {filteredItems.length} of {gallery?.length || 0} images
+            Showing {filteredItems.length} of {gallery?.length || 0} media items
           </span>
         </div>
       </div>
@@ -307,8 +354,8 @@ export default function AdminGallery() {
       {filteredItems.length === 0 ? (
         <div className="bg-white border border-stone-200 rounded-2xl p-12 text-center shadow-2xs">
           <ImageIcon size={40} className="mx-auto text-stone-300 mb-3" />
-          <h3 className="text-base font-bold text-stone-700">No photos found</h3>
-          <p className="text-xs text-stone-500 mt-1">Try adjusting your search query or add a new photo.</p>
+          <h3 className="text-base font-bold text-stone-700">No media found</h3>
+          <p className="text-xs text-stone-500 mt-1">Try adjusting your search query or add new media.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -318,6 +365,15 @@ export default function AdminGallery() {
               className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-2xs group flex flex-col justify-between"
             >
               <div className="relative aspect-4/3 bg-stone-100 overflow-hidden">
+                {item.mediaType === 'video' ? (
+                <video
+                  src={item.imageUrl}
+                  className="w-full h-full object-cover"
+                  muted
+                  playsInline
+                  preload="metadata"
+                />
+                ) : (
                 <img
                   src={item.imageUrl}
                   alt={item.title}
@@ -326,6 +382,7 @@ export default function AdminGallery() {
                     e.currentTarget.src = '/images/originalLogo.jpeg';
                   }}
                 />
+                )}
 
                 {/* Status Badge */}
                 <div className="absolute top-2.5 left-2.5">
@@ -403,9 +460,10 @@ export default function AdminGallery() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-stone-200 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-stone-100">
-              <h3 className="text-base font-bold text-primary-dark">Add Photo to Gallery</h3>
+              <h3 className="text-base font-bold text-primary-dark">Add Media to Gallery</h3>
               <button
-                onClick={() => setCreateModalOpen(false)}
+                disabled={uploading}
+                onClick={closeCreateModal}
                 className="text-stone-400 hover:text-stone-600 p-1 rounded-lg"
               >
                 <X size={18} />
@@ -471,7 +529,12 @@ export default function AdminGallery() {
                     <button
                       key={asset.label}
                       type="button"
-                      onClick={() => setImageUrl(asset.url)}
+                      disabled={uploading}
+                      onClick={() => {
+                        setSelectedFile(null);
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                        setImageUrl(asset.url);
+                      }}
                       className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                         imageUrl === asset.url
                           ? 'border-primary ring-2 ring-primary/30'
@@ -493,7 +556,12 @@ export default function AdminGallery() {
                 <input
                   type="url"
                   value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
+                  disabled={uploading}
+                  onChange={(e) => {
+                    setSelectedFile(null);
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                    setImageUrl(e.target.value);
+                  }}
                   className={inputClasses}
                   placeholder="https://images.unsplash.com/..."
                 />
@@ -502,23 +570,101 @@ export default function AdminGallery() {
               {/* Local File Upload */}
               <div className="p-3 bg-stone-50 border border-dashed border-stone-300 rounded-xl">
                 <label className="block text-xs font-bold text-stone-700 mb-1">
-                  Or Upload Local File to Supabase Storage
+                  Upload Image or Video to Cloudinary
                 </label>
                 <input
+                  ref={fileInputRef}
                   type="file"
-                  accept="image/*"
-                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                  accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    if (file && !getGalleryMediaType(file)) {
+                      showError('Unsupported file format. Choose JPEG, PNG, WebP, MP4, or WebM.');
+                      e.target.value = '';
+                      setSelectedFile(null);
+                      return;
+                    }
+                    if (file) setImageUrl('');
+                    setSelectedFile(file);
+                  }}
                   className="text-xs text-stone-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-dark cursor-pointer"
                 />
+                {selectedFile && (
+                  <div className="mt-3 flex items-center gap-3 rounded-lg border border-stone-200 bg-white p-2.5">
+                    <div className="h-16 w-24 shrink-0 overflow-hidden rounded-md bg-stone-100">
+                      {getGalleryMediaType(selectedFile) === 'video' ? (
+                        <video
+                          src={selectedFilePreview}
+                          className="h-full w-full object-cover"
+                          muted
+                          playsInline
+                        />
+                      ) : (
+                        <img
+                          src={selectedFilePreview}
+                          alt="Selected upload preview"
+                          className="h-full w-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-semibold text-stone-700">{selectedFile.name}</p>
+                      <p className="text-[11px] text-stone-500">
+                        Selected {getGalleryMediaType(selectedFile)}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFile(null);
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                      }}
+                      disabled={uploading}
+                      className="inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                      aria-label={`Remove selected upload ${selectedFile.name}`}
+                    >
+                      <X size={14} />
+                      Remove
+                    </button>
+                  </div>
+                )}
                 <p className="text-[11px] text-stone-400 mt-1">
-                  Uploads securely to the Supabase Storage 'gallery-media' bucket.
+                  JPEG/PNG/WebP are converted to WebP (max 2 MB; source under 50 MB). MP4/WebM are compressed to MP4 (max 5 MB; source under 100 MB).
                 </p>
               </div>
+
+              {imageUrl && !selectedFile && (
+                <div className="flex items-center justify-between rounded-lg border border-stone-200 bg-stone-50 p-2.5">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <img
+                      src={imageUrl}
+                      alt="Selected gallery asset"
+                      className="h-16 w-24 shrink-0 rounded-md bg-stone-100 object-cover"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-stone-700">Selected image</p>
+                      <p className="truncate text-[11px] text-stone-500">{imageUrl}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearSelectedMedia}
+                    disabled={uploading}
+                    className="ml-3 inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                    aria-label="Remove selected local asset or image URL"
+                  >
+                    <X size={14} />
+                    Remove
+                  </button>
+                </div>
+              )}
 
               <div className="pt-4 border-t border-stone-100 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
-                  onClick={() => setCreateModalOpen(false)}
+                  onClick={closeCreateModal}
+                  disabled={uploading}
                   className="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
@@ -528,7 +674,7 @@ export default function AdminGallery() {
                   disabled={uploading}
                   className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  {uploading ? 'Processing...' : 'Add Photo'}
+                  {uploading ? 'Processing and uploading...' : 'Add Media'}
                 </button>
               </div>
             </form>
@@ -636,11 +782,20 @@ export default function AdminGallery() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
           <div className="bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl border border-stone-200">
             <div className="relative aspect-16/10 bg-black">
-              <img
-                src={previewItem.imageUrl}
-                alt={previewItem.title}
-                className="w-full h-full object-contain"
-              />
+              {previewItem.mediaType === 'video' ? (
+                <video
+                  src={previewItem.imageUrl}
+                  className="w-full h-full object-contain"
+                  controls
+                  autoPlay
+                />
+              ) : (
+                <img
+                  src={previewItem.imageUrl}
+                  alt={previewItem.title}
+                  className="w-full h-full object-contain"
+                />
+              )}
               <button
                 onClick={() => setPreviewItem(null)}
                 className="absolute top-3 right-3 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-full transition-colors"
@@ -666,9 +821,9 @@ export default function AdminGallery() {
       {/* DELETE CONFIRMATION */}
       <ConfirmModal
         isOpen={Boolean(deleteTarget)}
-        title="Remove Photo"
-        message={`Are you sure you want to remove photo "${deleteTarget?.title || 'Selected'}"?`}
-        confirmText="Remove Photo"
+        title="Remove Media"
+        message={`Remove "${deleteTarget?.title || 'Selected'}" from the gallery? Any uploaded Cloudinary image or video will also be deleted. Local preset files are only unlinked from the gallery.`}
+        confirmText="Remove Media"
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteTarget(null)}
       />

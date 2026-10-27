@@ -130,13 +130,15 @@ export default function CampaignsPage() {
                   <div>
                     {/* Image with Tag */}
                     <div className="relative h-56 overflow-hidden bg-stone-100">
-                      <img
-                        src={campaign.imageUrl}
-                        alt={campaign.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                        onError={handleImageFallback}
-                      />
+                      {campaign.imageUrl && (
+                        <img
+                          src={campaign.imageUrl}
+                          alt={campaign.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
+                          onError={handleImageFallback}
+                        />
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                       <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-white/95 text-[#173B2A] shadow-xs">

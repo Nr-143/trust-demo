@@ -72,12 +72,16 @@ CREATE TABLE IF NOT EXISTS public.campaigns (
     start_date TEXT,
     end_date TEXT,
     image_url TEXT,
+    cloudinary_public_id TEXT,
     status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'completed', 'archived', 'draft')),
     publication_status TEXT NOT NULL DEFAULT 'published' CHECK (publication_status IN ('published', 'draft', 'archived')),
     location TEXT,
     created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
+
+ALTER TABLE public.campaigns
+    ADD COLUMN IF NOT EXISTS cloudinary_public_id TEXT;
 
 -- 7. IMPACT METRICS TABLE
 CREATE TABLE IF NOT EXISTS public.impact_metrics (
@@ -97,11 +101,17 @@ CREATE TABLE IF NOT EXISTS public.gallery_items (
     title TEXT NOT NULL,
     category TEXT NOT NULL DEFAULT 'Events',
     image_url TEXT NOT NULL,
+    media_type TEXT NOT NULL DEFAULT 'image' CHECK (media_type IN ('image', 'video')),
+    cloudinary_public_id TEXT,
     status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('published', 'draft', 'archived')),
     display_order INT DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
+
+ALTER TABLE public.gallery_items
+    ADD COLUMN IF NOT EXISTS media_type TEXT NOT NULL DEFAULT 'image' CHECK (media_type IN ('image', 'video')),
+    ADD COLUMN IF NOT EXISTS cloudinary_public_id TEXT;
 
 -- 9. CAREERS / JOB POSTINGS TABLE
 CREATE TABLE IF NOT EXISTS public.careers (
