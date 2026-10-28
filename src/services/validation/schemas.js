@@ -49,6 +49,13 @@ export const programmeSchema = z.object({
   category: z.string().min(2, 'Category is required'),
   icon: z.string().default('GraduationCap'),
   imageUrl: z.string().min(1, 'Image URL or identifier is required'),
+  mediaType: z.enum(['image', 'video']).optional().default('image'),
+  cloudinaryPublicId: z.string().nullable().optional(),
+  mediaGallery: z.array(z.object({
+    url: z.string().min(1),
+    mediaType: z.enum(['image', 'video']),
+    publicId: z.string().nullable().optional(),
+  })).optional().default([]),
   description: z.string().min(10, 'Short description is required'),
   details: z.string().optional(),
   highlights: z.array(z.string()).optional().default([]),

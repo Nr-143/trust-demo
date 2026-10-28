@@ -24,6 +24,7 @@ import {
 import { useSite, useDonationModal } from '../../context/SiteContext';
 import { handleImageFallback } from '../../utils/helpers';
 import DemoBadge from '../../components/common/DemoBadge';
+import ProgrammeMediaPyramid from '../../components/common/ProgrammeMediaPyramid';
 
 const iconMap = {
   GraduationCap,
@@ -211,19 +212,6 @@ export default function ProgrammeDetailPage() {
 
             {/* Quick Visual Card & Key Highlights */}
             <div className="w-full md:w-80 shrink-0 bg-[#FAF8F2] border border-stone-200/80 rounded-2xl p-4 sm:p-5">
-              <div className="relative h-36 rounded-xl overflow-hidden mb-4 bg-stone-100">
-                <img
-                  src={programme.imageUrl}
-                  alt={programme.title}
-                  className="w-full h-full object-cover"
-                  loading="eager"
-                  onError={handleImageFallback}
-                />
-                <span className="absolute bottom-2 left-2 px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-xs text-white">
-                  {programme.category}
-                </span>
-              </div>
-
               {programme.highlights && programme.highlights.length > 0 && (
                 <div>
                   <h2 className="text-[11px] font-bold text-stone-500 uppercase tracking-wider mb-2">
@@ -241,6 +229,18 @@ export default function ProgrammeDetailPage() {
               )}
             </div>
           </div>
+        </section>
+
+        <section aria-labelledby="programme-media-heading" className="mb-12">
+          <div className="mb-4">
+            <h2 id="programme-media-heading" className="text-xl font-bold text-[#173B2A]">
+              Programme Photos & Video
+            </h2>
+            <p className="mt-1 text-sm text-stone-600">
+              Browse programme photos and watch the featured video.
+            </p>
+          </div>
+          <ProgrammeMediaPyramid programme={programme} />
         </section>
 
         {/* Section B: Projects and Completed Activities */}

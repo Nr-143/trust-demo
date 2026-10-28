@@ -20,6 +20,29 @@ export function getGalleryMediaType(file) {
   return null;
 }
 
+export function getMediaTypeFromUrl(url) {
+  if (!url) return 'image';
+  return /\/video\/upload\/|\.mp4(?:$|[?#])|\.webm(?:$|[?#])/i.test(url) ? 'video' : 'image';
+}
+
+export function getProgrammeMediaItems(programme) {
+  const mediaGallery = Array.isArray(programme?.mediaGallery)
+    ? programme.mediaGallery.filter((item) => item?.url)
+    : [];
+  const imageUrl = programme?.imageUrl;
+  const imageGallery = mediaGallery.some((item) => item.mediaType === 'image');
+  const fallbackImage = imageUrl
+    && getMediaTypeFromUrl(imageUrl) === 'image'
+    && !mediaGallery.some((item) => item.url === imageUrl)
+    ? [{
+        url: imageUrl,
+        mediaType: 'image',
+        publicId: programme?.cloudinaryPublicId || null,
+      }]
+    : [];
+  return [...mediaGallery, ...(!imageGallery ? fallbackImage : [])];
+}
+
 function canvasToWebp(canvas, quality) {
   return new Promise((resolve, reject) => {
     canvas.toBlob(

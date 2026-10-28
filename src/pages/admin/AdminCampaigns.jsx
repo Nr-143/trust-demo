@@ -76,9 +76,16 @@ export default function AdminCampaigns() {
   const [editingCampaign, setEditingCampaign] = useState(null);
   const [viewingCampaign, setViewingCampaign] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [createImageFile, setCreateImageFile] = useState(null);
+  const [createImagePreview, setCreateImagePreview] = useState('');
   const [editImageFile, setEditImageFile] = useState(null);
   const [editImagePreview, setEditImagePreview] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  useEffect(() => {
+    if (!createImagePreview) return undefined;
+    return () => URL.revokeObjectURL(createImagePreview);
+  }, [createImagePreview]);
 
   useEffect(() => {
     if (!editImagePreview) return undefined;
@@ -157,9 +164,36 @@ export default function AdminCampaigns() {
     });
   };
 
+  const handleCreateImageSelection = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (getGalleryMediaType(file) !== 'image') {
+      showError('Choose a JPEG, PNG, or WebP image file.');
+      return;
+    }
+    setCreateImagePreview(URL.createObjectURL(file));
+    setCreateImageFile(file);
+  };
+
+  const clearCreateImage = () => {
+    setCreateImageFile(null);
+    setCreateImagePreview('');
+    createForm.setValue('imageUrl', '', { shouldDirty: true, shouldValidate: true });
+  };
+
   const handleCreateSubmit = async (data) => {
+    let uploadedMedia = null;
     try {
-      const created = await createCampaign(data);
+      setUploadingImage(true);
+      if (createImageFile) {
+        uploadedMedia = await uploadGalleryMedia(createImageFile);
+      }
+      const created = await createCampaign({
+        ...data,
+        imageUrl: uploadedMedia?.publicUrl || data.imageUrl || '',
+        cloudinaryPublicId: uploadedMedia?.publicId || null,
+      });
       dispatch({
         type: 'ADD_CAMPAIGN',
         payload: created,
@@ -167,8 +201,20 @@ export default function AdminCampaigns() {
       showSuccess(`Campaign "${data.title}" saved to database successfully!`, 'Created');
       setCreateModalOpen(false);
       createForm.reset();
+      setCreateImageFile(null);
+      setCreateImagePreview('');
     } catch (err) {
-      showError(err.message || 'Failed to create campaign in database', 'Error');
+      let message = err.message || 'Failed to create campaign in database';
+      if (uploadedMedia?.publicId) {
+        try {
+          await deleteCloudinaryMedia(uploadedMedia.publicId, 'image');
+        } catch (cleanupError) {
+          message += ` Cleanup also failed: ${cleanupError.message}`;
+        }
+      }
+      showError(message, 'Error');
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -639,7 +685,12 @@ export default function AdminCampaigns() {
             <div className="flex items-center justify-between pb-4 border-b border-stone-100">
               <h3 className="text-base font-bold text-primary-dark">Create Fundraising Campaign</h3>
               <button
-                onClick={() => setCreateModalOpen(false)}
+                onClick={() => {
+                  if (uploadingImage) return;
+                  setCreateModalOpen(false);
+                  setCreateImageFile(null);
+                  setCreateImagePreview('');
+                }}
                 className="text-stone-400 hover:text-stone-600 p-1 rounded-lg"
               >
                 <X size={18} />
@@ -769,7 +820,11 @@ export default function AdminCampaigns() {
                     <button
                       key={asset.name}
                       type="button"
-                      onClick={() => createForm.setValue('imageUrl', asset.url)}
+                      onClick={() => {
+                        setCreateImageFile(null);
+                        setCreateImagePreview('');
+                        createForm.setValue('imageUrl', asset.url, { shouldDirty: true, shouldValidate: true });
+                      }}
                       className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                         createForm.watch('imageUrl') === asset.url
                           ? 'border-primary ring-2 ring-primary/30'
@@ -781,26 +836,78 @@ export default function AdminCampaigns() {
                     </button>
                   ))}
                 </div>
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="h-24 w-36 shrink-0 overflow-hidden rounded-lg border border-stone-200 bg-stone-100">
+                    {(createImagePreview || createForm.watch('imageUrl')) && (
+                      <img
+                        src={createImagePreview || createForm.watch('imageUrl')}
+                        alt="Campaign image preview"
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-stone-100 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-200">
+                      <Upload size={14} />
+                      {createImageFile ? 'Choose another image' : 'Upload image'}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleCreateImageSelection}
+                        disabled={uploadingImage}
+                        className="sr-only"
+                      />
+                    </label>
+                    {(createImagePreview || createForm.watch('imageUrl')) && (
+                      <button
+                        type="button"
+                        onClick={clearCreateImage}
+                        disabled={uploadingImage}
+                        className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
+                      >
+                        <X size={14} />
+                        Remove image
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p className="mb-2 text-xs text-stone-500">
+                  Upload an image, choose a preset, or enter an image URL.
+                  {createImageFile ? ` Selected: ${createImageFile.name}` : ''}
+                </p>
                 <input
-                  {...createForm.register('imageUrl')}
+                  {...createForm.register('imageUrl', {
+                    onChange: () => {
+                      setCreateImageFile(null);
+                      setCreateImagePreview('');
+                    },
+                  })}
                   className={inputClasses}
                   placeholder="Asset URL (e.g. /images/logo-badge.jpeg or web URL)"
+                  disabled={uploadingImage}
                 />
               </div>
 
               <div className="pt-4 border-t border-stone-100 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
-                  onClick={() => setCreateModalOpen(false)}
+                  onClick={() => {
+                    if (uploadingImage) return;
+                    setCreateModalOpen(false);
+                    setCreateImageFile(null);
+                    setCreateImagePreview('');
+                  }}
+                  disabled={uploadingImage}
                   className="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
+                  disabled={uploadingImage}
                   className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
-                  Launch Campaign
+                  {uploadingImage ? (createImageFile ? 'Uploading & creating...' : 'Creating...') : 'Launch Campaign'}
                 </button>
               </div>
             </form>

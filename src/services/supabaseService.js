@@ -8,7 +8,11 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { initialData } from '../data/initialData';
 import { getDialablePhone, getWhatsAppUrl } from '../utils/helpers';
-import { processGalleryMedia } from './mediaProcessing';
+import {
+  getMediaTypeFromUrl,
+  getProgrammeMediaItems,
+  processGalleryMedia,
+} from './mediaProcessing';
 
 // Helper to normalize Supabase errors
 function handleDbError(operation, error) {
@@ -100,6 +104,14 @@ export async function fetchProgrammes() {
         fullTitle: p.full_title || p.fullTitle || p.title,
         titleTamil: p.title_tamil || p.titleTamil || '',
         imageUrl: p.image_url || p.imageUrl,
+        mediaType: p.media_type || getMediaTypeFromUrl(p.image_url || p.imageUrl),
+        cloudinaryPublicId: p.cloudinary_public_id || p.cloudinaryPublicId || null,
+        mediaGallery: getProgrammeMediaItems({
+          imageUrl: p.image_url || p.imageUrl,
+          mediaType: p.media_type || p.mediaType,
+          cloudinaryPublicId: p.cloudinary_public_id || p.cloudinaryPublicId,
+          mediaGallery: p.media_gallery || p.mediaGallery,
+        }),
       }));
     }
     return initialData.programmes;
@@ -132,6 +144,9 @@ export async function createProgramme(programmeData) {
     category: programmeData.category,
     icon: programmeData.icon || 'GraduationCap',
     image_url: programmeData.imageUrl,
+    media_type: programmeData.mediaType || getMediaTypeFromUrl(programmeData.imageUrl),
+    cloudinary_public_id: programmeData.cloudinaryPublicId || null,
+    media_gallery: Array.isArray(programmeData.mediaGallery) ? programmeData.mediaGallery : [],
     description: (programmeData.description || '').trim(),
     details: (programmeData.details || '').trim(),
     highlights: Array.isArray(programmeData.highlights) ? programmeData.highlights : [],
@@ -153,6 +168,14 @@ export async function createProgramme(programmeData) {
     fullTitle: data.full_title,
     titleTamil: data.title_tamil,
     imageUrl: data.image_url,
+    mediaType: data.media_type || getMediaTypeFromUrl(data.image_url),
+    cloudinaryPublicId: data.cloudinary_public_id || null,
+    mediaGallery: getProgrammeMediaItems({
+      imageUrl: data.image_url,
+      mediaType: data.media_type,
+      cloudinaryPublicId: data.cloudinary_public_id,
+      mediaGallery: data.media_gallery,
+    }),
   };
 }
 
@@ -168,6 +191,9 @@ export async function updateProgramme(id, programmeData) {
     category: programmeData.category,
     icon: programmeData.icon,
     image_url: programmeData.imageUrl,
+    media_type: programmeData.mediaType || getMediaTypeFromUrl(programmeData.imageUrl),
+    cloudinary_public_id: programmeData.cloudinaryPublicId || null,
+    media_gallery: Array.isArray(programmeData.mediaGallery) ? programmeData.mediaGallery : [],
     description: programmeData.description,
     details: programmeData.details,
     highlights: programmeData.highlights,
@@ -189,6 +215,14 @@ export async function updateProgramme(id, programmeData) {
     fullTitle: data.full_title,
     titleTamil: data.title_tamil,
     imageUrl: data.image_url,
+    mediaType: data.media_type || getMediaTypeFromUrl(data.image_url),
+    cloudinaryPublicId: data.cloudinary_public_id || null,
+    mediaGallery: getProgrammeMediaItems({
+      imageUrl: data.image_url,
+      mediaType: data.media_type,
+      cloudinaryPublicId: data.cloudinary_public_id,
+      mediaGallery: data.media_gallery,
+    }),
   };
 }
 

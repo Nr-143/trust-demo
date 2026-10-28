@@ -46,6 +46,9 @@ CREATE TABLE IF NOT EXISTS public.programmes (
     category TEXT NOT NULL,
     icon TEXT,
     image_url TEXT,
+    media_type TEXT NOT NULL DEFAULT 'image' CHECK (media_type IN ('image', 'video')),
+    cloudinary_public_id TEXT,
+    media_gallery JSONB NOT NULL DEFAULT '[]'::jsonb,
     description TEXT,
     details TEXT,
     highlights JSONB DEFAULT '[]'::jsonb,
@@ -55,6 +58,12 @@ CREATE TABLE IF NOT EXISTS public.programmes (
     created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
+
+ALTER TABLE public.programmes
+    ADD COLUMN IF NOT EXISTS media_type TEXT NOT NULL DEFAULT 'image'
+        CHECK (media_type IN ('image', 'video')),
+    ADD COLUMN IF NOT EXISTS cloudinary_public_id TEXT,
+    ADD COLUMN IF NOT EXISTS media_gallery JSONB NOT NULL DEFAULT '[]'::jsonb;
 
 -- 6. CAMPAIGNS TABLE (Grassroots funding campaigns)
 CREATE TABLE IF NOT EXISTS public.campaigns (

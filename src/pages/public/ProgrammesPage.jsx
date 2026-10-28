@@ -17,6 +17,8 @@ import PageHeader from '../../components/common/PageHeader';
 import DemoBadge from '../../components/common/DemoBadge';
 import { useSite } from '../../context/SiteContext';
 import { handleImageFallback } from '../../utils/helpers';
+import MediaCarousel from '../../components/common/MediaCarousel';
+import { getProgrammeMediaItems } from '../../services/mediaProcessing';
 
 const iconMap = {
   GraduationCap,
@@ -81,20 +83,14 @@ export default function ProgrammesPage() {
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
                     {/* Photo Column */}
-                    <div className="lg:col-span-5 relative h-64 sm:h-72 lg:h-auto bg-stone-100">
-                      <Link
-                        to={targetUrl}
-                        aria-label={`View ${prog.title} programme details`}
-                        className="block w-full h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#176B36]"
-                      >
-                        <img
-                          src={prog.imageUrl}
-                          alt={prog.title}
-                          className="w-full h-full object-cover hover:scale-102 transition-transform duration-300"
-                          loading="lazy"
-                          onError={handleImageFallback}
-                        />
-                      </Link>
+                    <div className="lg:col-span-5 relative h-64 sm:h-72 lg:min-h-[22rem] bg-stone-100">
+                      <MediaCarousel
+                        items={getProgrammeMediaItems(prog).filter((item) => item.mediaType === 'image')}
+                        alt={prog.title}
+                        className="h-full w-full"
+                        imageClassName="h-full w-full object-cover transition-transform duration-300 hover:scale-102"
+                        onImageError={handleImageFallback}
+                      />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent lg:hidden pointer-events-none" />
                       <span className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold bg-white/95 text-[#173B2A] shadow-xs pointer-events-none">
                         Vertical #{index + 1} • {prog.category}

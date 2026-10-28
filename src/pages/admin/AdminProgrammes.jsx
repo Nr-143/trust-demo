@@ -1,11 +1,19 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import {
   createProgramme,
   updateProgramme,
   deleteProgramme,
+  deleteCloudinaryMedia,
+  uploadGalleryMedia,
 } from '../../services/supabaseService';
+import {
+  getGalleryMediaType,
+  getMediaTypeFromUrl,
+  getProgrammeMediaItems,
+} from '../../services/mediaProcessing';
+import MediaPreview from '../../components/common/MediaPreview';
 import {
   FolderKanban,
   Plus,
@@ -15,6 +23,7 @@ import {
   Trash2,
   Archive,
   CheckCircle,
+  Upload,
   X,
   ExternalLink,
   GraduationCap,
@@ -91,6 +100,23 @@ export default function AdminProgrammes() {
   const [editingProgramme, setEditingProgramme] = useState(null);
   const [viewingProgramme, setViewingProgramme] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [createMediaFiles, setCreateMediaFiles] = useState([]);
+  const [createMediaPreviews, setCreateMediaPreviews] = useState([]);
+  const [editMediaFiles, setEditMediaFiles] = useState([]);
+  const [editMediaPreviews, setEditMediaPreviews] = useState([]);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+
+  useEffect(() => {
+    const previews = createMediaFiles.map((file) => URL.createObjectURL(file));
+    setCreateMediaPreviews(previews);
+    return () => previews.forEach((url) => URL.revokeObjectURL(url));
+  }, [createMediaFiles]);
+
+  useEffect(() => {
+    const previews = editMediaFiles.map((file) => URL.createObjectURL(file));
+    setEditMediaPreviews(previews);
+    return () => previews.forEach((url) => URL.revokeObjectURL(url));
+  }, [editMediaFiles]);
 
   // Create form
   const createForm = useForm({
@@ -139,6 +165,7 @@ export default function AdminProgrammes() {
   // Handlers
   const handleOpenEdit = (prog) => {
     setEditingProgramme(prog);
+    setEditMediaFiles([]);
     editForm.reset({
       title: prog.title || '',
       titleTamil: prog.titleTamil || '',
@@ -150,10 +177,61 @@ export default function AdminProgrammes() {
     });
   };
 
+  const handleCreateMediaSelection = (event) => {
+    const files = Array.from(event.target.files || []);
+    event.target.value = '';
+    if (files.length === 0) return;
+    if (files.some((file) => !getGalleryMediaType(file))) {
+      showError('Choose JPEG, PNG, WebP, MP4, or WebM files.');
+      return;
+    }
+    if (files.filter((file) => getGalleryMediaType(file) === 'video').length > 1) {
+      showError('Choose one video per programme. You can upload multiple images.');
+      return;
+    }
+    setCreateMediaFiles(files);
+  };
+
+  const handleEditMediaSelection = (event) => {
+    const files = Array.from(event.target.files || []);
+    event.target.value = '';
+    if (files.length === 0) return;
+    if (files.some((file) => !getGalleryMediaType(file))) {
+      showError('Choose JPEG, PNG, WebP, MP4, or WebM files.');
+      return;
+    }
+    if (files.filter((file) => getGalleryMediaType(file) === 'video').length > 1) {
+      showError('Choose one video per programme. You can upload multiple images.');
+      return;
+    }
+    setEditMediaFiles(files);
+  };
+
   const handleCreateSubmit = async (data) => {
+    const uploadedMedia = [];
     try {
+      setUploadingMedia(true);
+      for (const file of createMediaFiles) {
+        uploadedMedia.push(await uploadGalleryMedia(file));
+      }
+      const mediaGallery = uploadedMedia.length > 0
+        ? uploadedMedia.map(({ publicUrl, publicId, mediaType }) => ({
+            url: publicUrl,
+            publicId,
+            mediaType,
+          }))
+        : [{
+            url: data.imageUrl,
+            mediaType: getMediaTypeFromUrl(data.imageUrl),
+            publicId: null,
+          }];
+      const primaryImage = mediaGallery.find((item) => item.mediaType === 'image');
       const payload = {
         ...data,
+        imageUrl: primaryImage?.url || data.imageUrl,
+        mediaType: primaryImage?.mediaType || getMediaTypeFromUrl(data.imageUrl),
+        cloudinaryPublicId: primaryImage?.publicId || null,
+        mediaGallery,
         highlights: ['Community Engagement', 'Volunteer Participation', 'Sustainable Impact'],
       };
       const created = await createProgramme(payload);
@@ -167,17 +245,55 @@ export default function AdminProgrammes() {
       showSuccess(`New programme "${data.title}" saved to database successfully!`, 'Created');
       setCreateModalOpen(false);
       createForm.reset();
+      setCreateMediaFiles([]);
     } catch (err) {
-      showError(err.message || 'Failed to create programme in database', 'Error');
+      let message = err.message || 'Failed to create programme in database';
+      for (const media of uploadedMedia) {
+        if (media.publicId) {
+          try {
+            await deleteCloudinaryMedia(media.publicId, media.mediaType);
+          } catch (cleanupError) {
+            message += ` Cleanup also failed: ${cleanupError.message}`;
+          }
+        }
+      }
+      showError(message, 'Error');
+    } finally {
+      setUploadingMedia(false);
     }
   };
 
   const handleEditSubmit = async (data) => {
+    const uploadedMedia = [];
     try {
       if (!editingProgramme) return;
+      setUploadingMedia(true);
+      for (const file of editMediaFiles) {
+        uploadedMedia.push(await uploadGalleryMedia(file));
+      }
+      const previousImageUrl = editingProgramme.imageUrl || '';
+      const previousMedia = getProgrammeMediaItems(editingProgramme);
+      const imageUrl = uploadedMedia.length > 0
+        ? uploadedMedia.find((media) => media.mediaType === 'image')?.publicUrl || data.imageUrl
+        : data.imageUrl;
+      const mediaChanged = uploadedMedia.length > 0 || imageUrl !== previousImageUrl;
+      const mediaGallery = uploadedMedia.length > 0
+        ? uploadedMedia.map(({ publicUrl, publicId, mediaType }) => ({
+            url: publicUrl,
+            publicId,
+            mediaType,
+          }))
+        : mediaChanged
+          ? [{ url: imageUrl, mediaType: getMediaTypeFromUrl(imageUrl), publicId: null }]
+          : previousMedia;
+      const primaryImage = mediaGallery.find((item) => item.mediaType === 'image');
       const updated = await updateProgramme(editingProgramme.id, {
         ...editingProgramme,
         ...data,
+        imageUrl,
+        mediaType: primaryImage?.mediaType || getMediaTypeFromUrl(imageUrl),
+        cloudinaryPublicId: primaryImage?.publicId || null,
+        mediaGallery,
       });
       dispatch({
         type: 'UPDATE_PROGRAMME',
@@ -188,8 +304,32 @@ export default function AdminProgrammes() {
       }
       showSuccess(`Programme "${data.title}" updated in database!`, 'Updated');
       setEditingProgramme(null);
+      setEditMediaFiles([]);
+      if (mediaChanged) {
+        const newPublicIds = new Set(uploadedMedia.map((media) => media.publicId).filter(Boolean));
+        for (const media of previousMedia) {
+          if (!media.publicId || newPublicIds.has(media.publicId)) continue;
+          try {
+            await deleteCloudinaryMedia(media.publicId, media.mediaType);
+          } catch (cleanupError) {
+            showError(`Programme updated, but previous uploaded media could not be removed: ${cleanupError.message}`);
+          }
+        }
+      }
     } catch (err) {
-      showError(err.message || 'Failed to update programme in database', 'Error');
+      let message = err.message || 'Failed to update programme in database';
+      for (const media of uploadedMedia) {
+        if (media.publicId) {
+          try {
+            await deleteCloudinaryMedia(media.publicId, media.mediaType);
+          } catch (cleanupError) {
+            message += ` Cleanup also failed: ${cleanupError.message}`;
+          }
+        }
+      }
+      showError(message, 'Error');
+    } finally {
+      setUploadingMedia(false);
     }
   };
 
@@ -275,6 +415,7 @@ export default function AdminProgrammes() {
         <button
           onClick={() => {
             createForm.reset();
+            setCreateMediaFiles([]);
             setCreateModalOpen(true);
           }}
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-dark text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
@@ -368,9 +509,10 @@ export default function AdminProgrammes() {
                     <tr key={prog.id} className="hover:bg-stone-50/70 transition-colors">
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3.5">
-                          <img
+                          <MediaPreview
                             src={prog.imageUrl}
                             alt={prog.title}
+                            mediaType={prog.mediaType}
                             className="h-12 w-12 rounded-xl object-cover shrink-0 border border-stone-200 bg-stone-100"
                             onError={(e) => {
                               e.currentTarget.src =
@@ -495,7 +637,11 @@ export default function AdminProgrammes() {
             <div className="flex items-center justify-between pb-4 border-b border-stone-100">
               <h3 className="text-base font-bold text-primary-dark">Create Development Programme</h3>
               <button
-                onClick={() => setCreateModalOpen(false)}
+                disabled={uploadingMedia}
+                onClick={() => {
+                  setCreateModalOpen(false);
+                  setCreateMediaFiles([]);
+                }}
                 className="text-stone-400 hover:text-stone-600 p-1 rounded-lg"
               >
                 <X size={18} />
@@ -583,7 +729,11 @@ export default function AdminProgrammes() {
                     <button
                       key={img.name}
                       type="button"
-                      onClick={() => createForm.setValue('imageUrl', img.url)}
+                      onClick={() => {
+                        setCreateMediaFiles([]);
+                        createForm.setValue('imageUrl', img.url, { shouldDirty: true, shouldValidate: true });
+                      }}
+                      disabled={uploadingMedia}
                       className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                         createForm.watch('imageUrl') === img.url
                           ? 'border-primary ring-2 ring-primary/30'
@@ -595,26 +745,104 @@ export default function AdminProgrammes() {
                     </button>
                   ))}
                 </div>
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="h-24 w-36 shrink-0 overflow-hidden rounded-lg border border-stone-200 bg-stone-100">
+                    {createMediaFiles.length > 0 ? (
+                      <MediaPreview
+                        src={createMediaPreviews[0]}
+                        mediaType={getGalleryMediaType(createMediaFiles[0])}
+                        alt="Selected programme media preview"
+                        controls
+                        className="h-full w-full object-cover"
+                      />
+                    ) : createForm.watch('imageUrl') ? (
+                      <MediaPreview
+                        src={createForm.watch('imageUrl')}
+                        mediaType={getMediaTypeFromUrl(createForm.watch('imageUrl'))}
+                        alt="Programme media preview"
+                        controls
+                        className="h-full w-full object-cover"
+                      />
+                    ) : null}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className={`inline-flex items-center gap-2 rounded-lg bg-stone-100 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-200 ${uploadingMedia ? 'cursor-wait opacity-60' : 'cursor-pointer'}`}>
+                      <Upload size={14} />
+                      {createMediaFiles.length > 0 ? 'Replace selected media' : 'Upload images and video'}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
+                        onChange={handleCreateMediaSelection}
+                        multiple
+                        disabled={uploadingMedia}
+                        className="sr-only"
+                      />
+                    </label>
+                    {createMediaFiles.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setCreateMediaFiles([])}
+                        disabled={uploadingMedia}
+                        className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
+                      >
+                        <X size={14} />
+                        Clear selection
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {createMediaFiles.length > 1 && (
+                  <div className="mb-2 flex gap-2 overflow-x-auto pb-1">
+                    {createMediaFiles.map((file, index) => (
+                      <div key={`${file.name}-${index}`} className="h-16 w-20 shrink-0 overflow-hidden rounded-lg border border-stone-200">
+                        <MediaPreview
+                          src={createMediaPreviews[index]}
+                          mediaType={getGalleryMediaType(file)}
+                          alt={`Selected programme media ${index + 1}`}
+                          controls
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <p className="mb-2 text-xs text-stone-500">
+                  Select multiple images and an optional video. These replace the current media set.
+                  {createMediaFiles.length > 0
+                    ? ` Selected ${createMediaFiles.length} file(s): ${createMediaFiles.map((file) => file.name).join(', ')}`
+                    : ''}
+                </p>
                 <input
-                  {...createForm.register('imageUrl')}
+                  {...createForm.register('imageUrl', {
+                    onChange: () => {
+                      setCreateMediaFiles([]);
+                    },
+                  })}
                   className={inputClasses}
-                  placeholder="Or enter custom image URL"
+                  placeholder="Enter image or video URL"
+                  disabled={uploadingMedia}
                 />
               </div>
 
               <div className="pt-4 border-t border-stone-100 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
-                  onClick={() => setCreateModalOpen(false)}
+                  onClick={() => {
+                    if (uploadingMedia) return;
+                    setCreateModalOpen(false);
+                    setCreateMediaFiles([]);
+                  }}
+                  disabled={uploadingMedia}
                   className="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
+                  disabled={uploadingMedia}
                   className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
-                  Create Programme
+                  {uploadingMedia ? (createMediaFiles.length > 0 ? 'Uploading & creating...' : 'Creating...') : 'Create Programme'}
                 </button>
               </div>
             </form>
@@ -629,6 +857,7 @@ export default function AdminProgrammes() {
             <div className="flex items-center justify-between pb-4 border-b border-stone-100">
               <h3 className="text-base font-bold text-primary-dark">Edit Programme Details</h3>
               <button
+                disabled={uploadingMedia}
                 onClick={() => setEditingProgramme(null)}
                 className="text-stone-400 hover:text-stone-600 p-1 rounded-lg"
               >
@@ -699,7 +928,11 @@ export default function AdminProgrammes() {
                     <button
                       key={img.name}
                       type="button"
-                      onClick={() => editForm.setValue('imageUrl', img.url)}
+                      onClick={() => {
+                        setEditMediaFiles([]);
+                        editForm.setValue('imageUrl', img.url, { shouldDirty: true, shouldValidate: true });
+                      }}
+                      disabled={uploadingMedia}
                       className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                         editForm.watch('imageUrl') === img.url
                           ? 'border-primary ring-2 ring-primary/30'
@@ -710,22 +943,96 @@ export default function AdminProgrammes() {
                     </button>
                   ))}
                 </div>
-                <input {...editForm.register('imageUrl')} className={inputClasses} />
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="h-24 w-36 shrink-0 overflow-hidden rounded-lg border border-stone-200 bg-stone-100">
+                    {(editMediaFiles.length > 0 || editForm.watch('imageUrl')) && (
+                      <MediaPreview
+                        src={editMediaPreviews[0] || editForm.watch('imageUrl')}
+                        mediaType={
+                          editMediaFiles.length > 0
+                            ? getGalleryMediaType(editMediaFiles[0])
+                            : getMediaTypeFromUrl(editForm.watch('imageUrl'))
+                        }
+                        alt="Programme media preview"
+                        controls
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className={`inline-flex items-center gap-2 rounded-lg bg-stone-100 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-200 ${uploadingMedia ? 'cursor-wait opacity-60' : 'cursor-pointer'}`}>
+                      <Upload size={14} />
+                      {editMediaFiles.length > 0 ? 'Replace selected media' : 'Upload images and video'}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
+                        onChange={handleEditMediaSelection}
+                        multiple
+                        disabled={uploadingMedia}
+                        className="sr-only"
+                      />
+                    </label>
+                    {editMediaFiles.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setEditMediaFiles([])}
+                        disabled={uploadingMedia}
+                        className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
+                      >
+                        <X size={14} />
+                        Clear selection
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {editMediaFiles.length > 1 && (
+                  <div className="mb-2 flex gap-2 overflow-x-auto pb-1">
+                    {editMediaFiles.map((file, index) => (
+                      <div key={`${file.name}-${index}`} className="h-16 w-20 shrink-0 overflow-hidden rounded-lg border border-stone-200">
+                        <MediaPreview
+                          src={editMediaPreviews[index]}
+                          mediaType={getGalleryMediaType(file)}
+                          alt={`Selected programme media ${index + 1}`}
+                          controls
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <p className="mb-2 text-xs text-stone-500">
+                  Select multiple images and an optional video. New uploads replace the existing media set.
+                  {editMediaFiles.length > 0
+                    ? ` Selected ${editMediaFiles.length} file(s): ${editMediaFiles.map((file) => file.name).join(', ')}`
+                    : ` Current media: ${getProgrammeMediaItems(editingProgramme).length} file(s).`}
+                </p>
+                <input
+                  {...editForm.register('imageUrl', {
+                    onChange: () => {
+                      setEditMediaFiles([]);
+                    },
+                  })}
+                  className={inputClasses}
+                  placeholder="Enter image or video URL"
+                  disabled={uploadingMedia}
+                />
               </div>
 
               <div className="pt-4 border-t border-stone-100 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setEditingProgramme(null)}
+                  disabled={uploadingMedia}
                   className="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
+                  disabled={uploadingMedia}
                   className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
-                  Save Changes
+                  {uploadingMedia ? (editMediaFiles.length > 0 ? 'Uploading & saving...' : 'Saving...') : 'Save Changes'}
                 </button>
               </div>
             </form>
@@ -738,9 +1045,11 @@ export default function AdminProgrammes() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
           <div className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-stone-200">
             <div className="relative h-48 bg-stone-100">
-              <img
+              <MediaPreview
                 src={viewingProgramme.imageUrl}
                 alt={viewingProgramme.title}
+                mediaType={viewingProgramme.mediaType}
+                controls
                 className="w-full h-full object-cover"
               />
               <button

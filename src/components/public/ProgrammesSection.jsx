@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { useSite } from '../../context/SiteContext';
 import { handleImageFallback } from '../../utils/helpers';
+import MediaCarousel from '../common/MediaCarousel';
+import { getProgrammeMediaItems } from '../../services/mediaProcessing';
 
 const programmeIconMap = {
   GraduationCap,
@@ -111,20 +113,14 @@ export default function ProgrammesSection() {
               >
                 <div>
                   {/* Photo Thumbnail */}
-                  <div className="relative h-48 overflow-hidden bg-stone-100">
-                    <Link
-                      to={targetUrl}
-                      aria-label={`View ${prog.title} programme details`}
-                      className="block w-full h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#176B36]"
-                    >
-                      <img
-                        src={prog.imageUrl}
-                        alt={prog.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                        onError={handleImageFallback}
-                      />
-                    </Link>
+                  <div className="relative h-64 sm:h-72 overflow-hidden bg-stone-100">
+                    <MediaCarousel
+                      items={getProgrammeMediaItems(prog).filter((item) => item.mediaType === 'image')}
+                      alt={prog.title}
+                      className="h-full w-full"
+                      imageClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      onImageError={handleImageFallback}
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
                     
                     {/* Category Pill Tag */}
@@ -203,4 +199,3 @@ export default function ProgrammesSection() {
     </section>
   );
 }
-
