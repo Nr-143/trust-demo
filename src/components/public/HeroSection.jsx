@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Heart, Users, ArrowRight, CheckCircle, Sparkles, MapPin } from 'lucide-react';
+import { Heart, Users, ArrowRight, CheckCircle, MapPin } from 'lucide-react';
 import { useSite, useDonationModal } from '../../context/SiteContext';
 import { handleImageFallback } from '../../utils/helpers';
 
@@ -50,14 +50,6 @@ export default function HeroSection() {
             <p className="text-base sm:text-lg text-gray-700 leading-relaxed mb-6 max-w-2xl xl:max-w-3xl font-normal">
               {heroSubheading}
             </p>
-
-            {/* Proposed Copy Notice */}
-            <div className="mb-7 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200/80 text-amber-900 text-xs">
-              <Sparkles size={13} className="text-accent shrink-0" />
-              <span>
-                <strong>Proposed Marketing Copy:</strong> Live-editable via the Admin Dashboard.
-              </span>
-            </div>
 
             {/* Action Buttons */}
             <div className="flex flex-wrap items-center gap-3.5 mb-7 sm:mb-8">
