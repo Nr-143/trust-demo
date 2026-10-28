@@ -171,7 +171,7 @@ export default function AdminDashboard() {
           <div>
             <h2 className="text-base font-bold text-primary-dark">Active Campaign Progress</h2>
             <p className="text-xs text-stone-500 mt-0.5">
-              Live fundraising targets and simulated supporter pledges across villages.
+              Live fundraising targets and supporter pledges across villages.
             </p>
           </div>
           <Link
@@ -357,7 +357,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-stone-800">
-                    Simulated Pledge: <span className="text-emerald-700">{formatCurrency(d.amount)}</span>
+                    Pledge: <span className="text-emerald-700">{formatCurrency(d.amount)}</span>
                   </p>
                   <p className="text-stone-500 text-[11px] mt-0.5">
                     By {d.donorName} for &quot;{d.campaignTitle}&quot;

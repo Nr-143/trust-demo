@@ -234,7 +234,7 @@ export default function CampaignsPage() {
                       className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#FF9800] hover:bg-amber-600 active:bg-amber-700 text-white text-xs font-bold uppercase tracking-wider shadow-xs transition-colors"
                     >
                       <Heart size={13} className="fill-white/20" />
-                      <span>Donate Demo</span>
+                      <span>Support Cause</span>
                     </Link>
                   </div>
                 </div>

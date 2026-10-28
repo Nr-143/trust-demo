@@ -278,7 +278,7 @@ export default function CareersPage() {
             <div className="flex items-start justify-between pb-4 border-b border-stone-100">
               <div>
                 <span className="text-[11px] font-bold text-accent uppercase tracking-wider">
-                  Sample Application Form
+                  Job Application Form
                 </span>
                 <h3 className="text-lg font-bold text-primary-dark mt-0.5">
                   {applyingCareer.title}
@@ -305,7 +305,7 @@ export default function CareersPage() {
                   Application Submitted, {submittedApp.name}!
                 </h4>
                 <p className="text-xs text-stone-600 max-w-sm mx-auto">
-                  Your sample application for <strong>{submittedApp.careerTitle}</strong> has been saved in the shared demo data layer. Administrators can review it under <strong>Admin &gt; Careers</strong>.
+                  Your application for <strong>{submittedApp.careerTitle}</strong> has been successfully submitted to our recruitment team.
                 </p>
                 <div className="pt-2">
                   <button

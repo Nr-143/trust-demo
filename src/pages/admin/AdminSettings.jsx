@@ -32,11 +32,11 @@ export default function AdminSettings() {
       dispatch({ type: 'RESET_STATE' });
       setConfirmResetOpen(false);
       showSuccess(
-        'All records have been reset to default initial demonstration data.',
+        'All records have been reset to default initial state.',
         'Reset Complete'
       );
     } catch (err) {
-      showError(err.message || 'Failed to reset demonstration data', 'Error');
+      showError(err.message || 'Failed to reset local cache data', 'Error');
     }
   };
 
@@ -77,7 +77,7 @@ export default function AdminSettings() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-primary-dark">Settings & Data Management</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Monitor browser storage, export backups, or restore factory demonstration records.
+          Monitor browser storage, export backups, or manage application cache.
         </p>
       </div>
 
@@ -198,11 +198,10 @@ export default function AdminSettings() {
             </div>
             <div className="flex-1">
               <h2 className="text-base font-bold text-rose-900">
-                Reset Demonstration Data
+                Reset Local Application Cache
               </h2>
               <p className="text-xs text-gray-600 leading-relaxed mt-1 mb-4">
-                This action erases any custom programmes, edited headlines, volunteer submissions, or
-                pledged demo donations created in this browser, and restores the factory demonstration records.
+                This action clears any locally cached submissions or overrides in this browser and re-synchronizes with default records.
               </p>
 
               {confirmResetOpen ? (
@@ -212,7 +211,7 @@ export default function AdminSettings() {
                     <span>Are you sure you want to reset all data?</span>
                   </div>
                   <p className="leading-relaxed">
-                    All edits made in this browser will be wiped and replaced with the original demo content.
+                    All local cache edits made in this browser will be wiped and re-synchronized.
                   </p>
                   <div className="flex items-center gap-2 pt-1">
                     <button

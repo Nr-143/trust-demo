@@ -240,7 +240,7 @@ export async function deleteProgramme(id) {
 // ==============================================================================
 export async function fetchCampaigns() {
   if (!isSupabaseConfigured() || !supabase) {
-    return initialData.campaigns;
+    return [];
   }
   try {
     const { data, error } = await supabase
@@ -249,7 +249,7 @@ export async function fetchCampaigns() {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    if (data && data.length > 0) {
+    if (data) {
       return data.map((c) => ({
         ...c,
         fullTitle: c.full_title || c.fullTitle || c.title,
@@ -265,10 +265,10 @@ export async function fetchCampaigns() {
         publicationStatus: c.publication_status || c.publicationStatus || 'published',
       }));
     }
-    return initialData.campaigns;
+    return [];
   } catch (err) {
-    console.warn('[Supabase] Could not fetch campaigns from database, using verified initial campaigns.', err);
-    return initialData.campaigns;
+    console.warn('[Supabase] Could not fetch campaigns from database.', err);
+    return [];
   }
 }
 
@@ -278,11 +278,33 @@ export async function createCampaign(campaignData) {
   }
 
   const id = campaignData.id || `camp-${Date.now()}`;
-  const slug = campaignData.slug || campaignData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  let rawSlug = campaignData.slug
+    ? campaignData.slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    : campaignData.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+  if (!rawSlug) {
+    rawSlug = `camp-${Date.now()}`;
+  }
+
+  // Ensure slug uniqueness to prevent duplicate key constraint violations (campaigns_slug_key)
+  let finalSlug = rawSlug;
+  try {
+    const { data: existing } = await supabase
+      .from('campaigns')
+      .select('id')
+      .eq('slug', finalSlug)
+      .maybeSingle();
+
+    if (existing) {
+      finalSlug = `${rawSlug}-${Date.now().toString().slice(-4)}`;
+    }
+  } catch (err) {
+    // Non-fatal check failure
+  }
 
   const payload = {
     id,
-    slug,
+    slug: finalSlug,
     title: campaignData.title,
     full_title: campaignData.fullTitle || campaignData.title,
     category: campaignData.category,
@@ -302,11 +324,23 @@ export async function createCampaign(campaignData) {
     updated_at: new Date().toISOString(),
   };
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('campaigns')
     .insert([payload])
     .select()
     .single();
+
+  // Retry with unique timestamp suffix if constraint error code 23505 is encountered
+  if (error && (error.code === '23505' || error.message?.includes('campaigns_slug_key'))) {
+    payload.slug = `${rawSlug}-${Date.now().toString().slice(-6)}`;
+    const retry = await supabase
+      .from('campaigns')
+      .insert([payload])
+      .select()
+      .single();
+    data = retry.data;
+    error = retry.error;
+  }
 
   if (error) handleDbError('createCampaign', error);
   return {
@@ -469,7 +503,7 @@ export async function deleteImpactMetric(id) {
 // ==============================================================================
 export async function fetchGalleryItems() {
   if (!isSupabaseConfigured() || !supabase) {
-    return initialData.gallery;
+    return [];
   }
   try {
     const { data, error } = await supabase
@@ -478,7 +512,7 @@ export async function fetchGalleryItems() {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    if (data && data.length > 0) {
+    if (data) {
       return data.map((g) => ({
         ...g,
         imageUrl: g.image_url || g.imageUrl,
@@ -486,10 +520,10 @@ export async function fetchGalleryItems() {
         cloudinaryPublicId: g.cloudinary_public_id || undefined,
       }));
     }
-    return initialData.gallery;
+    return [];
   } catch (err) {
-    console.warn('[Supabase] Could not fetch gallery from database, using verified gallery.', err);
-    return initialData.gallery;
+    console.warn('[Supabase] Could not fetch gallery from database.', err);
+    return [];
   }
 }
 
@@ -667,7 +701,7 @@ export async function deleteGalleryItem(id) {
 // ==============================================================================
 export async function fetchCareers() {
   if (!isSupabaseConfigured() || !supabase) {
-    return initialData.careers;
+    return [];
   }
   try {
     const { data, error } = await supabase
@@ -676,17 +710,17 @@ export async function fetchCareers() {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    if (data && data.length > 0) {
+    if (data) {
       return data.map((c) => ({
         ...c,
         publicationStatus: c.publication_status || c.publicationStatus || 'published',
         postedDate: c.posted_date || c.postedDate || '',
       }));
     }
-    return initialData.careers;
+    return [];
   } catch (err) {
-    console.warn('[Supabase] Could not fetch careers from database, using verified careers.', err);
-    return initialData.careers;
+    console.warn('[Supabase] Could not fetch careers from database.', err);
+    return [];
   }
 }
 
@@ -860,6 +894,11 @@ export async function fetchAllApplicationData() {
     gallery,
     careers,
     donationPledges,
-    volunteerOpportunities: initialData.volunteerOpportunities || [],
+    volunteerOpportunities: [],
+    volunteerApplications: [],
+    volunteers: [],
+    jobApplications: [],
+    contactEnquiries: [],
+    demoDonations: [],
   };
 }

@@ -196,15 +196,8 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Legal Disclaimer & Transparency Note */}
+        {/* Trust Note */}
         <div className="mt-12 pt-6 border-t border-white/15">
-          <div className="p-4 rounded-lg bg-black/20 text-xs text-white/60 leading-relaxed mb-6">
-            <span className="font-semibold text-white/80">Transparency & Demonstration Notice:</span>{' '}
-            Metrics, project tallies, and financial figures on this website preview are for presentation purposes.
-            Official government trust registration, 12A/80G approvals, and certified audit balance sheets will be
-            published upon formal certification by the trust executive committee.
-          </div>
-
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/60">
             <p>
               © {currentYear} {siteInfo.footerCopyright || `${siteInfo.name} (${siteInfo.nameTamil}). All rights reserved.`}

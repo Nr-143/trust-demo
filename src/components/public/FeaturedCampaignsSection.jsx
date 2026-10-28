@@ -7,7 +7,7 @@ export default function FeaturedCampaignsSection() {
   const { campaigns } = useSite();
   const { openDonationModal } = useDonationModal();
 
-  // Grab the 3 published demonstration campaigns
+  // Grab published campaigns
   const featured = (campaigns || [])
     .filter(
       (c) =>
@@ -16,6 +16,10 @@ export default function FeaturedCampaignsSection() {
         c.status !== 'archived'
     )
     .slice(0, 3);
+
+  if (featured.length === 0) {
+    return null;
+  }
 
   return (
     <section className="bg-white py-16 sm:py-20 border-b border-gray-100" id="campaigns">
@@ -44,17 +48,6 @@ export default function FeaturedCampaignsSection() {
             <span>View All Campaigns</span>
             <ArrowRight size={16} />
           </Link>
-        </div>
-
-        {/* Clear Demo Data Disclaimer */}
-        <div className="mb-8 p-3.5 rounded-xl bg-stone-50 border border-stone-200 text-xs text-stone-700 flex items-start gap-2.5">
-          <AlertCircle size={16} className="text-accent shrink-0 mt-0.5" />
-          <p className="leading-relaxed">
-            <strong className="text-stone-900 font-semibold">Demonstration Campaign Data:</strong>{' '}
-            All target amounts, raised figures, and supporter counts shown below are demonstration
-            records to illustrate platform presentation. Try pledging a demo contribution to watch metrics
-            update in real-time across components and browser tabs.
-          </p>
         </div>
 
         {/* 3 Campaigns Grid */}

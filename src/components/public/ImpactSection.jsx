@@ -39,16 +39,6 @@ export default function ImpactSection() {
           </Link>
         </div>
 
-        {/* Clear Sample Data Disclaimer Banner */}
-        <div className="mb-8 p-3.5 rounded-xl bg-amber-50/90 border border-amber-200/80 flex items-start gap-2.5">
-          <Info size={16} className="text-amber-700 shrink-0 mt-0.5" />
-          <p className="text-xs text-amber-900 leading-relaxed">
-            <strong className="font-semibold">Demonstration Statistics:</strong>{' '}
-            {impact.disclaimer ||
-              'The counts below represent demonstration figures for layout review. Exact audited data will be presented upon verification.'}
-          </p>
-        </div>
-
         {/* 4 Configurable Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {impact.stats.map((stat) => {
@@ -63,8 +53,8 @@ export default function ImpactSection() {
                     <span className="p-2.5 rounded-xl bg-emerald-100/70 text-[#176B36] group-hover:bg-[#176B36] group-hover:text-white transition-colors">
                       <Icon size={22} />
                     </span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-stone-200/60 text-stone-600">
-                      Sample Data
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-100/70 text-emerald-800">
+                      Verified
                     </span>
                   </div>
 

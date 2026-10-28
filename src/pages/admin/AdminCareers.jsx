@@ -922,7 +922,7 @@ export default function AdminCareers() {
             <div className="flex items-start justify-between pb-4 border-b border-stone-100">
               <div>
                 <span className="text-xs font-bold text-accent uppercase tracking-wider">
-                  Sample Job Application
+                  Job Application Details
                 </span>
                 <h3 className="text-lg font-bold text-primary-dark mt-0.5">{viewingApplication.name}</h3>
                 <p className="text-xs text-stone-500 mt-1">

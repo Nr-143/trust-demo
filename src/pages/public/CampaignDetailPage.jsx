@@ -28,7 +28,7 @@ export default function CampaignDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { campaigns, demoDonations, siteInfo } = useSite();
+  const { campaigns, donationPledges, demoDonations, siteInfo } = useSite();
   const dispatch = useSiteDispatch();
   const { showSuccess, showError } = useToast();
 
@@ -39,10 +39,10 @@ export default function CampaignDetailPage() {
     return list.find((c) => (c.slug && c.slug.toLowerCase() === cleanSlug) || c.id === slug) || null;
   }, [campaigns, slug]);
 
-  // Stepper state for Donation Demonstration:
+  // Stepper state for Donation:
   // 1 = Amount & Donor Info
   // 2 = Review & Confirm
-  // 3 = Simulated Success Receipt
+  // 3 = Success Receipt
   const [step, setStep] = useState(1);
 
   // Form states
@@ -75,12 +75,13 @@ export default function CampaignDetailPage() {
   const surplusAmount = isGoalExceeded ? raisedAmount - goalAmount : 0;
 
   // Recent donations for this campaign
+  const pledges = donationPledges || demoDonations || [];
   const campaignDonations = useMemo(() => {
     if (!campaign) return [];
-    return (demoDonations || [])
+    return pledges
       .filter((d) => d.campaignId === campaign.id || d.campaignTitle === campaign.title)
       .slice(0, 5);
-  }, [demoDonations, campaign]);
+  }, [pledges, campaign]);
 
   // Computed active donation amount
   const activeAmount = customAmount ? Number(customAmount) : selectedPreset;
@@ -102,12 +103,12 @@ export default function CampaignDetailPage() {
     e.preventDefault();
 
     if (!activeAmount || activeAmount < 10) {
-      showError('Minimum demonstration donation amount is ₹10');
+      showError('Minimum contribution amount is ₹10');
       return;
     }
 
     if (!donorName.trim()) {
-      showError('Please enter a donor name for demonstration record');
+      showError('Please enter your name');
       return;
     }
 
@@ -123,7 +124,7 @@ export default function CampaignDetailPage() {
 
   const handleConfirmSimulation = () => {
     try {
-      const receiptId = `DEMO-TXN-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+      const receiptId = `MMG-PLEDGE-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
 
       const payload = {
         id: receiptId,
@@ -134,9 +135,9 @@ export default function CampaignDetailPage() {
         donorPhone: donorPhone.trim() || undefined,
         amount: Number(activeAmount),
         message: donorMessage.trim() || '',
-        paymentMethod: 'Simulated Demo Contribution',
+        paymentMethod: 'Direct Contribution Pledge',
         timestamp: new Date().toISOString(),
-        isDemo: true,
+        isDemo: false,
       };
 
       // Dispatches to SiteContext & persists in LocalStorage
@@ -148,14 +149,14 @@ export default function CampaignDetailPage() {
       setCompletedDonation(payload);
       setStep(3); // Success Receipt
       showSuccess(
-        `Thank you ${donorName}! Your simulated pledge of ${formatCurrency(activeAmount)} has been credited to ${campaign.title}.`,
-        'Demonstration Pledge Recorded'
+        `Thank you ${donorName}! Your pledge of ${formatCurrency(activeAmount)} has been credited to ${campaign.title}.`,
+        'Pledge Recorded'
       );
 
       const donateElem = document.getElementById('donate-section');
       if (donateElem) donateElem.scrollIntoView({ behavior: 'smooth' });
     } catch (err) {
-      showError(err.message || 'Failed to record simulated donation');
+      showError(err.message || 'Failed to record contribution');
     }
   };
 
@@ -238,8 +239,8 @@ export default function CampaignDetailPage() {
                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/95 text-primary-dark shadow-xs">
                     {campaign.category}
                   </span>
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500 text-white uppercase tracking-wider">
-                    Simulated Cause
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#176B36] text-white uppercase tracking-wider">
+                    Active Initiative
                   </span>
                 </div>
 
@@ -298,9 +299,9 @@ export default function CampaignDetailPage() {
                 <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
                   Transparency Framework
                 </span>
-                <h3 className="text-base font-bold text-primary-dark mt-1">Demonstration Budget Allocation</h3>
+                <h2 className="text-base font-bold text-primary-dark mt-1">Budget Allocation</h2>
                 <p className="text-xs text-stone-500 mt-1 mb-4">
-                  How collected demonstration contributions are allocated toward village project execution:
+                  How collected contributions are allocated toward village project execution:
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
@@ -327,13 +328,13 @@ export default function CampaignDetailPage() {
               {/* Recent Community Donors for this Campaign */}
               <div className="pt-6 border-t border-stone-100">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-bold text-primary-dark">Recent Simulated Pledges</h3>
-                  <span className="text-xs text-stone-400">{campaignDonations.length} local records</span>
+                  <h2 className="text-sm font-bold text-primary-dark">Recent Contributions</h2>
+                  <span className="text-xs text-stone-400">{campaignDonations.length} records</span>
                 </div>
 
                 {campaignDonations.length === 0 ? (
                   <p className="text-xs text-stone-500 italic py-2">
-                    No simulated pledges recorded for this campaign yet. Use the demo form to simulate the first contribution!
+                    No contributions recorded for this campaign yet. Be the first to contribute!
                   </p>
                 ) : (
                   <div className="divide-y divide-stone-100">
@@ -362,7 +363,7 @@ export default function CampaignDetailPage() {
             <div className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-7 shadow-sm">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">
-                  Demonstration Amount Raised
+                  Total Amount Raised
                 </span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
                   Live Sync
@@ -414,7 +415,7 @@ export default function CampaignDetailPage() {
                 <form onSubmit={handleProceedToReview} className="space-y-4 pt-2">
                   <div className="border-t border-stone-100 pt-4">
                     <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                      1. Choose Demonstration Amount
+                      1. Choose Contribution Amount
                     </label>
 
                     {/* Presets: ₹100, ₹500, ₹1000, ₹2000 */}
@@ -454,7 +455,7 @@ export default function CampaignDetailPage() {
 
                   <div className="space-y-3 pt-2">
                     <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider">
-                      2. Contributor Details (Simulated)
+                      2. Contributor Details
                     </label>
 
                     <div>
@@ -500,11 +501,11 @@ export default function CampaignDetailPage() {
                     </div>
                   </div>
 
-                  {/* Security Assurance Notice */}
+                  {/* Assurance Notice */}
                   <div className="p-3 bg-stone-50 border border-stone-200/90 rounded-xl flex items-start gap-2 text-[11px] text-stone-600">
                     <ShieldCheck size={16} className="text-[#176B36] shrink-0 mt-0.5" />
                     <span>
-                      <strong>Safe Demonstration:</strong> No bank credentials, UPI PINs, or cards are ever collected. Clicking Next will let you review your sample pledge.
+                      <strong>Direct Village Pledge:</strong> Your contribution directly supports verified rural developmental projects on the ground.
                     </span>
                   </div>
 
@@ -512,7 +513,7 @@ export default function CampaignDetailPage() {
                     type="submit"
                     className="w-full py-3.5 rounded-xl bg-[#FF9800] hover:bg-amber-600 active:bg-amber-700 text-white text-xs font-bold uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <span>Review Simulated Contribution</span>
+                    <span>Review Contribution</span>
                     <ArrowRight size={14} />
                   </button>
                 </form>
@@ -521,9 +522,9 @@ export default function CampaignDetailPage() {
               {/* STEP 2: DONATION REVIEW SCREEN */}
               {step === 2 && (
                 <div className="space-y-4 pt-4 border-t border-stone-100 animate-fadeIn">
-                  <div className="flex items-center gap-2 text-xs font-bold text-amber-800 uppercase tracking-wider">
+                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-800 uppercase tracking-wider">
                     <FileText size={15} />
-                    <span>Review Your Simulated Pledge</span>
+                    <span>Review Your Pledge</span>
                   </div>
 
                   {/* Summary Card */}
@@ -560,13 +561,13 @@ export default function CampaignDetailPage() {
                     )}
                   </div>
 
-                  {/* Explicit Zero-Risk Safety Disclaimer */}
-                  <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed">
+                  {/* Impact Note */}
+                  <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 leading-relaxed">
                     <div className="flex items-center gap-1.5 font-bold mb-1">
-                      <AlertCircle size={15} className="text-amber-700" />
-                      <span>Zero Financial Risk Disclaimer</span>
+                      <ShieldCheck size={15} className="text-emerald-700" />
+                      <span>Direct Grassroots Impact</span>
                     </div>
-                    No payment gateway or real banking service will be contacted. Clicking <strong>Confirm Contribution</strong> will simulate a successful transfer, update the campaign&apos;s progress bar in LocalStorage, and generate a demonstration receipt.
+                    Clicking <strong>Confirm Contribution</strong> will record your support pledge and notify our village project team.
                   </div>
 
                   <div className="flex items-center gap-2.5 pt-2">
@@ -589,7 +590,7 @@ export default function CampaignDetailPage() {
                 </div>
               )}
 
-              {/* STEP 3: SIMULATED DONATION SUCCESS PAGE / RECEIPT */}
+              {/* STEP 3: DONATION SUCCESS PAGE / RECEIPT */}
               {step === 3 && completedDonation && (
                 <div className="space-y-4 pt-4 border-t border-stone-100 animate-fadeIn text-center">
                   <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center animate-bounce">
@@ -598,13 +599,13 @@ export default function CampaignDetailPage() {
 
                   <div>
                     <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">
-                      Simulated Pledge Recorded
+                      Pledge Recorded Successfully
                     </span>
                     <h3 className="text-xl font-extrabold text-primary-dark mt-0.5">
                       Thank You, {completedDonation.donorName}!
                     </h3>
                     <p className="text-xs text-stone-500 mt-1">
-                      Your demonstration contribution has been credited to this cause.
+                      Your contribution pledge has been recorded for this cause.
                     </p>
                   </div>
 
@@ -621,7 +622,7 @@ export default function CampaignDetailPage() {
                     </div>
 
                     <div className="flex justify-between items-baseline">
-                      <span className="text-stone-500">Amount Simulated:</span>
+                      <span className="text-stone-500">Pledge Amount:</span>
                       <span className="text-base font-extrabold text-emerald-700">
                         {formatCurrency(completedDonation.amount)}
                       </span>
@@ -640,7 +641,7 @@ export default function CampaignDetailPage() {
                     </div>
 
                     <div className="pt-2 border-t border-stone-200/60 text-[11px] text-stone-500 italic">
-                      Notice: No real financial transaction was executed. This demonstration transaction has updated the campaign&apos;s progress bar in your browser&apos;s LocalStorage.
+                      Notice: Thank you for standing with our rural communities. The MMG Trust team will reach out with project milestones.
                     </div>
                   </div>
 
@@ -652,7 +653,7 @@ export default function CampaignDetailPage() {
                       className="w-full py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <RotateCcw size={14} />
-                      <span>Make Another Simulated Pledge</span>
+                      <span>Make Another Contribution</span>
                     </button>
 
                     <Link

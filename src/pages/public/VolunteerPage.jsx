@@ -252,8 +252,8 @@ export default function VolunteerPage() {
                     <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/60">
                       {opp.category}
                     </span>
-                    <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">
-                      Demo Opportunity
+                    <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                      Active Opportunity
                     </span>
                   </div>
 
@@ -372,7 +372,7 @@ export default function VolunteerPage() {
                       Thank You, {submittedData.name}!
                     </h3>
                     <p className="text-xs text-stone-600 mt-1 max-w-md mx-auto">
-                      Your volunteer application for <strong>{submittedData.preferredOpportunity}</strong> has been stored in your browser&apos;s LocalStorage demonstration database.
+                      Your volunteer application for <strong>{submittedData.preferredOpportunity}</strong> has been successfully submitted to our team.
                     </p>
                   </div>
 

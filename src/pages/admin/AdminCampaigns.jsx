@@ -25,6 +25,7 @@ import {
   Globe,
   CheckCircle,
   Upload,
+  Loader2,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../utils/helpers';
 import { useForm } from 'react-hook-form';
@@ -61,7 +62,7 @@ const ASSET_PRESETS = [
 ];
 
 export default function AdminCampaigns() {
-  const { campaigns, donationPledges, demoDonations } = useSite();
+  const { campaigns, donationPledges, demoDonations, reloadSiteData } = useSite();
   const dispatch = useSiteDispatch();
   const { openDonationModal } = useDonationModal();
   const { showSuccess, showError } = useToast();
@@ -198,6 +199,7 @@ export default function AdminCampaigns() {
         type: 'ADD_CAMPAIGN',
         payload: created,
       });
+      await reloadSiteData?.();
       showSuccess(`Campaign "${data.title}" saved to database successfully!`, 'Created');
       setCreateModalOpen(false);
       createForm.reset();
@@ -241,6 +243,7 @@ export default function AdminCampaigns() {
         type: 'UPDATE_CAMPAIGN',
         payload: updated,
       });
+      await reloadSiteData?.();
       showSuccess(`Campaign "${data.title}" updated in database!`, 'Updated');
       setEditingCampaign(null);
       setEditImageFile(null);
@@ -322,6 +325,7 @@ export default function AdminCampaigns() {
     try {
       await deleteCampaign(deleteTarget.id);
       dispatch({ type: 'DELETE_CAMPAIGN', payload: deleteTarget.id });
+      await reloadSiteData?.();
       showSuccess(`Campaign "${deleteTarget.title}" permanently deleted from database.`, 'Deleted');
       setDeleteTarget(null);
     } catch (err) {
@@ -338,14 +342,14 @@ export default function AdminCampaigns() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="inline-block h-2 w-2 rounded-full bg-amber-500"></span>
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-800">
-              Fundraising Demonstration Engine
+            <span className="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
+              Campaign Management
             </span>
           </div>
           <h1 className="text-2xl font-bold text-primary-dark">Fundraising Campaigns</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Configure target amounts, simulated funds raised, URL slugs, publication status, and descriptions.
+            Configure target amounts, funds raised, URL slugs, publication status, and descriptions.
           </p>
         </div>
 
@@ -372,15 +376,15 @@ export default function AdminCampaigns() {
         </div>
 
         <div className="bg-white border border-stone-200 rounded-2xl p-4 shadow-2xs">
-          <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Demo Raised</p>
+          <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Total Raised</p>
           <p className="text-xl font-extrabold text-[#176B36] mt-1">{formatCurrency(totalRaised)}</p>
           <p className="text-[11px] text-emerald-600 font-semibold mt-0.5">{overallPercent}% of total goal</p>
         </div>
 
         <div className="bg-white border border-stone-200 rounded-2xl p-4 shadow-2xs">
-          <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Simulated Pledges</p>
+          <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Total Pledges</p>
           <p className="text-xl font-extrabold text-amber-600 mt-1">{totalDonors}</p>
-          <p className="text-[11px] text-stone-400 mt-0.5">Test supporter records</p>
+          <p className="text-[11px] text-stone-400 mt-0.5">Supporter records</p>
         </div>
 
         <div className="bg-white border border-stone-200 rounded-2xl p-4 shadow-2xs">
@@ -751,7 +755,7 @@ export default function AdminCampaigns() {
 
                 <div>
                   <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                    Demonstration Raised (₹ INR)
+                    Raised Amount (₹ INR)
                   </label>
                   <input
                     type="number"
@@ -776,7 +780,7 @@ export default function AdminCampaigns() {
 
                 <div>
                   <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                    Demonstration Deadline Date
+                    Campaign End Date
                   </label>
                   <input
                     type="date"
@@ -892,22 +896,33 @@ export default function AdminCampaigns() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (uploadingImage) return;
+                    if (uploadingImage || createForm.formState.isSubmitting) return;
                     setCreateModalOpen(false);
                     setCreateImageFile(null);
                     setCreateImagePreview('');
                   }}
-                  disabled={uploadingImage}
-                  className="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors cursor-pointer"
+                  disabled={uploadingImage || createForm.formState.isSubmitting}
+                  className="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={uploadingImage}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer"
+                  disabled={uploadingImage || createForm.formState.isSubmitting}
+                  className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
                 >
-                  {uploadingImage ? (createImageFile ? 'Uploading & creating...' : 'Creating...') : 'Launch Campaign'}
+                  {(uploadingImage || createForm.formState.isSubmitting) && (
+                    <Loader2 size={14} className="animate-spin" />
+                  )}
+                  <span>
+                    {uploadingImage
+                      ? createImageFile
+                        ? 'Uploading & creating...'
+                        : 'Creating...'
+                      : createForm.formState.isSubmitting
+                      ? 'Creating...'
+                      : 'Launch Campaign'}
+                  </span>
                 </button>
               </div>
             </form>
@@ -1098,17 +1113,28 @@ export default function AdminCampaigns() {
                 <button
                   type="button"
                   onClick={() => setEditingCampaign(null)}
-                  disabled={uploadingImage}
-                  className="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors cursor-pointer"
+                  disabled={uploadingImage || editForm.formState.isSubmitting}
+                  className="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={uploadingImage}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer disabled:cursor-wait disabled:opacity-60"
+                  disabled={uploadingImage || editForm.formState.isSubmitting}
+                  className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
                 >
-                  {uploadingImage ? (editImageFile ? 'Uploading & saving...' : 'Saving...') : 'Save Campaign'}
+                  {(uploadingImage || editForm.formState.isSubmitting) && (
+                    <Loader2 size={14} className="animate-spin" />
+                  )}
+                  <span>
+                    {uploadingImage
+                      ? editImageFile
+                        ? 'Uploading & saving...'
+                        : 'Saving...'
+                      : editForm.formState.isSubmitting
+                      ? 'Saving...'
+                      : 'Save Campaign'}
+                  </span>
                 </button>
               </div>
             </form>
