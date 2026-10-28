@@ -122,7 +122,26 @@ async function compressVideo(file) {
   if (file.size > MAX_VIDEO_INPUT_BYTES) {
     throw new Error('Choose a video smaller than 100 MB before compression.');
   }
-  const ffmpeg = await loadFfmpeg();
+  const isMp4 = file.type === 'video/mp4' || file.name.toLowerCase().endsWith('.mp4');
+
+  // If the video is already an MP4 under 5 MB, upload directly without heavy client-side transcoding
+  if (isMp4 && file.size <= MAX_VIDEO_BYTES) {
+    return file;
+  }
+
+  let ffmpeg;
+  try {
+    ffmpeg = await loadFfmpeg();
+  } catch (loadErr) {
+    console.warn('[MediaProcessing] Could not load browser FFmpeg encoder:', loadErr);
+    // If it is already an MP4 under 20 MB, allow direct upload to Cloudinary (which optimizes in the cloud)
+    if (isMp4 && file.size <= 20 * 1024 * 1024) {
+      return file;
+    }
+    throw new Error(
+      `Could not initialize video compressor in this browser (${loadErr.message || 'worker error'}). Please provide an MP4 video under 5 MB to upload directly.`
+    );
+  }
   const inputName = `input-${Date.now()}.${file.type === 'video/webm' || file.name.toLowerCase().endsWith('.webm') ? 'webm' : 'mp4'}`;
   const outputName = `output-${Date.now()}.mp4`;
   await ffmpeg.writeFile(inputName, new Uint8Array(await file.arrayBuffer()));
