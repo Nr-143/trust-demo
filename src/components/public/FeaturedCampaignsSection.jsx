@@ -83,10 +83,6 @@ export default function FeaturedCampaignsSection() {
                       <span>{camp.category || 'Rural Initiative'}</span>
                     </div>
 
-                    <div className="absolute top-3 right-3 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-white tracking-wider uppercase">
-                      Demo Data
-                    </div>
-
                     {camp.location && (
                       <div className="absolute bottom-3 left-3 flex items-center gap-1 text-[11px] text-white/90">
                         <MapPin size={12} className="text-accent" />
@@ -128,7 +124,7 @@ export default function FeaturedCampaignsSection() {
                         <span className="text-amber-700 font-bold">{percent}% funded</span>
                         <span className="flex items-center gap-1">
                           <Users size={12} />
-                          <span>{camp.donorsCount || 0} supporters (demo)</span>
+                          <span>{camp.donorsCount || 0} supporters</span>
                         </span>
                       </div>
                     </div>

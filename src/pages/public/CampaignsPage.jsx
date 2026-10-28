@@ -49,11 +49,6 @@ export default function CampaignsPage() {
       />
 
       <div className="site-container py-10 sm:py-14">
-        {/* Demonstration Disclaimer Banner */}
-        <div className="mb-8">
-          <DemoBadge message="Demonstration Notice: Fundraising targets, raised amounts, and supporter contributions below are demonstration records created for architectural review. Try making a simulated donation to test the live reactive progress calculation in your browser." />
-        </div>
-
         {/* Filter & Search Bar */}
         <div className="bg-white border border-stone-200 rounded-2xl p-4 mb-8 shadow-2xs space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -145,10 +140,6 @@ export default function CampaignsPage() {
                         {campaign.category || 'Rural Cause'}
                       </span>
 
-                      <span className="absolute top-3 right-3 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-white tracking-wider uppercase">
-                        Demo
-                      </span>
-
                       {campaign.location && (
                         <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-xs text-white/95 font-medium">
                           <MapPin size={13} className="text-accent" />
@@ -173,7 +164,7 @@ export default function CampaignsPage() {
                       <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200/80 mb-2">
                         <div className="flex justify-between items-baseline text-xs mb-2">
                           <div>
-                            <span className="text-[11px] text-stone-500 block">Raised (Demo)</span>
+                            <span className="text-[11px] text-stone-500 block">Raised</span>
                             <span className="font-extrabold text-base text-[#173B2A]">
                               {formatCurrency(raised)}
                             </span>

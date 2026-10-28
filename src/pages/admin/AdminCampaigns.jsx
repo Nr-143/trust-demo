@@ -368,7 +368,7 @@ export default function AdminCampaigns() {
       </div>
 
       {/* Aggregate KPI Banner */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-white border border-stone-200 rounded-2xl p-4 shadow-2xs">
           <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Total Target</p>
           <p className="text-xl font-extrabold text-primary-dark mt-1">{formatCurrency(totalGoal)}</p>
@@ -385,17 +385,6 @@ export default function AdminCampaigns() {
           <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Total Pledges</p>
           <p className="text-xl font-extrabold text-amber-600 mt-1">{totalDonors}</p>
           <p className="text-[11px] text-stone-400 mt-0.5">Supporter records</p>
-        </div>
-
-        <div className="bg-white border border-stone-200 rounded-2xl p-4 shadow-2xs">
-          <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Quick Action</p>
-          <button
-            onClick={() => openDonationModal()}
-            className="mt-1.5 w-full py-1.5 px-3 text-xs font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-          >
-            <Heart size={14} className="text-amber-600 fill-amber-600" />
-            <span>Simulate Donation</span>
-          </button>
         </div>
       </div>
 
@@ -990,7 +979,7 @@ export default function AdminCampaigns() {
 
                 <div>
                   <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                    Demo Raised (₹)
+                    Raised Amount (₹)
                   </label>
                   <input
                     type="number"

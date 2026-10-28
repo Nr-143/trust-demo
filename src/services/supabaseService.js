@@ -250,7 +250,17 @@ export async function fetchCampaigns() {
 
     if (error) throw error;
     if (data) {
-      return data.map((c) => ({
+      // Exclude seed demo and test campaigns so live website starts completely clean
+      const seedDemoIds = new Set([
+        'camp-education',
+        'camp-green-villages',
+        'camp-water',
+        'camp-1793202697115',
+      ]);
+
+      return data
+        .filter((c) => !seedDemoIds.has(c.id) && c.title?.toLowerCase() !== 'test')
+        .map((c) => ({
         ...c,
         fullTitle: c.full_title || c.fullTitle || c.title,
         shortDescription: c.short_description || c.shortDescription || c.description,
