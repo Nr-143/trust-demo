@@ -14,6 +14,8 @@ import {
   ExternalLink,
   CheckCircle2,
   TrendingUp,
+  Inbox,
+  Loader2,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useSite, useDonationModal } from '../../context/SiteContext';
@@ -32,6 +34,7 @@ export default function AdminDashboard() {
     demoDonations,
     contactEnquiries,
     siteInfo,
+    isLoading,
   } = useSite();
 
   const { openDonationModal } = useDonationModal();
@@ -184,48 +187,70 @@ export default function AdminDashboard() {
         </div>
 
         <div className="space-y-4">
-          {activeCampaignsList.slice(0, 3).map((camp) => {
-            const pct = Math.min(
-              100,
-              camp.goalAmount > 0
-                ? Math.round((Number(camp.raisedAmount || 0) / Number(camp.goalAmount)) * 100)
-                : 0
-            );
+          {isLoading ? (
+            <div className="py-8 text-center text-stone-400 flex items-center justify-center gap-2">
+              <Loader2 size={18} className="animate-spin text-primary" />
+              <span className="text-xs">Fetching campaigns from database...</span>
+            </div>
+          ) : activeCampaignsList.length === 0 ? (
+            <div className="py-8 px-4 text-center border border-dashed border-stone-200 rounded-xl bg-stone-50/50">
+              <Megaphone size={26} className="mx-auto mb-2 text-stone-300" />
+              <p className="text-sm font-semibold text-stone-700">No active campaigns yet</p>
+              <p className="text-xs text-stone-400 mt-0.5 mb-3">
+                Fundraising campaigns created here will show live goal progress, targets, and donations.
+              </p>
+              <Link
+                to="/admin/campaigns"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors"
+              >
+                <Plus size={13} />
+                <span>Launch First Campaign</span>
+              </Link>
+            </div>
+          ) : (
+            activeCampaignsList.slice(0, 3).map((camp) => {
+              const pct = Math.min(
+                100,
+                camp.goalAmount > 0
+                  ? Math.round((Number(camp.raisedAmount || 0) / Number(camp.goalAmount)) * 100)
+                  : 0
+              );
 
-            return (
-              <div key={camp.id} className="p-4 bg-stone-50/70 border border-stone-200 rounded-xl">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                  <div>
-                    <span className="text-[10px] font-bold text-accent uppercase tracking-wider">
-                      {camp.category}
-                    </span>
-                    <h3 className="text-sm font-bold text-primary-dark">{camp.title}</h3>
+              return (
+                <div key={camp.id} className="p-4 bg-stone-50/70 border border-stone-200 rounded-xl">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                    <div>
+                      <span className="text-[10px] font-bold text-accent uppercase tracking-wider">
+                        {camp.category}
+                      </span>
+                      <h3 className="text-sm font-bold text-primary-dark">{camp.title}</h3>
+                    </div>
+                    <div className="text-right sm:text-right">
+                      <span className="text-sm font-extrabold text-primary-dark">
+                        {formatCurrency(camp.raisedAmount || 0)}
+                      </span>
+                      <span className="text-xs text-stone-500"> / {formatCurrency(camp.goalAmount)}</span>
+                    </div>
                   </div>
-                  <div className="text-right sm:text-right">
-                    <span className="text-sm font-extrabold text-primary-dark">
-                      {formatCurrency(camp.raisedAmount || 0)}
-                    </span>
-                    <span className="text-xs text-stone-500"> / {formatCurrency(camp.goalAmount)}</span>
+
+                  {/* Progress bar */}
+                  <div className="h-2 w-full bg-stone-200 rounded-full overflow-hidden mb-2">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        pct >= 100 ? 'bg-emerald-500' : 'bg-primary'
+                      }`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-stone-500">
+                    <span>{pct}% of goal reached</span>
+                    <span>{camp.donorsCount || 0} supporters pledged</span>
                   </div>
                 </div>
-
-                {/* Progress bar */}
-                <div className="h-2 w-full bg-stone-200 rounded-full overflow-hidden mb-2">
-                  <div
-                    className={`h-full rounded-full transition-all duration-300 ${
-                      pct >= 100 ? 'bg-emerald-500' : 'bg-primary'
-                    }`}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between text-[11px] text-stone-500">
-                  <span>{pct}% of goal reached</span>
-                  <span>{camp.donorsCount || 0} supporters pledged</span>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </div>
 
@@ -325,69 +350,86 @@ export default function AdminDashboard() {
           </div>
 
           <div className="space-y-3">
-            {volList.slice(0, 2).map((v) => (
-              <div
-                key={v.id}
-                className="flex items-start gap-3 p-3 rounded-xl bg-stone-50 border border-stone-100 text-xs"
-              >
-                <div className="p-2 bg-blue-100 text-blue-700 rounded-lg shrink-0 mt-0.5">
-                  <Users size={14} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-stone-800">
-                    Volunteer Application: <span className="font-normal">{v.name}</span>
-                  </p>
-                  <p className="text-stone-500 text-[11px] mt-0.5">
-                    Area: {v.area} • Status: <span className="capitalize font-semibold">{v.status}</span>
-                  </p>
-                </div>
-                <span className="text-[10px] text-stone-400 whitespace-nowrap">
-                  {formatDate(v.submittedAt)}
-                </span>
+            {isLoading ? (
+              <div className="py-12 text-center text-stone-400 flex items-center justify-center gap-2">
+                <Loader2 size={18} className="animate-spin text-primary" />
+                <span className="text-xs">Loading activity feed...</span>
               </div>
-            ))}
+            ) : volList.length === 0 && donationsList.length === 0 && enqList.length === 0 ? (
+              <div className="py-12 px-4 text-center border border-dashed border-stone-200 rounded-xl bg-stone-50/50">
+                <Inbox size={28} className="mx-auto mb-2 text-stone-300" />
+                <p className="text-sm font-semibold text-stone-700">No submissions or activity yet</p>
+                <p className="text-xs text-stone-400 mt-1 max-w-sm mx-auto">
+                  New volunteer applications, supporter pledges, and contact enquiries submitted on the public website will appear here automatically.
+                </p>
+              </div>
+            ) : (
+              <>
+                {volList.slice(0, 2).map((v) => (
+                  <div
+                    key={v.id}
+                    className="flex items-start gap-3 p-3 rounded-xl bg-stone-50 border border-stone-100 text-xs"
+                  >
+                    <div className="p-2 bg-blue-100 text-blue-700 rounded-lg shrink-0 mt-0.5">
+                      <Users size={14} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-stone-800">
+                        Volunteer Application: <span className="font-normal">{v.name}</span>
+                      </p>
+                      <p className="text-stone-500 text-[11px] mt-0.5">
+                        Area: {v.area} • Status: <span className="capitalize font-semibold">{v.status}</span>
+                      </p>
+                    </div>
+                    <span className="text-[10px] text-stone-400 whitespace-nowrap">
+                      {formatDate(v.submittedAt)}
+                    </span>
+                  </div>
+                ))}
 
-            {donationsList.slice(-2).reverse().map((d) => (
-              <div
-                key={d.id}
-                className="flex items-start gap-3 p-3 rounded-xl bg-stone-50 border border-stone-100 text-xs"
-              >
-                <div className="p-2 bg-rose-100 text-rose-700 rounded-lg shrink-0 mt-0.5">
-                  <Heart size={14} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-stone-800">
-                    Pledge: <span className="text-emerald-700">{formatCurrency(d.amount)}</span>
-                  </p>
-                  <p className="text-stone-500 text-[11px] mt-0.5">
-                    By {d.donorName} for &quot;{d.campaignTitle}&quot;
-                  </p>
-                </div>
-                <span className="text-[10px] text-stone-400 whitespace-nowrap">
-                  {formatDate(d.timestamp)}
-                </span>
-              </div>
-            ))}
+                {donationsList.slice(-2).reverse().map((d) => (
+                  <div
+                    key={d.id}
+                    className="flex items-start gap-3 p-3 rounded-xl bg-stone-50 border border-stone-100 text-xs"
+                  >
+                    <div className="p-2 bg-rose-100 text-rose-700 rounded-lg shrink-0 mt-0.5">
+                      <Heart size={14} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-stone-800">
+                        Pledge: <span className="text-emerald-700">{formatCurrency(d.amount)}</span>
+                      </p>
+                      <p className="text-stone-500 text-[11px] mt-0.5">
+                        By {d.donorName} for &quot;{d.campaignTitle}&quot;
+                      </p>
+                    </div>
+                    <span className="text-[10px] text-stone-400 whitespace-nowrap">
+                      {formatDate(d.timestamp)}
+                    </span>
+                  </div>
+                ))}
 
-            {enqList.slice(0, 1).map((e) => (
-              <div
-                key={e.id}
-                className="flex items-start gap-3 p-3 rounded-xl bg-stone-50 border border-stone-100 text-xs"
-              >
-                <div className="p-2 bg-teal-100 text-teal-700 rounded-lg shrink-0 mt-0.5">
-                  <MessageSquare size={14} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-stone-800">
-                    Contact Message: <span className="font-normal">{e.name}</span>
-                  </p>
-                  <p className="text-stone-500 text-[11px] mt-0.5 line-clamp-1">&quot;{e.message}&quot;</p>
-                </div>
-                <span className="text-[10px] text-stone-400 whitespace-nowrap">
-                  {formatDate(e.submittedAt)}
-                </span>
-              </div>
-            ))}
+                {enqList.slice(0, 1).map((e) => (
+                  <div
+                    key={e.id}
+                    className="flex items-start gap-3 p-3 rounded-xl bg-stone-50 border border-stone-100 text-xs"
+                  >
+                    <div className="p-2 bg-teal-100 text-teal-700 rounded-lg shrink-0 mt-0.5">
+                      <MessageSquare size={14} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-stone-800">
+                        Contact Message: <span className="font-normal">{e.name}</span>
+                      </p>
+                      <p className="text-stone-500 text-[11px] mt-0.5 line-clamp-1">&quot;{e.message}&quot;</p>
+                    </div>
+                    <span className="text-[10px] text-stone-400 whitespace-nowrap">
+                      {formatDate(e.submittedAt)}
+                    </span>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         </div>
       </div>
