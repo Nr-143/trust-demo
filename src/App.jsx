@@ -14,6 +14,7 @@ import VolunteerPage from './pages/public/VolunteerPage';
 import CareersPage from './pages/public/CareersPage';
 import GalleryPage from './pages/public/GalleryPage';
 import ContactPage from './pages/public/ContactPage';
+import DonatePage from './pages/public/DonatePage';
 import NotFoundPage from './pages/public/NotFoundPage';
 
 // Admin pages
@@ -28,6 +29,7 @@ import AdminVolunteers from './pages/admin/AdminVolunteers';
 import AdminCareers from './pages/admin/AdminCareers';
 import AdminGallery from './pages/admin/AdminGallery';
 import AdminSettings from './pages/admin/AdminSettings';
+import AdminDonationDetails from './pages/admin/AdminDonationDetails';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
 export default function App() {
@@ -46,6 +48,7 @@ export default function App() {
         <Route path="/careers" element={<CareersPage />} />
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/donate" element={<DonatePage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 
@@ -71,8 +74,8 @@ export default function App() {
         <Route path="careers" element={<AdminCareers />} />
         <Route path="gallery" element={<AdminGallery />} />
         <Route path="settings" element={<AdminSettings />} />
+        <Route path="donation-details" element={<AdminDonationDetails />} />
       </Route>
     </Routes>
   );
 }
-

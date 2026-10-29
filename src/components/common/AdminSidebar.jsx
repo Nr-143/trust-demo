@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   MessageSquare,
   LogOut,
+  Heart,
 } from 'lucide-react';
 import { useSite } from '../../context/SiteContext';
 import { useAuth } from '../../context/AuthContext';
@@ -30,6 +31,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
   const sidebarLinks = [
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
     { to: '/admin/content', label: 'Website Content', icon: FileText },
+    { to: '/admin/donation-details', label: 'Donation Details', icon: Heart },
     { to: '/admin/programmes', label: 'Programmes', icon: FolderKanban, badge: activeProgrammes },
     { to: '/admin/campaigns', label: 'Campaigns', icon: Megaphone, badge: activeCampaigns },
     { to: '/admin/impact', label: 'Impact Metrics', icon: BarChart3 },

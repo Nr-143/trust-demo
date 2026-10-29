@@ -1,11 +1,10 @@
 import { Link } from 'react-router-dom';
 import { Heart, Users, ArrowRight, CheckCircle, MapPin } from 'lucide-react';
-import { useSite, useDonationModal } from '../../context/SiteContext';
+import { useSite } from '../../context/SiteContext';
 import { handleImageFallback } from '../../utils/helpers';
 
 export default function HeroSection() {
   const { siteInfo } = useSite();
-  const { openDonationModal } = useDonationModal();
 
   const heroHeading = siteInfo.heroHeading || 'Building Stronger Villages. Creating Lasting Change.';
   const heroSubheading =
@@ -54,15 +53,14 @@ export default function HeroSection() {
             {/* Action Buttons */}
             <div className="flex flex-wrap items-center gap-3.5 mb-7 sm:mb-8">
               {/* Primary CTA */}
-              <button
-                type="button"
-                onClick={() => openDonationModal()}
+              <Link
+                to="/donate"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#FF9800] hover:bg-amber-600 active:bg-amber-700 text-white font-semibold text-sm shadow-sm hover:shadow transition-all duration-150 transform hover:-translate-y-0.5 cursor-pointer"
               >
                 <Heart size={17} className="fill-white/20" />
                 <span>{siteInfo.primaryCtaText || 'Support Our Mission'}</span>
                 <ArrowRight size={15} />
-              </button>
+              </Link>
 
               {/* Secondary CTA */}
               <Link
@@ -118,4 +116,3 @@ export default function HeroSection() {
     </section>
   );
 }
-

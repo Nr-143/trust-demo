@@ -3,6 +3,7 @@ import PageHeader from '../../components/common/PageHeader';
 import DemoBadge from '../../components/common/DemoBadge';
 import { useSite } from '../../context/SiteContext';
 import { handleImageFallback } from '../../utils/helpers';
+import ViewportVideo from '../../components/common/ViewportVideo';
 
 export default function GalleryPage() {
   const { gallery } = useSite();
@@ -56,12 +57,10 @@ export default function GalleryPage() {
             {filtered.map((item) => (
               <div key={item.id} className="group relative overflow-hidden rounded-lg bg-gray-100">
                 {item.mediaType === 'video' ? (
-                  <video
+                  <ViewportVideo
                     src={item.imageUrl}
-                    aria-label={item.title}
+                    ariaLabel={item.title}
                     className="w-full h-56 object-cover"
-                    controls
-                    preload="metadata"
                   />
                 ) : (
                   <img
@@ -72,11 +71,20 @@ export default function GalleryPage() {
                     onError={handleImageFallback}
                   />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                  <p className="text-white text-sm font-medium">{item.title}</p>
-                  <span className="text-white/70 text-xs">{item.category}</span>
-                </div>
+                {item.mediaType === 'video' ? (
+                  <div className="bg-white p-3">
+                    <p className="text-sm font-medium text-stone-800">{item.title}</p>
+                    <span className="text-xs text-stone-500">{item.category}</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                    <div className="pointer-events-none absolute bottom-0 left-0 right-0 translate-y-2 p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                      <p className="text-sm font-medium text-white">{item.title}</p>
+                      <span className="text-xs text-white/70">{item.category}</span>
+                    </div>
+                  </>
+                )}
               </div>
             ))}
           </div>

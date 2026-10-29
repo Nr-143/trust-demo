@@ -28,10 +28,43 @@ export const initialData = {
       'To empower rural communities across Dharmapuri and Tamil Nadu by providing sustainable access to quality education, safe drinking water, holistic healthcare, drug awareness, and eco-friendly livelihood solutions.',
     visionStatement:
       'A self-reliant, enlightened, and healthy rural society where every village community thrives in harmony with nature and enjoys equitable opportunities.',
+    guidingValues: [
+      {
+        id: 'compassion-service',
+        icon: 'Heart',
+        title: 'Compassion & Service',
+        description: 'We serve with genuine respect and heartfelt empathy for rural households.',
+      },
+      {
+        id: 'community-ownership',
+        icon: 'Users',
+        title: 'Community Ownership',
+        description: 'Every project is shaped with democratic participation of local elders and youth.',
+      },
+      {
+        id: 'uncompromising-integrity',
+        icon: 'ShieldCheck',
+        title: 'Uncompromising Integrity',
+        description: 'We adhere to complete honesty, open books, and factual reporting of all activities.',
+      },
+      {
+        id: 'ecological-sustainability',
+        icon: 'Target',
+        title: 'Ecological Sustainability',
+        description: 'We build climate-resilient solutions that rejuvenate soil, groundwater, and local biodiversity.',
+      },
+    ],
     announcementBanner: '🌱 Monsoon Village Tree Plantation Drive - Join our weekend volunteers in Palacode!',
     announcementActive: true,
     primaryCtaText: 'Support Our Mission',
     secondaryCtaText: 'Become a Volunteer',
+    donationDescription:
+      'Your contribution helps Mannin Maindhan Grama Arakkattalai support rural communities through education, clean water, healthcare, and sustainable livelihoods.',
+    bankAccountName: '',
+    bankAccountNumber: '',
+    bankName: '',
+    bankIfscCode: '',
+    upiId: '',
     footerAboutText:
       'A community-rooted charitable trust dedicated to holistic rural development in Dharmapuri and across Tamil Nadu through education, clean water, healthcare, environmental protection, and sustainable livelihoods.',
     footerCopyright: 'Mannin Maindhan Grama Arakkattalai. All rights reserved. Registered Charitable Trust.',

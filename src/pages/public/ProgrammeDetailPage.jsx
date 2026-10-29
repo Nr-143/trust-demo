@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   GraduationCap,
@@ -16,15 +16,14 @@ import {
   Calendar,
   Image as ImageIcon,
   Play,
-  X,
-  ChevronLeft,
-  ChevronRight,
   Info,
 } from 'lucide-react';
-import { useSite, useDonationModal } from '../../context/SiteContext';
+import { useSite } from '../../context/SiteContext';
 import { handleImageFallback } from '../../utils/helpers';
 import DemoBadge from '../../components/common/DemoBadge';
 import ProgrammeMediaPyramid from '../../components/common/ProgrammeMediaPyramid';
+import MediaGalleryModal from '../../components/common/MediaGalleryModal';
+import ViewportVideo from '../../components/common/ViewportVideo';
 
 const iconMap = {
   GraduationCap,
@@ -38,21 +37,8 @@ const iconMap = {
 export default function ProgrammeDetailPage() {
   const { slug } = useParams();
   const { programmes, isLoading } = useSite();
-  const { openDonationModal } = useDonationModal();
 
-  // Media Modal state for viewing photographs and video
-  const [activeMediaModal, setActiveMediaModal] = useState(null);
-
-  // Close modal on Escape key
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        setActiveMediaModal(null);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  const [activeMediaGallery, setActiveMediaGallery] = useState(null);
 
   const cleanSlug = (slug || '').toLowerCase().trim().replace(/^-+|-+$/g, '');
 
@@ -272,8 +258,17 @@ export default function ProgrammeDetailPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
               {projects.map((proj) => {
-                const hasImages = Array.isArray(proj.images) && proj.images.length > 0;
-                const hasVideo = !!proj.videoUrl;
+                const images = Array.isArray(proj.images)
+                  ? proj.images.filter((url) => typeof url === 'string' && url)
+                  : [];
+                const mediaItems = [
+                  ...images.map((url) => ({ url, mediaType: 'image' })),
+                  ...(proj.videoUrl ? [{ url: proj.videoUrl, mediaType: 'video' }] : []),
+                ];
+                const hasImages = images.length > 0;
+                const hasVideo = Boolean(proj.videoUrl);
+                const openMediaGallery = (index = 0) =>
+                  setActiveMediaGallery({ items: mediaItems, title: proj.title, initialIndex: index });
 
                 return (
                   <article
@@ -284,40 +279,46 @@ export default function ProgrammeDetailPage() {
                       {/* Media Area */}
                       {hasImages ? (
                         <div className="relative h-56 bg-stone-100 overflow-hidden group">
+                          <button
+                            type="button"
+                            onClick={() => openMediaGallery()}
+                            aria-label={`View all ${mediaItems.length} media items for ${proj.title}`}
+                            className="absolute inset-0 z-10 flex items-center justify-center gap-2 bg-black/40 text-xs font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                          >
+                            <ImageIcon size={18} />
+                            <span>View all media ({mediaItems.length})</span>
+                          </button>
                           <img
-                            src={proj.images[0]}
+                            src={images[0]}
                             alt={proj.title}
-                            className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-103"
                             loading="lazy"
                             onError={handleImageFallback}
                           />
 
-                          {/* Clickable Image Lightbox Overlay Button */}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setActiveMediaModal({
-                                type: 'image',
-                                title: proj.title,
-                                url: proj.images[0],
-                                images: proj.images,
-                                index: 0,
-                              })
-                            }
-                            aria-label={`View full photos for ${proj.title}`}
-                            className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                          >
-                            <ImageIcon size={18} />
-                            <span>View Photograph ({proj.images.length})</span>
-                          </button>
-
                           {/* Image Counter Badge if multiple images */}
-                          {proj.images.length > 1 && (
+                          {mediaItems.length > 1 && (
                             <span className="absolute bottom-3 right-3 px-2 py-1 rounded-md text-[11px] font-semibold bg-black/70 backdrop-blur-xs text-white flex items-center gap-1 pointer-events-none">
                               <ImageIcon size={12} />
-                              <span>{proj.images.length} Photos</span>
+                              <span>{mediaItems.length} items</span>
                             </span>
                           )}
+                        </div>
+                      ) : hasVideo ? (
+                        <div className="relative bg-black">
+                          <ViewportVideo
+                            src={proj.videoUrl}
+                            ariaLabel={`${proj.title} project video`}
+                            className="aspect-video w-full object-contain"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => openMediaGallery()}
+                            className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-lg bg-black/70 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-black"
+                          >
+                            <Play size={13} />
+                            Open viewer
+                          </button>
                         </div>
                       ) : (
                         <div className="h-32 bg-stone-50 border-b border-stone-200 flex flex-col items-center justify-center p-4 text-center">
@@ -364,43 +365,18 @@ export default function ProgrammeDetailPage() {
                     </div>
 
                     {/* Footer Actions (Functional Media Viewers) */}
-                    {(hasImages || hasVideo) && (
+                    {mediaItems.length > 0 && (
                       <div className="px-5 sm:px-6 pb-5 pt-2 flex items-center gap-2 border-t border-stone-100 bg-stone-50/50">
-                        {hasImages && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setActiveMediaModal({
-                                type: 'image',
-                                title: proj.title,
-                                url: proj.images[0],
-                                images: proj.images,
-                                index: 0,
-                              })
-                            }
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-stone-200 hover:border-emerald-500 text-xs font-semibold text-[#173B2A] hover:text-[#176B36] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#176B36] cursor-pointer"
-                          >
-                            <ImageIcon size={13} />
-                            <span>View Photos ({proj.images.length})</span>
-                          </button>
-                        )}
-
-                        {hasVideo && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setActiveMediaModal({
-                                type: 'video',
-                                title: proj.title,
-                                url: proj.videoUrl,
-                              })
-                            }
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#173B2A] hover:bg-[#176B36] text-white text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#176B36] cursor-pointer"
-                          >
-                            <Play size={13} className="fill-white" />
-                            <span>Watch Video</span>
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => openMediaGallery()}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-stone-200 hover:border-emerald-500 text-xs font-semibold text-[#173B2A] hover:text-[#176B36] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#176B36] cursor-pointer"
+                        >
+                          <ImageIcon size={13} />
+                          <span>
+                            View {hasVideo ? 'Media' : 'Photos'} ({mediaItems.length})
+                          </span>
+                        </button>
                       </div>
                     )}
                   </article>
@@ -437,140 +413,24 @@ export default function ProgrammeDetailPage() {
               <ArrowRight size={14} />
             </Link>
 
-            <button
-              type="button"
-              onClick={() => openDonationModal()}
+            <Link
+              to="/donate"
               className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF9800] hover:bg-amber-600 text-white text-xs font-semibold shadow-xs transition-colors flex-1 sm:flex-initial cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#176B36]"
             >
               <Heart size={14} className="fill-white/20" />
               <span>Support This Mission</span>
-            </button>
+            </Link>
           </div>
         </section>
       </main>
 
-      {/* Media Viewer Lightbox / Modal (Image & Video) */}
-      {activeMediaModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="media-modal-title"
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4"
-          onClick={() => setActiveMediaModal(null)}
-        >
-          <div
-            className="relative max-w-4xl w-full bg-stone-900 rounded-2xl overflow-hidden shadow-2xl border border-stone-800"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b border-stone-800 text-white">
-              <h3 id="media-modal-title" className="text-sm font-semibold truncate pr-4">
-                {activeMediaModal.title}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setActiveMediaModal(null)}
-                aria-label="Close media viewer"
-                className="p-1.5 rounded-lg text-stone-400 hover:text-white hover:bg-stone-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="relative bg-black flex items-center justify-center min-h-[300px] max-h-[75vh]">
-              {activeMediaModal.type === 'image' && (
-                <div className="relative w-full h-full flex flex-col items-center justify-center">
-                  <img
-                    src={activeMediaModal.url}
-                    alt={activeMediaModal.title}
-                    className="max-h-[65vh] w-auto max-w-full object-contain mx-auto"
-                    onError={handleImageFallback}
-                  />
-
-                  {/* Previous / Next buttons if multiple images */}
-                  {activeMediaModal.images && activeMediaModal.images.length > 1 && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const currentIndex = activeMediaModal.index || 0;
-                          const prevIndex =
-                            currentIndex === 0
-                              ? activeMediaModal.images.length - 1
-                              : currentIndex - 1;
-                          setActiveMediaModal({
-                            ...activeMediaModal,
-                            index: prevIndex,
-                            url: activeMediaModal.images[prevIndex],
-                          });
-                        }}
-                        aria-label="Previous photo"
-                        className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 hover:bg-black/90 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 cursor-pointer"
-                      >
-                        <ChevronLeft size={20} />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const currentIndex = activeMediaModal.index || 0;
-                          const nextIndex =
-                            currentIndex === activeMediaModal.images.length - 1
-                              ? 0
-                              : currentIndex + 1;
-                          setActiveMediaModal({
-                            ...activeMediaModal,
-                            index: nextIndex,
-                            url: activeMediaModal.images[nextIndex],
-                          });
-                        }}
-                        aria-label="Next photo"
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 hover:bg-black/90 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 cursor-pointer"
-                      >
-                        <ChevronRight size={20} />
-                      </button>
-
-                      <div className="absolute bottom-3 px-3 py-1 rounded-full text-xs bg-black/70 text-white/90">
-                        Photo {(activeMediaModal.index || 0) + 1} of {activeMediaModal.images.length}
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-
-              {activeMediaModal.type === 'video' && (
-                <div className="w-full aspect-video flex items-center justify-center p-4">
-                  {activeMediaModal.url?.includes('youtube.com') ||
-                  activeMediaModal.url?.includes('youtu.be') ? (
-                    <iframe
-                      src={activeMediaModal.url}
-                      title={activeMediaModal.title}
-                      className="w-full h-full rounded-lg"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  ) : (
-                    <video
-                      controls
-                      autoPlay
-                      className="w-full max-h-[65vh] rounded-lg"
-                      src={activeMediaModal.url}
-                    >
-                      Your browser does not support the video tag.
-                    </video>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer Caption */}
-            <div className="p-3 bg-stone-950 border-t border-stone-800 text-stone-400 text-xs flex items-center justify-between">
-              <span>{activeMediaModal.title}</span>
-              <span className="text-[11px] text-stone-500">Press ESC or click outside to close</span>
-            </div>
-          </div>
-        </div>
+      {activeMediaGallery && (
+        <MediaGalleryModal
+          items={activeMediaGallery.items}
+          title={activeMediaGallery.title}
+          initialIndex={activeMediaGallery.initialIndex}
+          onClose={() => setActiveMediaGallery(null)}
+        />
       )}
     </div>
   );

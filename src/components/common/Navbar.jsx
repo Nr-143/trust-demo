@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Menu, X, Phone, Mail, MapPin, Heart, MessageCircle, ChevronRight, ShieldCheck } from 'lucide-react';
-import { useSite, useDonationModal } from '../../context/SiteContext';
+import { useSite } from '../../context/SiteContext';
 import { getWhatsAppUrl, getDialablePhone } from '../../utils/helpers';
 
 const navLinks = [
@@ -19,7 +19,6 @@ const navLinks = [
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { siteInfo } = useSite();
-  const { openDonationModal } = useDonationModal();
   const location = useLocation();
 
   // Close mobile navigation whenever route changes
@@ -206,15 +205,14 @@ export default function Navbar() {
             </a>
 
             {/* Donate Now CTA */}
-            <button
-              type="button"
-              onClick={() => openDonationModal()}
+            <Link
+              to="/donate"
               className="inline-flex items-center gap-1.5 2xl:gap-2 px-4 2xl:px-5 py-2.5 rounded-lg bg-[#FF9800] hover:bg-amber-600 active:bg-amber-700 text-white text-xs 2xl:text-sm font-semibold shadow-xs transition-all duration-150 transform hover:-translate-y-0.5 cursor-pointer whitespace-nowrap"
               aria-label="Donate Now"
             >
               <Heart size={15} className="fill-white/20" />
               <span>Donate Now</span>
-            </button>
+            </Link>
           </div>
 
           {/* MOBILE MENU TOGGLE (Visible below xl breakpoint) */}
@@ -307,18 +305,15 @@ export default function Navbar() {
               {/* Drawer Actions & Footer */}
               <div className="p-4 sm:p-5 border-t border-stone-200 bg-stone-50 space-y-3 shrink-0">
                 {/* Prominent Donate Now Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileOpen(false);
-                    openDonationModal();
-                  }}
+                <Link
+                  to="/donate"
+                  onClick={() => setMobileOpen(false)}
                   className="flex items-center justify-center gap-2 w-full py-3.5 px-4 rounded-xl bg-[#FF9800] hover:bg-amber-600 active:bg-amber-700 text-white text-sm font-bold shadow-md transition-colors min-h-[48px] cursor-pointer"
                   aria-label="Donate Now"
                 >
                   <Heart size={18} className="fill-white/20" />
                   <span>Donate Now</span>
-                </button>
+                </Link>
 
                 {/* Direct Contact Buttons */}
                 <div className="grid grid-cols-2 gap-2.5">

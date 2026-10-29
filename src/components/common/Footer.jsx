@@ -1,11 +1,10 @@
 import { Link } from 'react-router-dom';
 import { Heart, Mail, Phone, MapPin, MessageCircle, ShieldCheck, ArrowRight } from 'lucide-react';
-import { useSite, useDonationModal } from '../../context/SiteContext';
+import { useSite } from '../../context/SiteContext';
 import { formatWhatsAppDisplay, getWhatsAppUrl, getDialablePhone } from '../../utils/helpers';
 
 export default function Footer() {
   const { siteInfo } = useSite();
-  const { openDonationModal } = useDonationModal();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -184,14 +183,13 @@ export default function Footer() {
             </ul>
 
             <div className="mt-5 pt-4 border-t border-white/10">
-              <button
-                type="button"
-                onClick={() => openDonationModal()}
+              <Link
+                to="/donate"
                 className="inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#FF9800] hover:bg-amber-600 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
               >
                 <Heart size={14} className="fill-current" />
                 <span>Support Our Projects</span>
-              </button>
+              </Link>
             </div>
           </div>
         </div>

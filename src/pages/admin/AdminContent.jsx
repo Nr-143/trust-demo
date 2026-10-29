@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import { saveSiteContent } from '../../services/supabaseService';
@@ -14,7 +14,11 @@ import {
   Sparkles,
   ExternalLink,
   CheckCircle,
+  Plus,
+  Trash2,
 } from 'lucide-react';
+
+const guidingValueIcons = ['Heart', 'Users', 'ShieldCheck', 'Target'];
 
 export default function AdminContent() {
   const { siteInfo } = useSite();
@@ -27,6 +31,7 @@ export default function AdminContent() {
     handleSubmit,
     watch,
     reset,
+    control,
     formState: { isDirty, isSubmitting },
   } = useForm({
     defaultValues: {
@@ -45,6 +50,7 @@ export default function AdminContent() {
       visionStatement:
         siteInfo.visionStatement ||
         'A self-reliant, enlightened, and healthy rural society where every village community thrives in harmony with nature and enjoys equitable opportunities.',
+      guidingValues: siteInfo.guidingValues || [],
       announcementBanner:
         siteInfo.announcementBanner ||
         '🌱 Monsoon Village Tree Plantation Drive - Join our weekend volunteers in Palacode!',
@@ -65,6 +71,10 @@ export default function AdminContent() {
         'Mannin Maindhan Grama Arakkattalai. All rights reserved. Registered Charitable Trust.',
     },
   });
+  const { fields: guidingValueFields, append: appendGuidingValue, remove: removeGuidingValue } = useFieldArray({
+    control,
+    name: 'guidingValues',
+  });
 
   // Keep form in sync when fresh siteInfo arrives from Supabase
   useEffect(() => {
@@ -81,6 +91,7 @@ export default function AdminContent() {
         secondaryCtaText: siteInfo.secondaryCtaText || 'Become a Volunteer',
         missionStatement: siteInfo.missionStatement || '',
         visionStatement: siteInfo.visionStatement || '',
+        guidingValues: siteInfo.guidingValues || [],
         announcementBanner: siteInfo.announcementBanner || '',
         announcementActive: siteInfo.announcementActive ?? true,
         email: siteInfo.email || '',
@@ -239,7 +250,7 @@ export default function AdminContent() {
                   className={inputClasses}
                   placeholder="Support Our Mission"
                 />
-                <p className="text-[11px] text-stone-400 mt-1">Triggers donation modal or support flow</p>
+                <p className="text-[11px] text-stone-400 mt-1">Opens the public contribution details page</p>
               </div>
 
               <div>
@@ -310,6 +321,103 @@ export default function AdminContent() {
                 className={inputClasses}
                 placeholder="A self-reliant, enlightened, and healthy rural society..."
               />
+            </div>
+
+            <div className="border-t border-stone-100 pt-5 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-primary-dark">Guiding Values</h3>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    Manage the value cards shown below Mission & Vision on the About page.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    appendGuidingValue({
+                      id: `guiding-value-${Date.now()}`,
+                      icon: 'Heart',
+                      title: '',
+                      description: '',
+                    })
+                  }
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold border border-emerald-200 transition-colors"
+                >
+                  <Plus size={14} />
+                  Add Value
+                </button>
+              </div>
+
+              {guidingValueFields.length === 0 ? (
+                <p className="rounded-xl border border-dashed border-stone-300 bg-stone-50 p-4 text-xs text-stone-500">
+                  No guiding values yet. Add a value to display it on the About page.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {guidingValueFields.map((field, index) => (
+                    <div key={field.id} className="rounded-xl border border-stone-200 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-stone-600">Value {index + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeGuidingValue(index)}
+                          aria-label={`Remove guiding value ${index + 1}`}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-red-700 hover:bg-red-50 text-xs font-semibold transition-colors"
+                        >
+                          <Trash2 size={13} />
+                          Remove
+                        </button>
+                      </div>
+                      <div>
+                        <label
+                          htmlFor={`guidingValues.${index}.title`}
+                          className="block text-xs font-semibold text-stone-700 mb-1"
+                        >
+                          Title
+                        </label>
+                        <input
+                          id={`guidingValues.${index}.title`}
+                          {...register(`guidingValues.${index}.title`)}
+                          className={inputClasses}
+                          placeholder="e.g. Compassion & Service"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor={`guidingValues.${index}.description`}
+                          className="block text-xs font-semibold text-stone-700 mb-1"
+                        >
+                          Description
+                        </label>
+                        <textarea
+                          id={`guidingValues.${index}.description`}
+                          {...register(`guidingValues.${index}.description`)}
+                          rows={3}
+                          className={inputClasses}
+                          placeholder="Describe this guiding value"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor={`guidingValues.${index}.icon`}
+                          className="block text-xs font-semibold text-stone-700 mb-1"
+                        >
+                          Card icon
+                        </label>
+                        <select
+                          id={`guidingValues.${index}.icon`}
+                          {...register(`guidingValues.${index}.icon`)}
+                          className={inputClasses}
+                        >
+                          {guidingValueIcons.map((icon) => (
+                            <option key={icon} value={icon}>{icon}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

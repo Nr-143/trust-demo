@@ -32,6 +32,12 @@ export const siteInfoSchema = z.object({
   heroImage: z.string().optional().default('/images/hero-village.jpg'),
   missionStatement: z.string().optional().default(''),
   visionStatement: z.string().optional().default(''),
+  guidingValues: z.array(z.object({
+    id: z.string().optional(),
+    icon: z.string().optional().default('Heart'),
+    title: z.string(),
+    description: z.string(),
+  })).optional().default([]),
   announcementBanner: z.string().optional().default(''),
   announcementActive: z.boolean().optional().default(false),
   primaryCtaText: z.string().optional().default('Support Our Mission'),

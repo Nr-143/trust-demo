@@ -5,6 +5,8 @@ import { getDialablePhone } from '../../utils/helpers';
 
 export default function AboutPage() {
   const { siteInfo, isLoading } = useSite();
+  const guidingValueIcons = { Heart, Users, ShieldCheck, Target };
+  const guidingValues = Array.isArray(siteInfo.guidingValues) ? siteInfo.guidingValues : [];
 
   return (
     <>
@@ -73,34 +75,19 @@ export default function AboutPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[
-              {
-                icon: Heart,
-                title: 'Compassion & Service',
-                desc: 'We serve with genuine respect and heartfelt empathy for rural households.',
-              },
-              {
-                icon: Users,
-                title: 'Community Ownership',
-                desc: 'Every project is shaped with democratic participation of local elders and youth.',
-              },
-              {
-                icon: ShieldCheck,
-                title: 'Uncompromising Integrity',
-                desc: 'We adhere to complete honesty, open books, and factual reporting of all activities.',
-              },
-              {
-                icon: Target,
-                title: 'Ecological Sustainability',
-                desc: 'We build climate-resilient solutions that rejuvenate soil, groundwater, and local biodiversity.',
-              },
-            ].map((value, index) => (
-              <div key={index} className="bg-white border border-stone-200 rounded-2xl p-6 shadow-2xs">
-                <value.icon size={22} className="text-[#176B36] mb-3" />
-                <h3 className="font-bold text-sm text-[#173B2A]">{value.title}</h3>
-                <p className="mt-2 text-xs text-gray-600 leading-relaxed">{value.desc}</p>
-              </div>
-            ))}
+            {guidingValues.map((value, index) => {
+              const ValueIcon = guidingValueIcons[value.icon] || Heart;
+              return (
+                <div
+                  key={value.id || `${value.title}-${index}`}
+                  className="bg-white border border-stone-200 rounded-2xl p-6 shadow-2xs"
+                >
+                  <ValueIcon size={22} className="text-[#176B36] mb-3" />
+                  <h3 className="font-bold text-sm text-[#173B2A]">{value.title}</h3>
+                  <p className="mt-2 text-xs text-gray-600 leading-relaxed">{value.description}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
 
