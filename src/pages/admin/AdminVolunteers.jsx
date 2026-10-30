@@ -51,6 +51,7 @@ export default function AdminVolunteers() {
           submittedAt: item.submitted_at || item.created_at,
         }));
         setCloudList(normalized);
+        dispatch({ type: 'SET_VOLUNTEER_APPLICATIONS', payload: normalized });
       } catch (err) {
         console.error('Failed to load volunteers from Supabase:', err);
         // Fall back to context

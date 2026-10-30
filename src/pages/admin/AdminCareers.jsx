@@ -81,6 +81,7 @@ export default function AdminCareers() {
           submittedAt: item.submitted_at || item.created_at,
         }));
         setCloudApplications(normalized);
+        dispatch({ type: 'SET_JOB_APPLICATIONS', payload: normalized });
       } catch (err) {
         console.error('Failed to load applications from Supabase:', err);
       } finally {

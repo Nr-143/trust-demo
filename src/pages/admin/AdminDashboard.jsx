@@ -1,3 +1,4 @@
+import { useState, useEffect, useMemo } from 'react';
 import {
   FolderKanban,
   Megaphone,
@@ -16,6 +17,7 @@ import {
   TrendingUp,
   Inbox,
   Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useSite, useDonationModal } from '../../context/SiteContext';
@@ -33,17 +35,97 @@ export default function AdminDashboard() {
     donationPledges,
     demoDonations,
     contactEnquiries,
+    jobApplications,
     siteInfo,
     isLoading,
+    reloadSiteData,
   } = useSite();
 
   const { openDonationModal } = useDonationModal();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    reloadSiteData?.();
+  }, [reloadSiteData]);
+
+  const handleRefresh = async () => {
+    if (reloadSiteData) {
+      setIsRefreshing(true);
+      try {
+        await reloadSiteData();
+      } finally {
+        setIsRefreshing(false);
+      }
+    }
+  };
 
   const volList = volunteerApplications || volunteers || [];
   const enqList = contactEnquiries || [];
   const donationsList = donationPledges || demoDonations || [];
   const progList = programmes || [];
   const campList = campaigns || [];
+
+  const recentActivities = useMemo(() => {
+    const list = [
+      ...enqList.map((e) => ({
+        id: `enq-${e.id}`,
+        type: 'enquiry',
+        icon: MessageSquare,
+        color: 'bg-teal-100 text-teal-700',
+        badgeColor: 'bg-teal-50 text-teal-700 border-teal-200',
+        title: 'Contact Enquiry',
+        name: e.name,
+        details: e.subject ? `${e.subject} — ${e.message}` : e.message,
+        status: e.status,
+        to: '/admin/enquiries',
+        date: e.submittedAt || e.created_at,
+      })),
+      ...volList.map((v) => ({
+        id: `vol-${v.id}`,
+        type: 'volunteer',
+        icon: Users,
+        color: 'bg-blue-100 text-blue-700',
+        badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
+        title: 'Volunteer Application',
+        name: v.name,
+        details: `Opportunity: ${v.preferredOpportunity || v.area || 'Grassroots'}`,
+        status: v.status,
+        to: '/admin/volunteers',
+        date: v.submittedAt || v.created_at,
+      })),
+      ...donationsList.map((d) => ({
+        id: `pledge-${d.id}`,
+        type: 'pledge',
+        icon: Heart,
+        color: 'bg-rose-100 text-rose-700',
+        badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        title: 'Supporter Pledge',
+        name: d.donorName,
+        details: `${formatCurrency(d.amount)} for "${d.campaignTitle}"`,
+        status: d.status || 'pledged',
+        to: '/admin/campaigns',
+        date: d.timestamp || d.created_at,
+      })),
+      ...(jobApplications || []).map((j) => ({
+        id: `job-${j.id}`,
+        type: 'job',
+        icon: Briefcase,
+        color: 'bg-purple-100 text-purple-700',
+        badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
+        title: 'Career Application',
+        name: j.name,
+        details: `Role: ${j.careerTitle}`,
+        status: j.status,
+        to: '/admin/careers',
+        date: j.submittedAt || j.created_at,
+      })),
+    ];
+
+    return list
+      .filter((item) => item.date)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 6);
+  }, [enqList, volList, donationsList, jobApplications]);
 
   const activeProgrammesCount = progList.filter((p) => p.status === 'active').length;
   const activeCampaignsList = campList.filter((c) => c.status === 'active');
@@ -126,6 +208,16 @@ export default function AdminDashboard() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-xl hover:bg-stone-50 transition-colors disabled:opacity-50 cursor-pointer"
+            title="Refresh database records"
+          >
+            <RefreshCw size={13} className={isRefreshing ? 'animate-spin text-emerald-600' : ''} />
+            <span>{isRefreshing ? 'Refreshing...' : 'Refresh Feed'}</span>
+          </button>
           <Link
             to="/"
             target="_blank"
@@ -355,7 +447,7 @@ export default function AdminDashboard() {
                 <Loader2 size={18} className="animate-spin text-primary" />
                 <span className="text-xs">Loading activity feed...</span>
               </div>
-            ) : volList.length === 0 && donationsList.length === 0 && enqList.length === 0 ? (
+            ) : recentActivities.length === 0 ? (
               <div className="py-12 px-4 text-center border border-dashed border-stone-200 rounded-xl bg-stone-50/50">
                 <Inbox size={28} className="mx-auto mb-2 text-stone-300" />
                 <p className="text-sm font-semibold text-stone-700">No submissions or activity yet</p>
@@ -364,71 +456,37 @@ export default function AdminDashboard() {
                 </p>
               </div>
             ) : (
-              <>
-                {volList.slice(0, 2).map((v) => (
-                  <div
-                    key={v.id}
-                    className="flex items-start gap-3 p-3 rounded-xl bg-stone-50 border border-stone-100 text-xs"
+              recentActivities.map((act) => {
+                const Icon = act.icon;
+                return (
+                  <Link
+                    key={act.id}
+                    to={act.to}
+                    className="flex items-start gap-3 p-3 rounded-xl bg-stone-50 hover:bg-stone-100/80 border border-stone-100 text-xs transition-colors group block"
                   >
-                    <div className="p-2 bg-blue-100 text-blue-700 rounded-lg shrink-0 mt-0.5">
-                      <Users size={14} />
+                    <div className={`p-2 ${act.color} rounded-lg shrink-0 mt-0.5`}>
+                      <Icon size={14} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-stone-800">
-                        Volunteer Application: <span className="font-normal">{v.name}</span>
-                      </p>
-                      <p className="text-stone-500 text-[11px] mt-0.5">
-                        Area: {v.area} • Status: <span className="capitalize font-semibold">{v.status}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-stone-800">{act.title}:</span>
+                        <span className="font-semibold text-stone-900 truncate">{act.name}</span>
+                        {act.status && (
+                          <span className={`text-[10px] px-1.5 py-0.2 rounded border font-medium capitalize ${act.badgeColor}`}>
+                            {act.status}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-stone-500 text-[11px] mt-0.5 line-clamp-1">
+                        {act.details}
                       </p>
                     </div>
-                    <span className="text-[10px] text-stone-400 whitespace-nowrap">
-                      {formatDate(v.submittedAt)}
+                    <span className="text-[10px] text-stone-400 whitespace-nowrap ml-2">
+                      {formatDate(act.date)}
                     </span>
-                  </div>
-                ))}
-
-                {donationsList.slice(-2).reverse().map((d) => (
-                  <div
-                    key={d.id}
-                    className="flex items-start gap-3 p-3 rounded-xl bg-stone-50 border border-stone-100 text-xs"
-                  >
-                    <div className="p-2 bg-rose-100 text-rose-700 rounded-lg shrink-0 mt-0.5">
-                      <Heart size={14} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-stone-800">
-                        Pledge: <span className="text-emerald-700">{formatCurrency(d.amount)}</span>
-                      </p>
-                      <p className="text-stone-500 text-[11px] mt-0.5">
-                        By {d.donorName} for &quot;{d.campaignTitle}&quot;
-                      </p>
-                    </div>
-                    <span className="text-[10px] text-stone-400 whitespace-nowrap">
-                      {formatDate(d.timestamp)}
-                    </span>
-                  </div>
-                ))}
-
-                {enqList.slice(0, 1).map((e) => (
-                  <div
-                    key={e.id}
-                    className="flex items-start gap-3 p-3 rounded-xl bg-stone-50 border border-stone-100 text-xs"
-                  >
-                    <div className="p-2 bg-teal-100 text-teal-700 rounded-lg shrink-0 mt-0.5">
-                      <MessageSquare size={14} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-stone-800">
-                        Contact Message: <span className="font-normal">{e.name}</span>
-                      </p>
-                      <p className="text-stone-500 text-[11px] mt-0.5 line-clamp-1">&quot;{e.message}&quot;</p>
-                    </div>
-                    <span className="text-[10px] text-stone-400 whitespace-nowrap">
-                      {formatDate(e.submittedAt)}
-                    </span>
-                  </div>
-                ))}
-              </>
+                  </Link>
+                );
+              })
             )}
           </div>
         </div>

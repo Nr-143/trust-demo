@@ -118,28 +118,28 @@ export default function VolunteerPage() {
         throw new Error('Database connection is not available. Please verify your Supabase configuration.');
       }
 
-      const { data: inserted, error } = await supabase
+      const now = new Date().toISOString();
+      const insertRecord = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        preferred_opportunity: formData.preferredOpportunity,
+        area: formData.preferredOpportunity,
+        skills: formData.skills.trim(),
+        availability: formData.availability,
+        message: formData.message.trim(),
+        status: 'New',
+        submitted_at: now,
+      };
+
+      const { error } = await supabase
         .from('volunteer_applications')
-        .insert([
-          {
-            name: formData.name.trim(),
-            email: formData.email.trim(),
-            phone: formData.phone.trim(),
-            preferred_opportunity: formData.preferredOpportunity,
-            area: formData.preferredOpportunity,
-            skills: formData.skills.trim(),
-            availability: formData.availability,
-            message: formData.message.trim(),
-            status: 'New',
-          },
-        ])
-        .select()
-        .single();
+        .insert([insertRecord]);
 
       if (error) throw error;
 
       const payload = {
-        id: inserted?.id,
+        id: `vol-${Date.now()}`,
         name: formData.name.trim(),
         email: formData.email.trim(),
         phone: formData.phone.trim(),
@@ -149,7 +149,7 @@ export default function VolunteerPage() {
         availability: formData.availability,
         message: formData.message.trim(),
         status: 'New',
-        submittedAt: inserted?.submitted_at || new Date().toISOString(),
+        submittedAt: now,
       };
 
       dispatch({

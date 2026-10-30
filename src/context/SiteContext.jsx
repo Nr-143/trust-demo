@@ -8,6 +8,7 @@
 import { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
 import { initialData } from '../data/initialData.js';
 import { fetchAllApplicationData } from '../services/supabaseService.js';
+import { supabase, isSupabaseConfigured } from '../services/supabaseClient.js';
 import DonationModal from '../components/common/DonationModal';
 
 const SiteContext = createContext(null);
@@ -159,6 +160,9 @@ function siteReducer(state, action) {
     }
 
     // 7. Job Applications
+    case 'SET_JOB_APPLICATIONS': {
+      return { ...state, jobApplications: action.payload };
+    }
     case 'ADD_JOB_APPLICATION': {
       const apps = state.jobApplications || [];
       return {
@@ -197,6 +201,12 @@ function siteReducer(state, action) {
     }
 
     // 9. Contact Enquiries
+    case 'SET_CONTACT_ENQUIRIES': {
+      return { ...state, contactEnquiries: action.payload };
+    }
+    case 'SET_VOLUNTEER_APPLICATIONS': {
+      return { ...state, volunteerApplications: action.payload, volunteers: action.payload };
+    }
     case 'ADD_CONTACT_ENQUIRY': {
       const enqs = state.contactEnquiries || [];
       return {
@@ -250,6 +260,19 @@ export function SiteProvider({ children }) {
 
   useEffect(() => {
     loadData();
+
+    if (isSupabaseConfigured() && supabase) {
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+          loadData();
+        }
+      });
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
   }, [loadData]);
 
   // Global Donation / Contribution Pledge Modal Controller

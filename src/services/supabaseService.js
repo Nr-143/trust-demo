@@ -958,7 +958,71 @@ export async function createDonationPledge(pledgeData) {
 }
 
 // ==============================================================================
-// 8. BATCH APPLICATION LOADER (Concurrent initialization for SiteContext)
+// 8. CONTACT ENQUIRIES, VOLUNTEERS & APPLICATIONS
+// ==============================================================================
+export async function fetchContactEnquiries() {
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
+  }
+  try {
+    const { data, error } = await supabase
+      .from('contact_enquiries')
+      .select('*')
+      .order('submitted_at', { ascending: false });
+    if (error) throw error;
+    return (data || []).map((e) => ({
+      ...e,
+      submittedAt: e.submitted_at || e.created_at || new Date().toISOString(),
+    }));
+  } catch (err) {
+    console.warn('[Supabase] Could not fetch contact enquiries:', err);
+    return [];
+  }
+}
+
+export async function fetchVolunteerApplications() {
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
+  }
+  try {
+    const { data, error } = await supabase
+      .from('volunteer_applications')
+      .select('*')
+      .order('submitted_at', { ascending: false });
+    if (error) throw error;
+    return (data || []).map((v) => ({
+      ...v,
+      preferredOpportunity: v.preferred_opportunity || v.preferredOpportunity || v.area,
+      submittedAt: v.submitted_at || v.created_at || new Date().toISOString(),
+    }));
+  } catch (err) {
+    console.warn('[Supabase] Could not fetch volunteer applications:', err);
+    return [];
+  }
+}
+
+export async function fetchJobApplications() {
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
+  }
+  try {
+    const { data, error } = await supabase
+      .from('job_applications')
+      .select('*')
+      .order('submitted_at', { ascending: false });
+    if (error) throw error;
+    return (data || []).map((j) => ({
+      ...j,
+      submittedAt: j.submitted_at || j.created_at || new Date().toISOString(),
+    }));
+  } catch (err) {
+    console.warn('[Supabase] Could not fetch job applications:', err);
+    return [];
+  }
+}
+
+// ==============================================================================
+// 9. BATCH APPLICATION LOADER (Concurrent initialization for SiteContext)
 // ==============================================================================
 export async function fetchAllApplicationData() {
   const [
@@ -969,6 +1033,9 @@ export async function fetchAllApplicationData() {
     gallery,
     careers,
     donationPledges,
+    contactEnquiries,
+    volunteerApplications,
+    jobApplications,
   ] = await Promise.all([
     fetchSiteContent(),
     fetchProgrammes(),
@@ -977,6 +1044,9 @@ export async function fetchAllApplicationData() {
     fetchGalleryItems(),
     fetchCareers(),
     fetchDonationPledges(),
+    fetchContactEnquiries(),
+    fetchVolunteerApplications(),
+    fetchJobApplications(),
   ]);
 
   return {
@@ -989,11 +1059,11 @@ export async function fetchAllApplicationData() {
     gallery,
     careers,
     donationPledges,
+    contactEnquiries,
+    volunteerApplications,
+    volunteers: volunteerApplications,
+    jobApplications,
     volunteerOpportunities: [],
-    volunteerApplications: [],
-    volunteers: [],
-    jobApplications: [],
-    contactEnquiries: [],
     demoDonations: [],
   };
 }

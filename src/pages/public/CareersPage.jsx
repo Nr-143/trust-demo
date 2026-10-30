@@ -91,28 +91,28 @@ export default function CareersPage() {
         throw new Error('Database connection is not available. Please verify your Supabase configuration.');
       }
 
-      const { data: inserted, error } = await supabase
+      const now = new Date().toISOString();
+      const insertRecord = {
+        career_id: applyingCareer.id,
+        career_title: applyingCareer.title,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        experience: formData.experience.trim(),
+        skills: formData.skills.trim(),
+        message: formData.message.trim(),
+        status: 'New',
+        submitted_at: now,
+      };
+
+      const { error } = await supabase
         .from('job_applications')
-        .insert([
-          {
-            career_id: applyingCareer.id,
-            career_title: applyingCareer.title,
-            name: formData.name.trim(),
-            email: formData.email.trim(),
-            phone: formData.phone.trim(),
-            experience: formData.experience.trim(),
-            skills: formData.skills.trim(),
-            message: formData.message.trim(),
-            status: 'New',
-          },
-        ])
-        .select()
-        .single();
+        .insert([insertRecord]);
 
       if (error) throw error;
 
       const payload = {
-        id: inserted?.id,
+        id: `job-${Date.now()}`,
         careerId: applyingCareer.id,
         careerTitle: applyingCareer.title,
         name: formData.name.trim(),
@@ -122,7 +122,7 @@ export default function CareersPage() {
         skills: formData.skills.trim(),
         message: formData.message.trim(),
         status: 'New',
-        submittedAt: inserted?.submitted_at || new Date().toISOString(),
+        submittedAt: now,
       };
 
       dispatch({

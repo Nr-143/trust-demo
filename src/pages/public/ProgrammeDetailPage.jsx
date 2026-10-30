@@ -225,33 +225,23 @@ export default function ProgrammeDetailPage() {
           <ProgrammeMediaPyramid programme={programme} />
         </section>
 
-        {/* Section B: Projects and Completed Activities */}
-        <section aria-labelledby="activities-heading" className="mb-12">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-6 pb-3 border-b border-stone-200">
-            <div>
-              <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#176B36] mb-1">
-                <span>Field Documentation</span>
+        {/* Section B: Projects and Completed Activities (Only shown when projects exist) */}
+        {projects.length > 0 && (
+          <section aria-labelledby="activities-heading" className="mb-12">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-6 pb-3 border-b border-stone-200">
+              <div>
+                <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#176B36] mb-1">
+                  <span>Field Documentation</span>
+                </div>
+                <h2 id="activities-heading" className="text-xl sm:text-2xl font-bold text-[#173B2A]">
+                  Projects & Community Activities
+                </h2>
               </div>
-              <h2 id="activities-heading" className="text-xl sm:text-2xl font-bold text-[#173B2A]">
-                Projects & Community Activities
-              </h2>
-            </div>
-            <p className="text-xs text-stone-500 max-w-sm sm:text-right">
-              Individual grassroots initiatives planned or undertaken under this programme vertical.
-            </p>
-          </div>
-
-          {projects.length === 0 ? (
-            <div className="bg-white border border-stone-200 rounded-3xl p-10 text-center">
-              <div className="p-3 bg-stone-100 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center text-stone-500">
-                <FolderKanban size={24} />
-              </div>
-              <h3 className="text-base font-bold text-[#173B2A]">No Projects Recorded Yet</h3>
-              <p className="text-xs text-stone-500 mt-1 max-w-md mx-auto">
-                Initiatives and field updates for this programme will appear here.
+              <p className="text-xs text-stone-500 max-w-sm sm:text-right">
+                Individual grassroots initiatives planned or undertaken under this programme vertical.
               </p>
             </div>
-          ) : (
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
               {projects.map((proj) => {
                 const images = Array.isArray(proj.images)
@@ -358,8 +348,8 @@ export default function ProgrammeDetailPage() {
                 );
               })}
             </div>
-          )}
-        </section>
+          </section>
+        )}
 
         {/* Navigation & Action Panel */}
         <section

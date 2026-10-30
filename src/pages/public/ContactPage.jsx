@@ -47,19 +47,19 @@ export default function ContactPage() {
         throw new Error('Database connection is not available. Please verify your Supabase configuration.');
       }
 
-      const { data: inserted, error } = await supabase
+      const now = new Date().toISOString();
+      const enquiryPayload = {
+        name: data.name.trim(),
+        email: data.email.trim(),
+        subject: data.subject.trim(),
+        message: data.message.trim(),
+        status: 'new',
+        submitted_at: now,
+      };
+
+      const { error } = await supabase
         .from('contact_enquiries')
-        .insert([
-          {
-            name: data.name.trim(),
-            email: data.email.trim(),
-            subject: data.subject.trim(),
-            message: data.message.trim(),
-            status: 'new',
-          },
-        ])
-        .select()
-        .single();
+        .insert([enquiryPayload]);
 
       if (error) throw error;
 
@@ -67,12 +67,9 @@ export default function ContactPage() {
       dispatch({
         type: 'ADD_CONTACT_ENQUIRY',
         payload: {
-          id: inserted?.id,
-          name: data.name.trim(),
-          email: data.email.trim(),
-          subject: data.subject.trim(),
-          message: data.message.trim(),
-          status: 'new',
+          id: `enq-${Date.now()}`,
+          ...enquiryPayload,
+          submittedAt: now,
         },
       });
 

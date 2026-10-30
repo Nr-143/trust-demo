@@ -43,7 +43,12 @@ export default function AdminEnquiries() {
           .order('submitted_at', { ascending: false });
 
         if (error) throw error;
-        setEnquiries(data || []);
+        const normalized = (data || []).map((e) => ({
+          ...e,
+          submittedAt: e.submitted_at || e.created_at || new Date().toISOString(),
+        }));
+        setEnquiries(normalized);
+        dispatch({ type: 'SET_CONTACT_ENQUIRIES', payload: normalized });
       } catch (err) {
         console.error('Failed to load enquiries from Supabase:', err);
         showError('Could not fetch cloud enquiries; showing local records.', 'Notice');
