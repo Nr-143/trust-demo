@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useSite } from '../../context/SiteContext';
 import { handleImageFallback } from '../../utils/helpers';
-import DemoBadge from '../../components/common/DemoBadge';
+import MediaCarousel from '../../components/common/MediaCarousel';
 import ProgrammeMediaPyramid from '../../components/common/ProgrammeMediaPyramid';
 import MediaGalleryModal from '../../components/common/MediaGalleryModal';
 import ViewportVideo from '../../components/common/ViewportVideo';
@@ -146,10 +146,6 @@ export default function ProgrammeDetailPage() {
 
       {/* Main Container */}
       <main className="site-container pt-8">
-        {/* Demonstration Disclaimer */}
-        <div className="mb-6">
-          <DemoBadge message="Demonstration Profile: Programme activities, scopes, and images shown below represent initial framework data. Verified completed field projects, dates, and photographic records will be published after confirmation by the NGO." />
-        </div>
 
         {/* Section A: Concise Page Header */}
         <section
@@ -252,7 +248,7 @@ export default function ProgrammeDetailPage() {
               </div>
               <h3 className="text-base font-bold text-[#173B2A]">No Projects Recorded Yet</h3>
               <p className="text-xs text-stone-500 mt-1 max-w-md mx-auto">
-                Project information will be added after confirmation by the NGO.
+                Initiatives and field updates for this programme will appear here.
               </p>
             </div>
           ) : (
@@ -276,55 +272,34 @@ export default function ProgrammeDetailPage() {
                     className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-2xs hover:shadow-md transition-shadow flex flex-col justify-between"
                   >
                     <div>
-                      {/* Media Area */}
-                      {hasImages ? (
-                        <div className="relative h-56 bg-stone-100 overflow-hidden group">
-                          <button
-                            type="button"
-                            onClick={() => openMediaGallery()}
-                            aria-label={`View all ${mediaItems.length} media items for ${proj.title}`}
-                            className="absolute inset-0 z-10 flex items-center justify-center gap-2 bg-black/40 text-xs font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                          >
-                            <ImageIcon size={18} />
-                            <span>View all media ({mediaItems.length})</span>
-                          </button>
-                          <img
-                            src={images[0]}
+                      {/* Media Area - Auto play scroll images & auto play video */}
+                      {mediaItems.length > 0 ? (
+                        <div className="relative h-60 bg-stone-900 overflow-hidden group">
+                          <MediaCarousel
+                            items={mediaItems}
                             alt={proj.title}
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-103"
-                            loading="lazy"
-                            onError={handleImageFallback}
-                          />
-
-                          {/* Image Counter Badge if multiple images */}
-                          {mediaItems.length > 1 && (
-                            <span className="absolute bottom-3 right-3 px-2 py-1 rounded-md text-[11px] font-semibold bg-black/70 backdrop-blur-xs text-white flex items-center gap-1 pointer-events-none">
-                              <ImageIcon size={12} />
-                              <span>{mediaItems.length} items</span>
-                            </span>
-                          )}
-                        </div>
-                      ) : hasVideo ? (
-                        <div className="relative bg-black">
-                          <ViewportVideo
-                            src={proj.videoUrl}
-                            ariaLabel={`${proj.title} project video`}
-                            className="aspect-video w-full object-contain"
+                            className="h-full w-full"
+                            imageClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            interval={3500}
+                            autoPlay={true}
+                            onImageError={handleImageFallback}
+                            onMediaClick={(idx) => openMediaGallery(idx)}
                           />
                           <button
                             type="button"
                             onClick={() => openMediaGallery()}
-                            className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-lg bg-black/70 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-black"
+                            aria-label={`View all media for ${proj.title}`}
+                            className="absolute top-3 right-3 z-20 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-black/60 hover:bg-black/85 backdrop-blur-xs text-white transition-colors cursor-pointer"
                           >
-                            <Play size={13} />
-                            Open viewer
+                            <ImageIcon size={12} />
+                            <span>{mediaItems.length} {mediaItems.length === 1 ? 'item' : 'items'}</span>
                           </button>
                         </div>
                       ) : (
                         <div className="h-32 bg-stone-50 border-b border-stone-200 flex flex-col items-center justify-center p-4 text-center">
                           <ImageIcon size={24} className="text-stone-300 mb-1" />
                           <p className="text-xs text-stone-500 font-medium">
-                            Photographs will be added after confirmation.
+                            Field photographs will be updated shortly.
                           </p>
                         </div>
                       )}

@@ -18,7 +18,6 @@ import {
   Loader2,
 } from 'lucide-react';
 import PageHeader from '../../components/common/PageHeader';
-import DemoBadge from '../../components/common/DemoBadge';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import { supabase, isSupabaseConfigured } from '../../services/supabaseClient';

@@ -22,9 +22,6 @@ export default function AdminLayout() {
             </button>
             <span className="ml-3 text-xs font-bold text-primary-dark">Admin Console</span>
           </div>
-          <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-100 text-amber-800">
-            Demo
-          </span>
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">

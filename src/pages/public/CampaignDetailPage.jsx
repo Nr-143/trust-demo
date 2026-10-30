@@ -20,7 +20,6 @@ import {
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import { formatCurrency, formatDate, handleImageFallback } from '../../utils/helpers';
-import DemoBadge from '../../components/common/DemoBadge';
 
 const PRESET_AMOUNTS = [100, 500, 1000, 2000];
 
@@ -122,7 +121,7 @@ export default function CampaignDetailPage() {
     if (donateElem) donateElem.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleConfirmSimulation = () => {
+  const handleConfirmPledge = () => {
     try {
       const receiptId = `MMG-PLEDGE-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
 
@@ -356,7 +355,7 @@ export default function CampaignDetailPage() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Live Progress & Multi-Step Donation Simulator (5 cols) */}
+          {/* RIGHT COLUMN: Live Progress & Contribution Section (5 cols) */}
           <div className="lg:col-span-5 space-y-6 sticky top-24" id="donate-section">
             
             {/* LIVE FINANCIAL PROGRESS CARD */}
@@ -580,7 +579,7 @@ export default function CampaignDetailPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={handleConfirmSimulation}
+                      onClick={handleConfirmPledge}
                       className="w-2/3 py-3 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <CheckCircle2 size={16} />

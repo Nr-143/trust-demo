@@ -124,7 +124,7 @@ export default function AdminSettings() {
 
             <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200">
               <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">
-                Demo Donations
+                Donations & Pledges
               </span>
               <span className="text-xl font-extrabold text-amber-700 mt-0.5 block">
                 {state.demoDonations?.length || 0}
@@ -234,28 +234,11 @@ export default function AdminSettings() {
                   className="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
                   <RotateCcw size={14} />
-                  <span>Reset All Demo Data</span>
+                  <span>Reset Local Cache</span>
                 </button>
               )}
             </div>
           </div>
-        </div>
-
-        {/* 4. Local-Only Storage Disclaimer */}
-        <div className="p-5 rounded-2xl bg-stone-100/80 border border-stone-200 text-xs text-stone-600 leading-relaxed space-y-2">
-          <div className="flex items-center gap-2 font-bold text-stone-800">
-            <Info size={15} className="text-[#176B36]" />
-            <span>Browser-Local Architecture Disclosure</span>
-          </div>
-          <p>
-            This demo application operates strictly within your browser's LocalStorage and IndexedDB
-            without external database or cloud servers.
-          </p>
-          <p className="text-[11px] text-stone-500">
-            <strong>Notice:</strong> Data created or modified on this device is not shared with or visible
-            to other users on other devices. Multi-tab synchronization is active for tabs opened within
-            this browser.
-          </p>
         </div>
       </div>
     </div>

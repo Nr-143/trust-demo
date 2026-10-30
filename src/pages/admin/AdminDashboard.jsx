@@ -275,7 +275,7 @@ export default function AdminDashboard() {
                   </div>
                   <div>
                     <p className="text-xs font-bold text-stone-800">Add or Edit Programmes</p>
-                    <p className="text-[11px] text-stone-500">6 focus development verticals</p>
+                    <p className="text-[11px] text-stone-500">{progList.length} focus development verticals</p>
                   </div>
                 </div>
                 <ArrowRight size={14} className="text-stone-400 group-hover:translate-x-1 transition-transform" />
@@ -342,7 +342,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Recent Demonstration Activity Log */}
+        {/* Recent Activity Log */}
         <div id="recent-activity" className="lg:col-span-7 bg-white border border-stone-200 rounded-2xl p-6 shadow-2xs scroll-mt-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-bold text-primary-dark">Recent Activity & Submissions</h2>

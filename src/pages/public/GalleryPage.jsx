@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import PageHeader from '../../components/common/PageHeader';
-import DemoBadge from '../../components/common/DemoBadge';
 import { useSite } from '../../context/SiteContext';
 import { handleImageFallback } from '../../utils/helpers';
 import ViewportVideo from '../../components/common/ViewportVideo';
@@ -29,9 +28,6 @@ export default function GalleryPage() {
       />
 
       <div className="site-container py-12 sm:py-16">
-        <div className="mb-6">
-          <DemoBadge message="Gallery media includes placeholder content. Actual photos and videos from the organisation's activities will replace these." />
-        </div>
 
         {/* Category filter */}
         <div className="flex flex-wrap gap-2 mb-8">

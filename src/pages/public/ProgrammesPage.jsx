@@ -14,7 +14,6 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import PageHeader from '../../components/common/PageHeader';
-import DemoBadge from '../../components/common/DemoBadge';
 import { useSite } from '../../context/SiteContext';
 import { handleImageFallback } from '../../utils/helpers';
 import MediaCarousel from '../../components/common/MediaCarousel';

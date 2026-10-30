@@ -9,7 +9,6 @@ import {
   Layers,
 } from 'lucide-react';
 import PageHeader from '../../components/common/PageHeader';
-import DemoBadge from '../../components/common/DemoBadge';
 import { useSite } from '../../context/SiteContext';
 
 const iconMap = {

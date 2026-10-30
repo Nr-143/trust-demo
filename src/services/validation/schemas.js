@@ -224,7 +224,7 @@ export const donationSchema = z.object({
   donorPhone: z.string().optional(),
   amount: z.coerce.number().min(10, 'Donation amount must be at least ₹10'),
   message: z.string().optional().default(''),
-  paymentMethod: z.string().default('Simulated Demo Transfer'),
+  paymentMethod: z.string().default('Direct Contribution Pledge'),
   timestamp: z.string().default(() => new Date().toISOString()),
   isDemo: z.boolean().default(true),
 });
