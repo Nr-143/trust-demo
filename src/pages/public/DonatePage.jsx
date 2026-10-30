@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import QRCode from 'qrcode';
+import * as QRCodeModule from 'qrcode';
 import { Banknote, Heart, Landmark, Smartphone } from 'lucide-react';
 import PageHeader from '../../components/common/PageHeader';
 import { useSite } from '../../context/SiteContext';
+
+const QRCode = QRCodeModule.default || QRCodeModule;
 
 export default function DonatePage() {
   const { siteInfo } = useSite();

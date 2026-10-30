@@ -73,6 +73,9 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       vercelApiDevPlugin(),
     ],
+    optimizeDeps: {
+      include: ['qrcode'],
+    },
     envPrefix: ['VITE_', 'SUPABASE_'],
   };
 });
