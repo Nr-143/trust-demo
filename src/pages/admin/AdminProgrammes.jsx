@@ -72,7 +72,7 @@ const PRESET_IMAGES = [
   },
   {
     name: 'Clean Water Project',
-    url: 'https://images.unsplash.com/photo-1541252260730-0412e8e2108e?w=800&auto=format&fit=crop&q=80',
+    url: 'https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=800&auto=format&fit=crop&q=80',
   },
   {
     name: 'Afforestation & Farm',
@@ -80,7 +80,7 @@ const PRESET_IMAGES = [
   },
   {
     name: 'Solar Panel Array',
-    url: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?w=800&auto=format&fit=crop&q=80',
+    url: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=800&auto=format&fit=crop&q=80',
   },
   {
     name: 'Health Camp',

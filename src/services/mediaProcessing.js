@@ -26,10 +26,11 @@ export function getMediaTypeFromUrl(url) {
 }
 
 export function getProgrammeMediaItems(programme) {
-  const mediaGallery = Array.isArray(programme?.mediaGallery)
-    ? programme.mediaGallery.filter((item) => item?.url)
+  const rawGallery = programme?.mediaGallery || programme?.media_gallery;
+  const mediaGallery = Array.isArray(rawGallery)
+    ? rawGallery.filter((item) => item?.url)
     : [];
-  const imageUrl = programme?.imageUrl;
+  const imageUrl = programme?.imageUrl || programme?.image_url;
   const imageGallery = mediaGallery.some((item) => item.mediaType === 'image');
   const fallbackImage = imageUrl
     && getMediaTypeFromUrl(imageUrl) === 'image'
@@ -37,7 +38,7 @@ export function getProgrammeMediaItems(programme) {
     ? [{
         url: imageUrl,
         mediaType: 'image',
-        publicId: programme?.cloudinaryPublicId || null,
+        publicId: programme?.cloudinaryPublicId || programme?.cloudinary_public_id || null,
       }]
     : [];
   return [...mediaGallery, ...(!imageGallery ? fallbackImage : [])];
