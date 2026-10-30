@@ -163,9 +163,6 @@ export async function createProgramme(programmeData) {
     category: programmeData.category,
     icon: programmeData.icon || 'GraduationCap',
     image_url: programmeData.imageUrl || null,
-    media_type: validMediaType,
-    cloudinary_public_id: programmeData.cloudinaryPublicId || null,
-    media_gallery: Array.isArray(programmeData.mediaGallery) ? programmeData.mediaGallery : [],
     description: (programmeData.description || '').trim(),
     details: (programmeData.details || '').trim(),
     highlights: Array.isArray(programmeData.highlights) ? programmeData.highlights : [],
@@ -193,46 +190,19 @@ export async function createProgramme(programmeData) {
     error = retry.error;
   }
 
-  // Fallback if remote schema doesn't have media_type, cloudinary_public_id, or media_gallery
-  if (error && (error.code === 'PGRST204' || error.code === '42703' || error.message?.includes('column') || error.status === 400)) {
-    console.warn('[Supabase createProgramme] Retrying without extended media columns:', error);
-    const fallbackPayload = {
-      id: payload.id,
-      slug: payload.slug,
-      title: payload.title,
-      full_title: payload.full_title,
-      title_tamil: payload.title_tamil,
-      category: payload.category,
-      icon: payload.icon,
-      image_url: payload.image_url,
-      description: payload.description,
-      details: payload.details,
-      highlights: payload.highlights,
-      projects: payload.projects,
-      status: payload.status,
-      display_order: payload.display_order,
-      updated_at: payload.updated_at,
-    };
-    const retry = await supabase.from('programmes').insert([fallbackPayload]).select().single();
-    if (!retry.error) {
-      data = retry.data;
-      error = null;
-    }
-  }
-
   if (error) handleDbError('createProgramme', error);
   return {
     ...data,
-    fullTitle: data.full_title,
-    titleTamil: data.title_tamil,
-    imageUrl: data.image_url,
-    mediaType: data.media_type || getMediaTypeFromUrl(data.image_url),
-    cloudinaryPublicId: data.cloudinary_public_id || null,
+    fullTitle: data?.full_title || programmeData.fullTitle || cleanTitle,
+    titleTamil: data?.title_tamil || programmeData.titleTamil || '',
+    imageUrl: data?.image_url || programmeData.imageUrl,
+    mediaType: validMediaType,
+    cloudinaryPublicId: programmeData.cloudinaryPublicId || null,
     mediaGallery: getProgrammeMediaItems({
-      imageUrl: data.image_url,
-      mediaType: data.media_type,
-      cloudinaryPublicId: data.cloudinary_public_id,
-      mediaGallery: data.media_gallery,
+      imageUrl: data?.image_url || programmeData.imageUrl,
+      mediaType: validMediaType,
+      cloudinaryPublicId: programmeData.cloudinaryPublicId || null,
+      mediaGallery: programmeData.mediaGallery,
     }),
   };
 }
@@ -253,60 +223,34 @@ export async function updateProgramme(id, programmeData) {
     category: programmeData.category,
     icon: programmeData.icon,
     image_url: programmeData.imageUrl || null,
-    media_type: validMediaType,
-    cloudinary_public_id: programmeData.cloudinaryPublicId || null,
-    media_gallery: Array.isArray(programmeData.mediaGallery) ? programmeData.mediaGallery : [],
     description: programmeData.description,
     details: programmeData.details,
-    highlights: programmeData.highlights,
-    projects: programmeData.projects,
+    highlights: Array.isArray(programmeData.highlights) ? programmeData.highlights : [],
+    projects: Array.isArray(programmeData.projects) ? programmeData.projects : [],
     status: programmeData.status || 'active',
     updated_at: new Date().toISOString(),
   };
 
-  let { data, error } = await supabase
+  const { data, error } = await supabase
     .from('programmes')
     .update(payload)
     .eq('id', id)
     .select()
     .single();
 
-  if (error && (error.code === 'PGRST204' || error.code === '42703' || error.message?.includes('column') || error.status === 400)) {
-    console.warn('[Supabase updateProgramme] Retrying without extended media columns:', error);
-    const fallbackPayload = {
-      title: payload.title,
-      full_title: payload.full_title,
-      title_tamil: payload.title_tamil,
-      category: payload.category,
-      icon: payload.icon,
-      image_url: payload.image_url,
-      description: payload.description,
-      details: payload.details,
-      highlights: payload.highlights,
-      projects: payload.projects,
-      status: payload.status,
-      updated_at: payload.updated_at,
-    };
-    const retry = await supabase.from('programmes').update(fallbackPayload).eq('id', id).select().single();
-    if (!retry.error) {
-      data = retry.data;
-      error = null;
-    }
-  }
-
   if (error) handleDbError('updateProgramme', error);
   return {
     ...data,
-    fullTitle: data.full_title,
-    titleTamil: data.title_tamil,
-    imageUrl: data.image_url,
-    mediaType: data.media_type || getMediaTypeFromUrl(data.image_url),
-    cloudinaryPublicId: data.cloudinary_public_id || null,
+    fullTitle: data?.full_title || programmeData.fullTitle || data?.title,
+    titleTamil: data?.title_tamil || programmeData.titleTamil || '',
+    imageUrl: data?.image_url || programmeData.imageUrl,
+    mediaType: validMediaType,
+    cloudinaryPublicId: programmeData.cloudinaryPublicId || null,
     mediaGallery: getProgrammeMediaItems({
-      imageUrl: data.image_url,
-      mediaType: data.media_type,
-      cloudinaryPublicId: data.cloudinary_public_id,
-      mediaGallery: data.media_gallery,
+      imageUrl: data?.image_url || programmeData.imageUrl,
+      mediaType: validMediaType,
+      cloudinaryPublicId: programmeData.cloudinaryPublicId || null,
+      mediaGallery: programmeData.mediaGallery,
     }),
   };
 }
