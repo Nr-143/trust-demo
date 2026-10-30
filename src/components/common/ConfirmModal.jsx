@@ -1,4 +1,5 @@
-import { AlertTriangle, X } from 'lucide-react';
+import { useState } from 'react';
+import { AlertTriangle, Loader2, X } from 'lucide-react';
 
 export default function ConfirmModal({
   isOpen,
@@ -7,15 +8,29 @@ export default function ConfirmModal({
   confirmText = 'Delete',
   cancelText = 'Cancel',
   confirmVariant = 'danger', // 'danger' | 'warning' | 'primary'
+  isLoading: propLoading = false,
   onConfirm,
   onCancel,
 }) {
+  const [internalLoading, setInternalLoading] = useState(false);
+  const loading = propLoading || internalLoading;
+
   if (!isOpen) return null;
 
   const buttonColors = {
     danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500',
     warning: 'bg-amber-600 hover:bg-amber-700 text-white focus:ring-amber-500',
     primary: 'bg-primary hover:bg-primary-dark text-white focus:ring-primary',
+  };
+
+  const handleConfirmClick = async (e) => {
+    if (loading) return;
+    try {
+      setInternalLoading(true);
+      await onConfirm?.(e);
+    } finally {
+      setInternalLoading(false);
+    }
   };
 
   return (
@@ -34,8 +49,11 @@ export default function ConfirmModal({
             <p className="text-sm text-gray-600 mt-1.5 leading-relaxed">{message}</p>
           </div>
           <button
-            onClick={onCancel}
-            className="text-gray-400 hover:text-gray-600 p-1 -mr-2 -mt-2 rounded-lg"
+            onClick={loading ? undefined : onCancel}
+            disabled={loading}
+            className={`text-gray-400 p-1 -mr-2 -mt-2 rounded-lg transition-colors ${
+              loading ? 'opacity-40 cursor-not-allowed' : 'hover:text-gray-600 cursor-pointer'
+            }`}
             aria-label="Close"
           >
             <X size={18} />
@@ -46,22 +64,28 @@ export default function ConfirmModal({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-semibold text-gray-700 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors cursor-pointer"
+            disabled={loading}
+            className={`px-4 py-2 text-sm font-semibold text-gray-700 bg-stone-100 rounded-xl transition-colors ${
+              loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-stone-200 cursor-pointer'
+            }`}
           >
             {cancelText}
           </button>
           <button
             type="button"
-            onClick={onConfirm}
-            className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors shadow-2xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-              buttonColors[confirmVariant] || buttonColors.danger
+            onClick={handleConfirmClick}
+            disabled={loading}
+            className={`inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-all shadow-2xs focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+              loading
+                ? 'opacity-70 cursor-not-allowed bg-stone-400 text-white'
+                : `${buttonColors[confirmVariant] || buttonColors.danger} cursor-pointer`
             }`}
           >
-            {confirmText}
+            {loading && <Loader2 size={16} className="animate-spin shrink-0" />}
+            <span>{loading ? 'Processing...' : confirmText}</span>
           </button>
         </div>
       </div>
     </div>
   );
 }
-

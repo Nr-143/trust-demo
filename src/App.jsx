@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';
+import ScrollToTop from './components/common/ScrollToTop';
 
 // Public pages
 import HomePage from './pages/public/HomePage';
@@ -34,48 +35,51 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 
 export default function App() {
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route element={<PublicLayout />}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/programmes" element={<ProgrammesPage />} />
-        <Route path="/programmes/:slug" element={<ProgrammeDetailPage />} />
-        <Route path="/campaigns" element={<CampaignsPage />} />
-        <Route path="/campaigns/:slug" element={<CampaignDetailPage />} />
-        <Route path="/impact" element={<ImpactPage />} />
-        <Route path="/volunteer" element={<VolunteerPage />} />
-        <Route path="/careers" element={<CareersPage />} />
-        <Route path="/gallery" element={<GalleryPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/donate" element={<DonatePage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
+    <>
+      <ScrollToTop />
+      <Routes>
+        {/* Public routes */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/programmes" element={<ProgrammesPage />} />
+          <Route path="/programmes/:slug" element={<ProgrammeDetailPage />} />
+          <Route path="/campaigns" element={<CampaignsPage />} />
+          <Route path="/campaigns/:slug" element={<CampaignDetailPage />} />
+          <Route path="/impact" element={<ImpactPage />} />
+          <Route path="/volunteer" element={<VolunteerPage />} />
+          <Route path="/careers" element={<CareersPage />} />
+          <Route path="/gallery" element={<GalleryPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/donate" element={<DonatePage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
 
-      {/* Admin Authentication */}
-      <Route path="/admin/login" element={<AdminLogin />} />
+        {/* Admin Authentication */}
+        <Route path="/admin/login" element={<AdminLogin />} />
 
-      {/* Protected Admin routes */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute>
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<AdminDashboard />} />
-        <Route path="content" element={<AdminContent />} />
-        <Route path="programmes" element={<AdminProgrammes />} />
-        <Route path="campaigns" element={<AdminCampaigns />} />
-        <Route path="impact" element={<AdminImpact />} />
-        <Route path="enquiries" element={<AdminEnquiries />} />
-        <Route path="volunteers" element={<AdminVolunteers />} />
-        <Route path="careers" element={<AdminCareers />} />
-        <Route path="gallery" element={<AdminGallery />} />
-        <Route path="settings" element={<AdminSettings />} />
-        <Route path="donation-details" element={<AdminDonationDetails />} />
-      </Route>
-    </Routes>
+        {/* Protected Admin routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="content" element={<AdminContent />} />
+          <Route path="programmes" element={<AdminProgrammes />} />
+          <Route path="campaigns" element={<AdminCampaigns />} />
+          <Route path="impact" element={<AdminImpact />} />
+          <Route path="enquiries" element={<AdminEnquiries />} />
+          <Route path="volunteers" element={<AdminVolunteers />} />
+          <Route path="careers" element={<AdminCareers />} />
+          <Route path="gallery" element={<AdminGallery />} />
+          <Route path="settings" element={<AdminSettings />} />
+          <Route path="donation-details" element={<AdminDonationDetails />} />
+        </Route>
+      </Routes>
+    </>
   );
 }

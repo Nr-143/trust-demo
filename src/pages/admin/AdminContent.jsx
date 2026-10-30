@@ -6,6 +6,7 @@ import { saveSiteContent } from '../../services/supabaseService';
 import { getDialablePhone, getWhatsAppUrl } from '../../utils/helpers';
 import {
   Save,
+  Loader2,
   Megaphone,
   Compass,
   FileText,
@@ -616,10 +617,19 @@ export default function AdminContent() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
           >
-            <Save size={16} />
-            <span>Save All Content Updates</span>
+            {isSubmitting ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                <span>Saving All Content Updates...</span>
+              </>
+            ) : (
+              <>
+                <Save size={16} />
+                <span>Save All Content Updates</span>
+              </>
+            )}
           </button>
         </div>
       </form>

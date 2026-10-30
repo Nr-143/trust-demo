@@ -16,6 +16,7 @@ import {
   RotateCcw,
   Receipt,
   Share2,
+  Loader2,
 } from 'lucide-react';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
@@ -52,6 +53,7 @@ export default function CampaignDetailPage() {
   const [donorPhone, setDonorPhone] = useState('');
   const [donorMessage, setDonorMessage] = useState('');
   const [completedDonation, setCompletedDonation] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   // Scroll to donate section if hash is #donate
   useEffect(() => {
@@ -579,11 +581,21 @@ export default function CampaignDetailPage() {
                     </button>
                     <button
                       type="button"
+                      disabled={submitting}
                       onClick={handleConfirmPledge}
-                      className="w-2/3 py-3 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-2/3 py-3 rounded-xl bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                     >
-                      <CheckCircle2 size={16} />
-                      <span>Confirm Contribution</span>
+                      {submitting ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin shrink-0" />
+                          <span>Recording...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 size={16} />
+                          <span>Confirm Contribution</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Heart, Save } from 'lucide-react';
+import { Heart, Save, Loader2 } from 'lucide-react';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import { saveSiteContent } from '../../services/supabaseService';
@@ -130,10 +130,19 @@ export default function AdminDonationDetails() {
           <button
             type="submit"
             disabled={isSaving}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-dark disabled:opacity-60 text-white text-sm font-semibold shadow-xs transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-dark disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold shadow-xs transition-colors cursor-pointer"
           >
-            <Save size={16} />
-            {isSaving ? 'Saving…' : 'Save Donation Details'}
+            {isSaving ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                <span>Saving Details...</span>
+              </>
+            ) : (
+              <>
+                <Save size={16} />
+                <span>Save Donation Details</span>
+              </>
+            )}
           </button>
         </div>
       </form>

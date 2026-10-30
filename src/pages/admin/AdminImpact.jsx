@@ -25,6 +25,8 @@ export default function AdminImpact() {
   const [newDesc, setNewDesc] = useState('');
 
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [savingId, setSavingId] = useState(null);
+  const [isAdding, setIsAdding] = useState(false);
 
   const handleStartEdit = (stat) => {
     setEditingId(stat.id);
@@ -168,10 +170,11 @@ export default function AdminImpact() {
                   <div className="flex items-center gap-2 pt-2">
                     <button
                       onClick={() => handleSaveEdit(stat.id)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-primary text-white text-xs font-semibold rounded-lg hover:bg-primary-dark transition-colors cursor-pointer"
+                      disabled={savingId === stat.id}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-primary text-white text-xs font-semibold rounded-lg hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
-                      <Save size={13} />
-                      <span>Save Changes</span>
+                      {savingId === stat.id ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+                      <span>{savingId === stat.id ? 'Saving...' : 'Save Changes'}</span>
                     </button>
                     <button
                       onClick={() => setEditingId(null)}
@@ -286,9 +289,11 @@ export default function AdminImpact() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary-dark shadow-xs cursor-pointer"
+                  disabled={isAdding}
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed shadow-xs cursor-pointer"
                 >
-                  Add Metric
+                  {isAdding && <Loader2 size={13} className="animate-spin" />}
+                  <span>{isAdding ? 'Adding...' : 'Add Metric'}</span>
                 </button>
               </div>
             </form>

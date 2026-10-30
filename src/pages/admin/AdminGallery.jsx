@@ -10,6 +10,7 @@ import {
 } from '../../services/supabaseService';
 import { getGalleryMediaType } from '../../services/mediaProcessing';
 import {
+  Loader2,
   Image as ImageIcon,
   Plus,
   Search,
@@ -55,6 +56,8 @@ export default function AdminGallery() {
   const [editingItem, setEditingItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [previewItem, setPreviewItem] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   // Form states for create
   const [title, setTitle] = useState('');
@@ -182,11 +185,12 @@ export default function AdminGallery() {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    if (!editTitle.trim()) {
-      showError('Please enter an image caption');
+    if (!editTitle.trim() || isSavingEdit) {
+      if (!editTitle.trim()) showError('Please enter an image caption');
       return;
     }
 
+    setIsSavingEdit(true);
     try {
       if (!editingItem) return;
       const replacingMedia = editImageUrl.trim() !== editingItem.imageUrl;
@@ -217,6 +221,8 @@ export default function AdminGallery() {
       showSuccess('Gallery media details updated.', 'Updated');
     } catch (err) {
       showError(err.message || 'Failed to update photo in database');
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -242,7 +248,8 @@ export default function AdminGallery() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget || isDeleting) return;
+    setIsDeleting(true);
     try {
       await deleteGalleryItem(deleteTarget.id);
       dispatch({ type: 'DELETE_GALLERY_ITEM', payload: deleteTarget.id });
@@ -253,6 +260,8 @@ export default function AdminGallery() {
       setDeleteTarget(null);
     } catch (err) {
       showError(err.message || 'Failed to remove media from the gallery');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -767,9 +776,11 @@ export default function AdminGallery() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer"
+                  disabled={isSavingEdit}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
-                  Save Updates
+                  {isSavingEdit && <Loader2 size={14} className="animate-spin" />}
+                  <span>{isSavingEdit ? 'Saving Updates...' : 'Save Updates'}</span>
                 </button>
               </div>
             </form>
@@ -824,8 +835,9 @@ export default function AdminGallery() {
         title="Remove Media"
         message={`Remove "${deleteTarget?.title || 'Selected'}" from the gallery? Any uploaded Cloudinary image or video will also be deleted. Local preset files are only unlinked from the gallery.`}
         confirmText="Remove Media"
+        isLoading={isDeleting}
         onConfirm={handleDeleteConfirm}
-        onCancel={() => setDeleteTarget(null)}
+        onCancel={() => !isDeleting && setDeleteTarget(null)}
       />
     </div>
   );

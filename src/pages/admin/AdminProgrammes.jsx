@@ -840,9 +840,10 @@ export default function AdminProgrammes() {
                 <button
                   type="submit"
                   disabled={uploadingMedia}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
-                  {uploadingMedia ? (createMediaFiles.length > 0 ? 'Uploading & creating...' : 'Creating...') : 'Create Programme'}
+                  {uploadingMedia && <Loader2 size={14} className="animate-spin" />}
+                  <span>{uploadingMedia ? (createMediaFiles.length > 0 ? 'Uploading & creating...' : 'Creating...') : 'Create Programme'}</span>
                 </button>
               </div>
             </form>
@@ -1030,9 +1031,10 @@ export default function AdminProgrammes() {
                 <button
                   type="submit"
                   disabled={uploadingMedia}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
-                  {uploadingMedia ? (editMediaFiles.length > 0 ? 'Uploading & saving...' : 'Saving...') : 'Save Changes'}
+                  {uploadingMedia && <Loader2 size={14} className="animate-spin" />}
+                  <span>{uploadingMedia ? (editMediaFiles.length > 0 ? 'Uploading & saving...' : 'Saving...') : 'Save Changes'}</span>
                 </button>
               </div>
             </form>

@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import {
+  Loader2,
   Briefcase,
   Plus,
   Search,
@@ -60,6 +61,8 @@ export default function AdminCareers() {
   const [viewingCareer, setViewingCareer] = useState(null);
   const [viewingApplication, setViewingApplication] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchApplications = async () => {
     if (isSupabaseConfigured() && supabase) {
@@ -158,6 +161,8 @@ export default function AdminCareers() {
   };
 
   const handleCreateSubmit = async (data) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const created = await createCareer(data);
       dispatch({
@@ -169,10 +174,14 @@ export default function AdminCareers() {
       createForm.reset();
     } catch (err) {
       showError(err.message || 'Failed to save career position to database');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleEditSubmit = async (data) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       if (!editingCareer) return;
       const updated = await updateCareer(editingCareer.id, {
@@ -187,6 +196,8 @@ export default function AdminCareers() {
       setEditingCareer(null);
     } catch (err) {
       showError(err.message || 'Failed to update position in database');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -762,9 +773,11 @@ export default function AdminCareers() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer"
+                  disabled={isSubmitting}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
-                  Post Position
+                  {isSubmitting && <Loader2 size={14} className="animate-spin" />}
+                  <span>{isSubmitting ? 'Posting...' : 'Post Position'}</span>
                 </button>
               </div>
             </form>
@@ -850,9 +863,11 @@ export default function AdminCareers() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors cursor-pointer"
+                  disabled={isSubmitting}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
-                  Save Changes
+                  {isSubmitting && <Loader2 size={14} className="animate-spin" />}
+                  <span>{isSubmitting ? 'Saving...' : 'Save Changes'}</span>
                 </button>
               </div>
             </form>
