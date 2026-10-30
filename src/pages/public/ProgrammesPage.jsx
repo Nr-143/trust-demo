@@ -47,10 +47,7 @@ export default function ProgrammesPage() {
       />
 
       <div className="site-container py-12 sm:py-16">
-        <div className="mb-8">
-          <DemoBadge message="The programme descriptions below reflect verified community developmental initiatives designed for Mannin Maindhan Grama Arakkattalai. Baseline surveys and targets are updated continuously from our field database." />
-        </div>
-
+        
         {isLoading ? (
           <div className="space-y-8 animate-pulse">
             {[1, 2, 3].map((n) => (

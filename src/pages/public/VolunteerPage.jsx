@@ -188,11 +188,7 @@ export default function VolunteerPage() {
       />
 
       <div className="site-container py-10 sm:py-14">
-        {/* Demonstration Disclaimer */}
-        <div className="mb-10">
-          <DemoBadge message="Demonstration Environment: Volunteer opportunities and applications submitted below are stored locally in your browser's shared data layer. No real personal information is shared with external servers. Submissions appear immediately in the Admin Volunteer Management console for review." />
-        </div>
-
+                
         {/* SECTION 1: PUBLISHED VOLUNTEER OPPORTUNITIES */}
         <div className="mb-14">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">

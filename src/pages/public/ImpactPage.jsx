@@ -30,10 +30,7 @@ export default function ImpactPage() {
       />
 
       <div className="site-container py-12 sm:py-16">
-        <div className="mb-8">
-          <DemoBadge message={impact.disclaimer || 'The figures and progress metrics displayed below are demonstration counts for evaluation. Certified periodic field audit data will be posted following verification.'} />
-        </div>
-
+        
         {/* 4 Primary Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {impact.stats.map((stat) => {

@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../../components/common/PageHeader';
-import DemoBadge from '../../components/common/DemoBadge';
 import { useSite, useDonationModal } from '../../context/SiteContext';
 import { formatCurrency, handleImageFallback } from '../../utils/helpers';
 import { Users, MapPin, Heart, ArrowRight, Sparkles, Calendar, Search } from 'lucide-react';

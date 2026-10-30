@@ -211,11 +211,7 @@ export default function CampaignDetailPage() {
       </div>
 
       <div className="site-container py-8 sm:py-12">
-        {/* Demonstration Disclaimer Banner */}
-        <div className="mb-8">
-          <DemoBadge message="Demonstration Environment: This is a frontend architectural prototype for Mannin Maindhan Grama Arakkattalai. All financial figures, donor records, and payment flows below are simulated locally in your browser. No real banking credentials or payment cards are ever requested." />
-        </div>
-
+                
         {/* Main Grid: Left Column Details & Narrative | Right Column Donation Stepper */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
           
