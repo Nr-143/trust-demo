@@ -2,6 +2,7 @@ import { Fragment, useState } from 'react';
 import { getProgrammeMediaItems } from '../../services/mediaProcessing';
 import { handleImageFallback } from '../../utils/helpers';
 import MediaPreview from './MediaPreview';
+import LazyImage from './LazyImage';
 import MediaGalleryModal from './MediaGalleryModal';
 import ViewportVideo from './ViewportVideo';
 
@@ -93,11 +94,11 @@ export default function ProgrammeMediaPyramid({ programme }) {
                 aria-label={`View photo ${images.indexOf(image) + 1} of ${programme.title}`}
                 className="aspect-[4/3] overflow-hidden rounded-xl bg-stone-200 shadow-md"
               >
-                <img
+                <LazyImage
                   src={image.url}
                   alt={`${programme.title} photo ${images.indexOf(image) + 1}`}
-                  loading="lazy"
                   className="h-full w-full object-cover"
+                  wrapperClassName="h-full w-full"
                   onError={handleImageFallback}
                 />
               </button>

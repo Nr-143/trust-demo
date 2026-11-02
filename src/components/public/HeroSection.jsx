@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Heart, Users, ArrowRight, CheckCircle, MapPin } from 'lucide-react';
 import { useSite } from '../../context/SiteContext';
 import { handleImageFallback } from '../../utils/helpers';
+import LazyImage from '../common/LazyImage';
 
 export default function HeroSection() {
   const { siteInfo } = useSite();
@@ -99,10 +100,11 @@ export default function HeroSection() {
               
               {/* Main Natural Photo Container */}
               <div className="relative rounded-2xl overflow-hidden bg-white shadow-lg border border-stone-200 w-full">
-                <img
+                <LazyImage
                   src={siteInfo.heroImage || '/images/hero-village.jpg'}
                   alt="Mannin Maindhan Grama Arakkattalai sustainable village development in Tamil Nadu"
                   className="w-full h-72 sm:h-88 md:h-96 lg:h-[420px] xl:h-[460px] 2xl:h-[500px] object-cover object-center hover:scale-102 transition-transform duration-500"
+                  wrapperClassName="w-full h-72 sm:h-88 md:h-96 lg:h-[420px] xl:h-[460px] 2xl:h-[500px]"
                   loading="eager"
                   onError={handleImageFallback}
                 />

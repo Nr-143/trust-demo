@@ -77,6 +77,7 @@ export default function AdminCampaigns() {
   const [editingCampaign, setEditingCampaign] = useState(null);
   const [viewingCampaign, setViewingCampaign] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [createImageFile, setCreateImageFile] = useState(null);
   const [createImagePreview, setCreateImagePreview] = useState('');
   const [editImageFile, setEditImageFile] = useState(null);
@@ -321,7 +322,8 @@ export default function AdminCampaigns() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget || isDeleting) return;
+    setIsDeleting(true);
     try {
       await deleteCampaign(deleteTarget.id);
       dispatch({ type: 'DELETE_CAMPAIGN', payload: deleteTarget.id });
@@ -330,6 +332,8 @@ export default function AdminCampaigns() {
       setDeleteTarget(null);
     } catch (err) {
       showError(err.message || 'Failed to delete campaign from database');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -1137,8 +1141,9 @@ export default function AdminCampaigns() {
         title="Delete Campaign"
         message={`Are you sure you want to delete campaign "${deleteTarget?.title}"? All pledge associations will also be removed.`}
         confirmText="Delete Campaign"
+        isLoading={isDeleting}
         onConfirm={handleDeleteConfirm}
-        onCancel={() => setDeleteTarget(null)}
+        onCancel={() => !isDeleting && setDeleteTarget(null)}
       />
     </div>
   );

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Heart, Users, MapPin, ArrowRight, AlertCircle, PlusCircle } from 'lucide-react';
 import { useSite, useDonationModal } from '../../context/SiteContext';
 import { formatCurrency, handleImageFallback } from '../../utils/helpers';
+import LazyImage from '../common/LazyImage';
 
 export default function FeaturedCampaignsSection() {
   const { campaigns } = useSite();
@@ -68,15 +69,16 @@ export default function FeaturedCampaignsSection() {
                   {/* Campaign Image */}
                   <div className="relative h-52 overflow-hidden bg-stone-100">
                     {camp.imageUrl && (
-                      <img
+                      <LazyImage
                         src={camp.imageUrl}
                         alt={camp.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        wrapperClassName="w-full h-full"
                         loading="lazy"
                         onError={handleImageFallback}
                       />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
                     
                     {/* Badge Pill */}
                     <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white/95 text-[#173B2A] shadow-xs">

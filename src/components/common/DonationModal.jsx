@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Heart, X, CheckCircle, ShieldCheck, Sparkles, Loader2 } from 'lucide-react';
+import { Heart, X, CheckCircle, ShieldCheck, Loader2 } from 'lucide-react';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import { formatCurrency } from '../../utils/helpers';
@@ -29,8 +29,22 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
   const [lastDonation, setLastDonation] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const activeCampaigns = (campaigns || []).filter((c) => c.status === 'active');
-  const initialCampId = defaultCampaignId || activeCampaigns[0]?.id || '';
+  // Filter active/published campaigns or provide general fund fallback
+  const activeCampaigns = (campaigns || []).filter(
+    (c) => c.status === 'active' || c.publicationStatus === 'published' || !c.status
+  );
+  const availableCampaigns =
+    activeCampaigns.length > 0
+      ? activeCampaigns
+      : [
+          {
+            id: 'general-fund',
+            title: 'General Rural Community Welfare Fund',
+            goalAmount: 500000,
+          },
+        ];
+
+  const initialCampId = defaultCampaignId || availableCampaigns[0]?.id || 'general-fund';
 
   const {
     register,
@@ -51,6 +65,17 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
     },
   });
 
+  // Keep campaignId synced when opening or when campaigns load
+  useEffect(() => {
+    if (isOpen) {
+      const targetId =
+        defaultCampaignId && availableCampaigns.some((c) => c.id === defaultCampaignId)
+          ? defaultCampaignId
+          : availableCampaigns[0]?.id || 'general-fund';
+      setValue('campaignId', targetId);
+    }
+  }, [isOpen, defaultCampaignId, availableCampaigns, setValue]);
+
   const currentAmount = watch('amount');
 
   const handleSelectPreset = (val) => {
@@ -59,13 +84,18 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
   };
 
   const onSubmit = async (formData) => {
+    if (submitting) return;
     setSubmitting(true);
     try {
       const targetCamp = (campaigns || []).find((c) => c.id === formData.campaignId);
-      const campaignTitle = targetCamp ? targetCamp.title : 'Rural Development Fund';
+      const campaignTitle = targetCamp
+        ? targetCamp.title
+        : formData.campaignId === 'general-fund'
+        ? 'General Rural Community Welfare Fund'
+        : 'Rural Development Fund';
 
       const payload = {
-        campaignId: formData.campaignId,
+        campaignId: formData.campaignId === 'general-fund' ? null : formData.campaignId,
         campaignTitle,
         amount: formData.amount,
         donorName: formData.donorName,
@@ -109,12 +139,12 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
         role="dialog"
         aria-modal="true"
       >
-        {/* Header Banner */}
-        <div className="bg-[#173B2A] text-white p-6 sm:p-7 relative">
+        {/* Modal Header */}
+        <div className="relative bg-[#173B2A] text-white p-6 sm:p-7">
           <button
             onClick={handleClose}
             className="absolute top-5 right-5 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors cursor-pointer"
-            aria-label="Close modal"
+            aria-label="Close dialog"
           >
             <X size={18} />
           </button>
@@ -182,9 +212,9 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
                   {...register('campaignId')}
                   className="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none"
                 >
-                  {activeCampaigns.map((camp) => (
+                  {availableCampaigns.map((camp) => (
                     <option key={camp.id} value={camp.id}>
-                      {camp.title} ({formatCurrency(camp.goalAmount)} target)
+                      {camp.title} {camp.goalAmount ? `(${formatCurrency(camp.goalAmount)} target)` : ''}
                     </option>
                   ))}
                 </select>
@@ -219,9 +249,11 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
                   <span className="absolute left-3.5 top-2.5 text-sm font-bold text-gray-400">₹</span>
                   <input
                     type="number"
+                    step="50"
+                    min="10"
                     {...register('amount', { valueAsNumber: true })}
-                    className="w-full pl-8 pr-3.5 py-2 text-sm font-semibold border border-stone-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none"
-                    placeholder="Custom pledge amount"
+                    className="w-full pl-8 pr-3.5 py-2 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none"
+                    placeholder="Other custom amount"
                   />
                 </div>
                 {errors.amount && (
@@ -229,54 +261,54 @@ export default function DonationModal({ isOpen, onClose, defaultCampaignId = nul
                 )}
               </div>
 
-              {/* Donor Name & Email */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Donor Contact Details */}
+              <div className="space-y-3 pt-1">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Your Name *
+                    Your Full Name *
                   </label>
                   <input
                     {...register('donorName')}
                     className="w-full px-3.5 py-2 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none"
-                    placeholder="Full name"
+                    placeholder="e.g. Senthil Kumar"
                   />
                   {errors.donorName && (
                     <p className="text-xs text-red-500 mt-1">{errors.donorName.message}</p>
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    {...register('donorEmail')}
-                    className="w-full px-3.5 py-2 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none"
-                    placeholder="you@example.com"
-                  />
-                  {errors.donorEmail && (
-                    <p className="text-xs text-red-500 mt-1">{errors.donorEmail.message}</p>
-                  )}
-                </div>
-              </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      {...register('donorEmail')}
+                      className="w-full px-3.5 py-2 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none"
+                      placeholder="senthil@example.com"
+                    />
+                    {errors.donorEmail && (
+                      <p className="text-xs text-red-500 mt-1">{errors.donorEmail.message}</p>
+                    )}
+                  </div>
 
-              {/* Phone and Note */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Phone (optional)
-                  </label>
-                  <input
-                    type="tel"
-                    {...register('donorPhone')}
-                    className="w-full px-3.5 py-2 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none"
-                    placeholder="+91 98421 XXXXX"
-                  />
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Phone / WhatsApp (Optional)
+                    </label>
+                    <input
+                      type="tel"
+                      {...register('donorPhone')}
+                      className="w-full px-3.5 py-2 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none"
+                      placeholder="+91 98765 43210"
+                    />
+                  </div>
                 </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Note / Dedication (optional)
+                    Message / Dedication (Optional)
                   </label>
                   <input
                     {...register('message')}

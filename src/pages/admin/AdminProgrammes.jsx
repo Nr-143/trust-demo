@@ -101,6 +101,7 @@ export default function AdminProgrammes() {
   const [editingProgramme, setEditingProgramme] = useState(null);
   const [viewingProgramme, setViewingProgramme] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [createMediaFiles, setCreateMediaFiles] = useState([]);
   const [createMediaPreviews, setCreateMediaPreviews] = useState([]);
   const [editMediaFiles, setEditMediaFiles] = useState([]);
@@ -379,7 +380,8 @@ export default function AdminProgrammes() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget || isDeleting) return;
+    setIsDeleting(true);
     try {
       await deleteProgramme(deleteTarget.id);
       dispatch({ type: 'DELETE_PROGRAMME', payload: deleteTarget.id });
@@ -390,6 +392,8 @@ export default function AdminProgrammes() {
       setDeleteTarget(null);
     } catch (err) {
       showError(err.message || 'Failed to delete programme from database');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -1105,8 +1109,9 @@ export default function AdminProgrammes() {
         title="Delete Programme"
         message={`Are you sure you want to delete "${deleteTarget?.title}"? This record will be permanently removed from the Supabase database.`}
         confirmText="Delete Programme"
+        isLoading={isDeleting}
         onConfirm={handleDeleteConfirm}
-        onCancel={() => setDeleteTarget(null)}
+        onCancel={() => !isDeleting && setDeleteTarget(null)}
       />
     </div>
   );

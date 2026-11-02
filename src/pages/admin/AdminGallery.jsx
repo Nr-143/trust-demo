@@ -18,8 +18,11 @@ import {
   Trash2,
   X,
   Eye,
+  Play,
+  Film,
 } from 'lucide-react';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import LazyImage from '../../components/common/LazyImage';
 
 const PRESET_GALLERY_ASSETS = [
   { label: 'NGO Emblem Logo', url: '/images/originalLogo.jpeg' },
@@ -373,28 +376,50 @@ export default function AdminGallery() {
               key={item.id}
               className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-2xs group flex flex-col justify-between"
             >
-              <div className="relative aspect-4/3 bg-stone-100 overflow-hidden">
+              <div
+                onClick={() => setPreviewItem(item)}
+                className="relative aspect-4/3 bg-stone-100 overflow-hidden cursor-pointer group"
+                title="Click to view media"
+              >
                 {item.mediaType === 'video' ? (
-                <video
-                  src={item.imageUrl}
-                  className="w-full h-full object-cover"
-                  muted
-                  playsInline
-                  preload="metadata"
-                />
+                  <div className="relative w-full h-full">
+                    <video
+                      src={item.imageUrl}
+                      className="w-full h-full object-cover"
+                      muted
+                      playsInline
+                      preload="metadata"
+                    />
+
+                    {/* Centered High-Visibility Play Button Overlay */}
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/25 group-hover:bg-black/40 transition-colors">
+                      <div className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-md border border-white/50 flex items-center justify-center text-white shadow-xl group-hover:scale-110 group-hover:bg-[#176B36] group-hover:border-emerald-400 transition-all">
+                        <Play size={22} className="fill-white translate-x-0.5" />
+                      </div>
+                    </div>
+
+                    {/* Video Pill Tag */}
+                    <div className="absolute bottom-2.5 left-2.5 z-10">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-black/75 backdrop-blur-xs text-white border border-white/20 shadow-xs">
+                        <Film size={11} />
+                        <span>Video</span>
+                      </span>
+                    </div>
+                  </div>
                 ) : (
-                <img
-                  src={item.imageUrl}
-                  alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    e.currentTarget.src = '/images/originalLogo.jpeg';
-                  }}
-                />
+                  <LazyImage
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    wrapperClassName="w-full h-full"
+                    onError={(e) => {
+                      e.currentTarget.src = '/images/originalLogo.jpeg';
+                    }}
+                  />
                 )}
 
                 {/* Status Badge */}
-                <div className="absolute top-2.5 left-2.5">
+                <div className="absolute top-2.5 left-2.5 z-20">
                   <span
                     className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
                       item.status === 'published'
@@ -407,8 +432,8 @@ export default function AdminGallery() {
                 </div>
 
                 {/* Category Pill */}
-                <div className="absolute top-2.5 right-2.5">
-                  <span className="inline-block px-2 py-0.5 rounded text-[10px] font-semibold bg-white/90 text-stone-800 backdrop-blur-xs">
+                <div className="absolute top-2.5 right-2.5 z-20">
+                  <span className="inline-block px-2 py-0.5 rounded text-[10px] font-semibold bg-white/90 text-stone-800 backdrop-blur-xs shadow-xs">
                     {item.category}
                   </span>
                 </div>

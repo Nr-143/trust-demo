@@ -4,6 +4,7 @@ import PageHeader from '../../components/common/PageHeader';
 import { useSite, useDonationModal } from '../../context/SiteContext';
 import { formatCurrency, handleImageFallback } from '../../utils/helpers';
 import { Users, MapPin, Heart, ArrowRight, Sparkles, Calendar, Search } from 'lucide-react';
+import LazyImage from '../../components/common/LazyImage';
 
 export default function CampaignsPage() {
   const { campaigns } = useSite();
@@ -125,15 +126,16 @@ export default function CampaignsPage() {
                     {/* Image with Tag */}
                     <div className="relative h-56 overflow-hidden bg-stone-100">
                       {campaign.imageUrl && (
-                        <img
+                        <LazyImage
                           src={campaign.imageUrl}
                           alt={campaign.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          wrapperClassName="w-full h-full"
                           loading="lazy"
                           onError={handleImageFallback}
                         />
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
 
                       <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-white/95 text-[#173B2A] shadow-xs">
                         {campaign.category || 'Rural Cause'}

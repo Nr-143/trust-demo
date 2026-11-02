@@ -13,9 +13,19 @@ export function ToastProvider({ children }) {
   const showToast = useCallback(
     ({ type = 'info', title, message, duration = 4000 }) => {
       const id = `toast_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-      const newToast = { id, type, title, message };
+      let added = false;
 
-      setToasts((prev) => [...prev, newToast]);
+      setToasts((prev) => {
+        // Prevent stacking duplicate notifications for identical actions
+        const isDuplicate = prev.some((t) => t.message === message && t.type === type);
+        if (isDuplicate) return prev;
+
+        added = true;
+        const newToast = { id, type, title, message };
+        // Retain at most 3 concurrent toasts to prevent screen crowding
+        const trimmed = prev.length >= 3 ? prev.slice(-2) : prev;
+        return [...trimmed, newToast];
+      });
 
       if (duration > 0) {
         setTimeout(() => {
@@ -108,4 +118,3 @@ function ToastContainer({ toasts, onDismiss }) {
     </div>
   );
 }
-

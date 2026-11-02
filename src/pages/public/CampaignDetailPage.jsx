@@ -21,6 +21,7 @@ import {
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import { formatCurrency, formatDate, handleImageFallback } from '../../utils/helpers';
+import LazyImage from '../../components/common/LazyImage';
 
 const PRESET_AMOUNTS = [100, 500, 1000, 2000];
 
@@ -222,10 +223,11 @@ export default function CampaignDetailPage() {
             <div className="bg-white border border-stone-200 rounded-3xl overflow-hidden shadow-2xs">
               <div className="relative h-72 sm:h-96 w-full bg-stone-100">
                 {campaign.imageUrl && (
-                  <img
+                  <LazyImage
                     src={campaign.imageUrl}
                     alt={campaign.title}
                     className="w-full h-full object-cover"
+                    wrapperClassName="w-full h-full"
                     onError={handleImageFallback}
                   />
                 )}

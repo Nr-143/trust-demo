@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, Film } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Film, Play } from 'lucide-react';
 import { getMediaTypeFromUrl } from '../../services/mediaProcessing';
 import ViewportVideo from './ViewportVideo';
+import LazyImage from './LazyImage';
 
 export default function MediaCarousel({
   items,
@@ -72,11 +73,11 @@ export default function MediaCarousel({
     >
       {/* Active Media Rendering */}
       <div
-        className={`h-full w-full ${onMediaClick && !isVideo ? 'cursor-pointer' : ''}`}
+        className={`h-full w-full ${onMediaClick ? 'cursor-pointer' : ''}`}
         onClick={() => onMediaClick && onMediaClick(safeIndex)}
       >
         {isVideo ? (
-          <div className="relative h-full w-full bg-black flex items-center justify-center">
+          <div className="relative h-full w-full bg-black flex items-center justify-center group/vid">
             <ViewportVideo
               src={activeMedia.url}
               ariaLabel={`${alt} video`}
@@ -85,19 +86,28 @@ export default function MediaCarousel({
               loop={true}
               muted={true}
               playsInline={true}
-              controls={true}
+              controls={!onMediaClick}
             />
-            <span className="absolute top-3 left-3 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-black/70 backdrop-blur-xs text-white flex items-center gap-1 pointer-events-none">
+
+            {/* Video Play Overlay Button */}
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 group-hover/vid:bg-black/35 transition-colors pointer-events-none">
+              <div className="w-13 h-13 rounded-full bg-black/60 backdrop-blur-md border border-white/50 flex items-center justify-center text-white shadow-xl group-hover/vid:scale-110 group-hover/vid:bg-[#176B36] group-hover/vid:border-emerald-400 transition-all">
+                <Play size={22} className="fill-white translate-x-0.5" />
+              </div>
+            </div>
+
+            <span className="absolute top-3 left-3 z-20 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-black/75 backdrop-blur-xs text-white border border-white/20 flex items-center gap-1 shadow-sm pointer-events-none">
               <Film size={11} />
               <span>Video</span>
             </span>
           </div>
         ) : (
-          <img
+          <LazyImage
             key={activeMedia.url}
             src={activeMedia.url}
             alt={`${alt} photo ${safeIndex + 1} of ${mediaItems.length}`}
-            className={imageClassName || 'h-full w-full object-cover transition-opacity duration-300'}
+            className={imageClassName || 'h-full w-full object-cover'}
+            wrapperClassName="h-full w-full"
             loading="lazy"
             onError={onImageError}
           />

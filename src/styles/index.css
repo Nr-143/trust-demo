@@ -91,3 +91,10 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #173B2A;
 }
+
+/* Smooth Skeleton Loader Shimmer */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
