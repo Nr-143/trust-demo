@@ -7,8 +7,13 @@ import ViewportVideo from './ViewportVideo';
 
 export default function ProgrammeMediaPyramid({ programme }) {
   const mediaItems = getProgrammeMediaItems(programme);
-  const images = mediaItems.filter((item) => item.mediaType === 'image');
-  const videos = mediaItems.filter((item) => item.mediaType === 'video');
+  const effectiveMediaItems = mediaItems.length > 0
+    ? mediaItems
+    : (programme?.imageUrl || programme?.image_url
+        ? [{ url: programme.imageUrl || programme.image_url, mediaType: 'image' }]
+        : []);
+  const images = effectiveMediaItems.filter((item) => item.mediaType === 'image');
+  const videos = effectiveMediaItems.filter((item) => item.mediaType === 'video');
   const [activeMediaIndex, setActiveMediaIndex] = useState(null);
   const rows = [];
   let offset = 0;
@@ -23,27 +28,30 @@ export default function ProgrammeMediaPyramid({ programme }) {
 
   const centerRow = Math.floor(rows.length / 2);
 
-  if (mediaItems.length === 0) return null;
+  if (effectiveMediaItems.length === 0) return null;
   if (images.length <= 1 && videos.length === 0) {
+    const primaryImgUrl = images[0]?.url || programme?.imageUrl || programme?.image_url;
     return (
       <>
         <button
           type="button"
           onClick={() => setActiveMediaIndex(0)}
           aria-label={`View photo for ${programme.title}`}
-          className="block w-full overflow-hidden rounded-2xl bg-stone-100 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#176B36]"
+          className="group block w-full overflow-hidden rounded-2xl bg-stone-900/5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#176B36] border border-stone-200"
         >
-          <MediaPreview
-            src={images[0]?.url}
-            alt={`${programme.title} programme`}
-            mediaType="image"
-            className="h-full max-h-[34rem] min-h-64 w-full object-cover"
-            onImageError={handleImageFallback}
-          />
+          <div className="relative w-full max-h-[36rem] min-h-64 sm:min-h-80 flex items-center justify-center bg-stone-100 overflow-hidden">
+            <MediaPreview
+              src={primaryImgUrl}
+              alt={`${programme.title} programme`}
+              mediaType="image"
+              className="w-full h-auto max-h-[36rem] object-contain sm:object-cover transition-transform duration-300 group-hover:scale-101"
+              onImageError={handleImageFallback}
+            />
+          </div>
         </button>
         {activeMediaIndex !== null && (
           <MediaGalleryModal
-            items={mediaItems}
+            items={effectiveMediaItems}
             title={programme.title}
             initialIndex={activeMediaIndex}
             onClose={() => setActiveMediaIndex(null)}

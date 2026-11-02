@@ -80,13 +80,21 @@ export default function ProgrammesPage() {
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
                     {/* Photo Column */}
                     <div className="lg:col-span-5 relative h-64 sm:h-72 lg:min-h-[22rem] bg-stone-100">
-                      <MediaCarousel
-                        items={getProgrammeMediaItems(prog).filter((item) => item.mediaType === 'image')}
-                        alt={prog.title}
-                        className="h-full w-full"
-                        imageClassName="h-full w-full object-cover transition-transform duration-300 hover:scale-102"
-                        onImageError={handleImageFallback}
-                      />
+                      {(() => {
+                        const mediaItems = getProgrammeMediaItems(prog).filter((item) => item.mediaType === 'image');
+                        const carouselItems = mediaItems.length > 0
+                          ? mediaItems
+                          : (prog.imageUrl || prog.image_url ? [{ url: prog.imageUrl || prog.image_url, mediaType: 'image' }] : []);
+                        return (
+                          <MediaCarousel
+                            items={carouselItems}
+                            alt={prog.title}
+                            className="h-full w-full"
+                            imageClassName="h-full w-full object-cover transition-transform duration-300 hover:scale-102"
+                            onImageError={handleImageFallback}
+                          />
+                        );
+                      })()}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent lg:hidden pointer-events-none" />
                       <span className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold bg-white/95 text-[#173B2A] shadow-xs pointer-events-none">
                         Vertical #{index + 1} • {prog.category}

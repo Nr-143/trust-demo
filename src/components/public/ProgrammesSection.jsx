@@ -114,13 +114,21 @@ export default function ProgrammesSection() {
                 <div>
                   {/* Photo Thumbnail */}
                   <div className="relative h-64 sm:h-72 overflow-hidden bg-stone-100">
-                    <MediaCarousel
-                      items={getProgrammeMediaItems(prog).filter((item) => item.mediaType === 'image')}
-                      alt={prog.title}
-                      className="h-full w-full"
-                      imageClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      onImageError={handleImageFallback}
-                    />
+                    {(() => {
+                      const mediaItems = getProgrammeMediaItems(prog).filter((item) => item.mediaType === 'image');
+                      const carouselItems = mediaItems.length > 0
+                        ? mediaItems
+                        : (prog.imageUrl || prog.image_url ? [{ url: prog.imageUrl || prog.image_url, mediaType: 'image' }] : []);
+                      return (
+                        <MediaCarousel
+                          items={carouselItems}
+                          alt={prog.title}
+                          className="h-full w-full"
+                          imageClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          onImageError={handleImageFallback}
+                        />
+                      );
+                    })()}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
                     
                     {/* Category Pill Tag */}

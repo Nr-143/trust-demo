@@ -70,6 +70,8 @@ export default function AdminContent() {
       footerCopyright:
         siteInfo.footerCopyright ||
         'Mannin Maindhan Grama Arakkattalai. All rights reserved. Registered Charitable Trust.',
+      instagramUrl: siteInfo.instagramUrl || 'https://www.instagram.com/mannin_maindhan_trust?rpxt=OXkweW5jem1haGlu',
+      youtubeUrl: siteInfo.youtubeUrl || 'https://www.youtube.com/@Mannin_Maindhan_Trust',
     },
   });
   const { fields: guidingValueFields, append: appendGuidingValue, remove: removeGuidingValue } = useFieldArray({
@@ -594,6 +596,29 @@ export default function AdminContent() {
                 Copyright Notice Text
               </label>
               <input {...register('footerCopyright')} className={inputClasses} />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-stone-100">
+              <div>
+                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
+                  Official Instagram URL
+                </label>
+                <input
+                  {...register('instagramUrl')}
+                  placeholder="https://www.instagram.com/..."
+                  className={inputClasses}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
+                  Official YouTube URL
+                </label>
+                <input
+                  {...register('youtubeUrl')}
+                  placeholder="https://www.youtube.com/@..."
+                  className={inputClasses}
+                />
+              </div>
             </div>
           </div>
         )}
