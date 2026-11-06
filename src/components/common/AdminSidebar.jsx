@@ -51,7 +51,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
     },
     { to: '/admin/careers', label: 'Career Listings', icon: Briefcase },
     { to: '/admin/gallery', label: 'Photo Gallery', icon: Image },
-    { to: '/admin/settings', label: 'Database & Reset', icon: Settings },
+    { to: '/admin/settings', label: 'Settings & Security', icon: Settings },
   ];
 
   const handleLogout = async () => {

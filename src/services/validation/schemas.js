@@ -30,6 +30,7 @@ export const siteInfoSchema = z.object({
   logoFull: z.string().optional(),
   logoBadge: z.string().optional(),
   heroImage: z.string().optional().default('/images/hero-village.jpg'),
+  heroCarouselImages: z.array(z.string().min(1)).max(4).optional().default([]),
   missionStatement: z.string().optional().default(''),
   visionStatement: z.string().optional().default(''),
   guidingValues: z.array(z.object({

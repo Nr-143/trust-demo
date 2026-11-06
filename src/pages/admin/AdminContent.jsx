@@ -3,6 +3,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import { saveSiteContent } from '../../services/supabaseService';
+import { getMediaTypeFromUrl } from '../../services/mediaProcessing';
 import { getDialablePhone, getWhatsAppUrl } from '../../utils/helpers';
 import {
   Save,
@@ -22,7 +23,7 @@ import {
 const guidingValueIcons = ['Heart', 'Users', 'ShieldCheck', 'Target'];
 
 export default function AdminContent() {
-  const { siteInfo } = useSite();
+  const { siteInfo, gallery } = useSite();
   const dispatch = useSiteDispatch();
   const { showSuccess, showError } = useToast();
   const [activeSection, setActiveSection] = useState('hero');
@@ -31,6 +32,7 @@ export default function AdminContent() {
     register,
     handleSubmit,
     watch,
+    setValue,
     reset,
     control,
     formState: { isDirty, isSubmitting },
@@ -43,6 +45,7 @@ export default function AdminContent() {
       taglineTamil: siteInfo.taglineTamil || '',
       heroHeading: siteInfo.heroHeading || '',
       heroSubheading: siteInfo.heroSubheading || '',
+      heroCarouselImages: siteInfo.heroCarouselImages || [],
       primaryCtaText: siteInfo.primaryCtaText || 'Support Our Mission',
       secondaryCtaText: siteInfo.secondaryCtaText || 'Become a Volunteer',
       missionStatement:
@@ -90,6 +93,7 @@ export default function AdminContent() {
         taglineTamil: siteInfo.taglineTamil || '',
         heroHeading: siteInfo.heroHeading || '',
         heroSubheading: siteInfo.heroSubheading || '',
+        heroCarouselImages: siteInfo.heroCarouselImages || [],
         primaryCtaText: siteInfo.primaryCtaText || 'Support Our Mission',
         secondaryCtaText: siteInfo.secondaryCtaText || 'Become a Volunteer',
         missionStatement: siteInfo.missionStatement || '',
@@ -143,6 +147,30 @@ export default function AdminContent() {
   };
 
   const currentValues = watch();
+  const selectedHeroImages = currentValues.heroCarouselImages || [];
+  const galleryImages = (gallery || []).filter((item) => {
+    const url = item.imageUrl || item.image_url;
+    return (
+      item.status === 'published' &&
+      url &&
+      (item.mediaType || getMediaTypeFromUrl(url)) === 'image'
+    );
+  });
+
+  const toggleHeroCarouselImage = (url) => {
+    const selected = selectedHeroImages.includes(url);
+    if (!selected && selectedHeroImages.length >= 4) {
+      showError('Select no more than four gallery images for the homepage carousel.');
+      return;
+    }
+    setValue(
+      'heroCarouselImages',
+      selected
+        ? selectedHeroImages.filter((selectedUrl) => selectedUrl !== url)
+        : [...selectedHeroImages, url],
+      { shouldDirty: true }
+    );
+  };
 
   const navTabs = [
     { id: 'hero', label: 'Hero & CTA Labels', icon: Sparkles },
@@ -241,6 +269,61 @@ export default function AdminContent() {
                 className={inputClasses}
                 placeholder="Working alongside rural communities to improve access..."
               />
+            </div>
+
+            <div className="border-t border-stone-100 pt-5">
+              <div className="mb-3">
+                <h3 className="text-sm font-bold text-primary-dark">Homepage Hero Image Carousel</h3>
+                <p className="mt-1 text-xs text-stone-500">
+                  Select up to four published photos from the Gallery page. They will rotate automatically in the homepage image area.
+                </p>
+              </div>
+              {galleryImages.length > 0 ? (
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {galleryImages.map((item) => {
+                    const url = item.imageUrl || item.image_url;
+                    const selectedIndex = selectedHeroImages.indexOf(url);
+                    return (
+                      <button
+                        key={item.id || url}
+                        type="button"
+                        onClick={() => toggleHeroCarouselImage(url)}
+                        aria-pressed={selectedIndex >= 0}
+                        aria-label={`${selectedIndex >= 0 ? 'Remove' : 'Add'} ${item.title || 'gallery image'} ${selectedIndex >= 0 ? `at position ${selectedIndex + 1}` : 'to homepage carousel'}`}
+                        className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-all ${
+                          selectedIndex >= 0
+                            ? 'border-primary ring-2 ring-primary/30'
+                            : 'border-transparent opacity-75 hover:opacity-100'
+                        }`}
+                      >
+                        <img
+                          src={url}
+                          alt={item.title || 'Gallery image'}
+                          className="h-full w-full object-cover"
+                        />
+                        {selectedIndex >= 0 && (
+                          <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                            {selectedIndex + 1}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="rounded-lg bg-stone-50 p-3 text-xs text-stone-500">
+                  No published gallery photos are available. Add and publish photos on the Gallery page first.
+                </p>
+              )}
+              {selectedHeroImages.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setValue('heroCarouselImages', [], { shouldDirty: true })}
+                  className="mt-3 rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+                >
+                  Clear selected photos
+                </button>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">

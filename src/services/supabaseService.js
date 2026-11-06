@@ -167,6 +167,7 @@ export async function createProgramme(programmeData) {
     details: (programmeData.details || '').trim(),
     highlights: Array.isArray(programmeData.highlights) ? programmeData.highlights : [],
     projects: Array.isArray(programmeData.projects) ? programmeData.projects : [],
+    media_gallery: Array.isArray(programmeData.mediaGallery) ? programmeData.mediaGallery : [],
     status: programmeData.status || 'active',
     display_order: Number(programmeData.displayOrder || 0),
     updated_at: new Date().toISOString(),
@@ -227,6 +228,7 @@ export async function updateProgramme(id, programmeData) {
     details: programmeData.details,
     highlights: Array.isArray(programmeData.highlights) ? programmeData.highlights : [],
     projects: Array.isArray(programmeData.projects) ? programmeData.projects : [],
+    media_gallery: Array.isArray(programmeData.mediaGallery) ? programmeData.mediaGallery : [],
     status: programmeData.status || 'active',
     updated_at: new Date().toISOString(),
   };

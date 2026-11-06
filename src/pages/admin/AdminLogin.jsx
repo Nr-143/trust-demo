@@ -2,16 +2,26 @@ import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle, Loader2 } from 'lucide-react';
+import {
+  Lock,
+  Mail,
+  ArrowRight,
+  ShieldCheck,
+  AlertCircle,
+  Loader2,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 
 export default function AdminLogin() {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, sessionNotice } = useAuth();
   const { showSuccess, showError } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -72,6 +82,14 @@ export default function AdminLogin() {
           </p>
         </div>
 
+        {/* Session Notice (expired or signed in from another device) */}
+        {sessionNotice && !errorMessage && (
+          <div className="mb-5 p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-2.5 text-xs text-amber-900">
+            <ShieldCheck size={16} className="text-amber-700 shrink-0 mt-0.5" />
+            <span>{sessionNotice}</span>
+          </div>
+        )}
+
         {/* Error Alert */}
         {errorMessage && (
           <div className="mb-5 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-xs text-red-800">
@@ -110,13 +128,23 @@ export default function AdminLogin() {
                 <Lock size={16} />
               </span>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
                 required
-                className="w-full pl-10 pr-3.5 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#176B36]/30 focus:border-[#176B36] transition-all"
+                className="w-full pl-10 pr-11 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#176B36]/30 focus:border-[#176B36] transition-all"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((visible) => !visible)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 transition-colors cursor-pointer"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                title={showPassword ? 'Hide password' : 'Show password'}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
           </div>
 
@@ -142,7 +170,8 @@ export default function AdminLogin() {
         {/* Security Footer Notice */}
         <div className="mt-6 pt-5 border-t border-stone-100 text-center space-y-3">
           <p className="text-[11px] text-stone-500 leading-relaxed">
-            Protected by Supabase Row-Level Security. Administrative sessions are cryptographically signed.
+            Protected by Supabase Row-Level Security. Administrative sessions expire after 24
+            hours, and signing in elsewhere signs out the previous session.
           </p>
           <Link
             to="/"

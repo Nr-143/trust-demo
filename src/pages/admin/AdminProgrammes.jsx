@@ -89,7 +89,7 @@ const PRESET_IMAGES = [
 ];
 
 export default function AdminProgrammes() {
-  const { programmes, reloadSiteData } = useSite();
+  const { programmes, gallery, reloadSiteData } = useSite();
   const dispatch = useSiteDispatch();
   const { showSuccess, showError } = useToast();
 
@@ -106,7 +106,27 @@ export default function AdminProgrammes() {
   const [createMediaPreviews, setCreateMediaPreviews] = useState([]);
   const [editMediaFiles, setEditMediaFiles] = useState([]);
   const [editMediaPreviews, setEditMediaPreviews] = useState([]);
+  const [createGallerySelection, setCreateGallerySelection] = useState([]);
+  const [editGallerySelection, setEditGallerySelection] = useState([]);
+  const [editGallerySelectionChanged, setEditGallerySelectionChanged] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+
+  const galleryImages = useMemo(() => {
+    const seenUrls = new Set();
+    return (gallery || []).filter((item) => {
+      const url = item.imageUrl || item.image_url;
+      if (
+        item.status !== 'published' ||
+        (item.mediaType || getMediaTypeFromUrl(url)) !== 'image' ||
+        !url ||
+        seenUrls.has(url)
+      ) {
+        return false;
+      }
+      seenUrls.add(url);
+      return true;
+    });
+  }, [gallery]);
 
   useEffect(() => {
     const previews = createMediaFiles.map((file) => URL.createObjectURL(file));
@@ -168,6 +188,14 @@ export default function AdminProgrammes() {
   const handleOpenEdit = (prog) => {
     setEditingProgramme(prog);
     setEditMediaFiles([]);
+    const galleryUrls = new Set(galleryImages.map((item) => item.imageUrl || item.image_url));
+    setEditGallerySelection(
+      getProgrammeMediaItems(prog)
+        .filter((item) => item.mediaType === 'image' && galleryUrls.has(item.url))
+        .map((item) => item.url)
+        .slice(0, 4)
+    );
+    setEditGallerySelectionChanged(false);
     editForm.reset({
       title: prog.title || '',
       titleTamil: prog.titleTamil || '',
@@ -191,6 +219,7 @@ export default function AdminProgrammes() {
       showError('Choose one video per programme. You can upload multiple images.');
       return;
     }
+    setCreateGallerySelection([]);
     setCreateMediaFiles(files);
   };
 
@@ -206,7 +235,44 @@ export default function AdminProgrammes() {
       showError('Choose one video per programme. You can upload multiple images.');
       return;
     }
+    setEditGallerySelection([]);
+    setEditGallerySelectionChanged(true);
     setEditMediaFiles(files);
+  };
+
+  const toggleCreateGalleryImage = (url) => {
+    const selected = createGallerySelection.includes(url);
+    if (!selected && createGallerySelection.length >= 4) {
+      showError('Select no more than four gallery images for the carousel.');
+      return;
+    }
+    const nextSelection = selected
+      ? createGallerySelection.filter((selectedUrl) => selectedUrl !== url)
+      : [...createGallerySelection, url];
+    setCreateGallerySelection(nextSelection);
+    setCreateMediaFiles([]);
+    createForm.setValue('imageUrl', nextSelection[0] || PRESET_IMAGES[0].url, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
+  const toggleEditGalleryImage = (url) => {
+    const selected = editGallerySelection.includes(url);
+    if (!selected && editGallerySelection.length >= 4) {
+      showError('Select no more than four gallery images for the carousel.');
+      return;
+    }
+    const nextSelection = selected
+      ? editGallerySelection.filter((selectedUrl) => selectedUrl !== url)
+      : [...editGallerySelection, url];
+    setEditGallerySelection(nextSelection);
+    setEditGallerySelectionChanged(true);
+    setEditMediaFiles([]);
+    editForm.setValue('imageUrl', nextSelection[0] || editingProgramme.imageUrl, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
   };
 
   const handleCreateSubmit = async (data) => {
@@ -216,13 +282,20 @@ export default function AdminProgrammes() {
       for (const file of createMediaFiles) {
         uploadedMedia.push(await uploadGalleryMedia(file));
       }
+      const selectedGalleryMedia = createGallerySelection.map((url) => ({
+        url,
+        mediaType: 'image',
+        publicId: null,
+      }));
       const mediaGallery = uploadedMedia.length > 0
         ? uploadedMedia.map(({ publicUrl, publicId, mediaType }) => ({
             url: publicUrl,
             publicId,
             mediaType,
           }))
-        : [{
+        : selectedGalleryMedia.length > 0
+          ? selectedGalleryMedia
+          : [{
             url: data.imageUrl,
             mediaType: getMediaTypeFromUrl(data.imageUrl),
             publicId: null,
@@ -248,6 +321,7 @@ export default function AdminProgrammes() {
       setCreateModalOpen(false);
       createForm.reset();
       setCreateMediaFiles([]);
+      setCreateGallerySelection([]);
     } catch (err) {
       let message = err.message || 'Failed to create programme in database';
       for (const media of uploadedMedia) {
@@ -275,16 +349,26 @@ export default function AdminProgrammes() {
       }
       const previousImageUrl = editingProgramme.imageUrl || '';
       const previousMedia = getProgrammeMediaItems(editingProgramme);
+      const selectedGalleryMedia = editGallerySelection.map((url) => ({
+        url,
+        mediaType: 'image',
+        publicId: null,
+      }));
       const imageUrl = uploadedMedia.length > 0
         ? uploadedMedia.find((media) => media.mediaType === 'image')?.publicUrl || data.imageUrl
         : data.imageUrl;
-      const mediaChanged = uploadedMedia.length > 0 || imageUrl !== previousImageUrl;
+      const mediaChanged =
+        uploadedMedia.length > 0 || imageUrl !== previousImageUrl || editGallerySelectionChanged;
       const mediaGallery = uploadedMedia.length > 0
         ? uploadedMedia.map(({ publicUrl, publicId, mediaType }) => ({
             url: publicUrl,
             publicId,
             mediaType,
           }))
+        : editGallerySelectionChanged
+          ? selectedGalleryMedia.length > 0
+            ? selectedGalleryMedia
+            : [{ url: imageUrl, mediaType: getMediaTypeFromUrl(imageUrl), publicId: null }]
         : mediaChanged
           ? [{ url: imageUrl, mediaType: getMediaTypeFromUrl(imageUrl), publicId: null }]
           : previousMedia;
@@ -307,6 +391,8 @@ export default function AdminProgrammes() {
       showSuccess(`Programme "${data.title}" updated in database!`, 'Updated');
       setEditingProgramme(null);
       setEditMediaFiles([]);
+      setEditGallerySelection([]);
+      setEditGallerySelectionChanged(false);
       if (mediaChanged) {
         const newPublicIds = new Set(uploadedMedia.map((media) => media.publicId).filter(Boolean));
         for (const media of previousMedia) {
@@ -421,6 +507,7 @@ export default function AdminProgrammes() {
           onClick={() => {
             createForm.reset();
             setCreateMediaFiles([]);
+            setCreateGallerySelection([]);
             setCreateModalOpen(true);
           }}
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-dark text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
@@ -727,7 +814,47 @@ export default function AdminProgrammes() {
 
               <div>
                 <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
-                  Choose Photo Asset
+                  Carousel Images from Gallery (up to 4)
+                </label>
+                {galleryImages.length > 0 ? (
+                  <div className="mb-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    {galleryImages.map((item) => {
+                      const url = item.imageUrl || item.image_url;
+                      const selectedIndex = createGallerySelection.indexOf(url);
+                      return (
+                        <button
+                          key={item.id || url}
+                          type="button"
+                          onClick={() => toggleCreateGalleryImage(url)}
+                          disabled={uploadingMedia}
+                          aria-pressed={selectedIndex >= 0}
+                          aria-label={`${selectedIndex >= 0 ? 'Remove' : 'Add'} ${item.title || 'gallery image'} ${selectedIndex >= 0 ? `at position ${selectedIndex + 1}` : 'to carousel'}`}
+                          className={`relative aspect-square overflow-hidden rounded-lg border-2 text-left transition-all ${
+                            selectedIndex >= 0
+                              ? 'border-primary ring-2 ring-primary/30'
+                              : 'border-transparent opacity-75 hover:opacity-100'
+                          }`}
+                        >
+                          <img src={url} alt={item.title || 'Gallery image'} className="h-full w-full object-cover" />
+                          {selectedIndex >= 0 && (
+                            <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                              {selectedIndex + 1}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="mb-3 rounded-lg bg-stone-50 p-3 text-xs text-stone-500">
+                    No published gallery images are available yet.
+                  </p>
+                )}
+                <p className="mb-2 text-xs text-stone-500">
+                  Select up to four published gallery images. They will rotate automatically on the programme page.
+                </p>
+                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
+                  Or choose a single preset photo
                 </label>
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-2">
                   {PRESET_IMAGES.map((img) => (
@@ -736,6 +863,7 @@ export default function AdminProgrammes() {
                       type="button"
                       onClick={() => {
                         setCreateMediaFiles([]);
+                        setCreateGallerySelection([]);
                         createForm.setValue('imageUrl', img.url, { shouldDirty: true, shouldValidate: true });
                       }}
                       disabled={uploadingMedia}
@@ -821,6 +949,7 @@ export default function AdminProgrammes() {
                   {...createForm.register('imageUrl', {
                     onChange: () => {
                       setCreateMediaFiles([]);
+                      setCreateGallerySelection([]);
                     },
                   })}
                   className={inputClasses}
@@ -836,6 +965,7 @@ export default function AdminProgrammes() {
                     if (uploadingMedia) return;
                     setCreateModalOpen(false);
                     setCreateMediaFiles([]);
+                    setCreateGallerySelection([]);
                   }}
                   disabled={uploadingMedia}
                   className="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors cursor-pointer"
@@ -927,7 +1057,47 @@ export default function AdminProgrammes() {
 
               <div>
                 <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
-                  Image Source
+                  Carousel Images from Gallery (up to 4)
+                </label>
+                {galleryImages.length > 0 ? (
+                  <div className="mb-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    {galleryImages.map((item) => {
+                      const url = item.imageUrl || item.image_url;
+                      const selectedIndex = editGallerySelection.indexOf(url);
+                      return (
+                        <button
+                          key={item.id || url}
+                          type="button"
+                          onClick={() => toggleEditGalleryImage(url)}
+                          disabled={uploadingMedia}
+                          aria-pressed={selectedIndex >= 0}
+                          aria-label={`${selectedIndex >= 0 ? 'Remove' : 'Add'} ${item.title || 'gallery image'} ${selectedIndex >= 0 ? `at position ${selectedIndex + 1}` : 'to carousel'}`}
+                          className={`relative aspect-square overflow-hidden rounded-lg border-2 text-left transition-all ${
+                            selectedIndex >= 0
+                              ? 'border-primary ring-2 ring-primary/30'
+                              : 'border-transparent opacity-75 hover:opacity-100'
+                          }`}
+                        >
+                          <img src={url} alt={item.title || 'Gallery image'} className="h-full w-full object-cover" />
+                          {selectedIndex >= 0 && (
+                            <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                              {selectedIndex + 1}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="mb-3 rounded-lg bg-stone-50 p-3 text-xs text-stone-500">
+                    No published gallery images are available yet.
+                  </p>
+                )}
+                <p className="mb-2 text-xs text-stone-500">
+                  Select up to four published gallery images. They will rotate automatically on the programme page.
+                </p>
+                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
+                  Or choose a single preset photo
                 </label>
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-2">
                   {PRESET_IMAGES.map((img) => (
@@ -936,6 +1106,8 @@ export default function AdminProgrammes() {
                       type="button"
                       onClick={() => {
                         setEditMediaFiles([]);
+                        setEditGallerySelection([]);
+                        setEditGallerySelectionChanged(true);
                         editForm.setValue('imageUrl', img.url, { shouldDirty: true, shouldValidate: true });
                       }}
                       disabled={uploadingMedia}
@@ -1016,6 +1188,8 @@ export default function AdminProgrammes() {
                   {...editForm.register('imageUrl', {
                     onChange: () => {
                       setEditMediaFiles([]);
+                      setEditGallerySelection([]);
+                      setEditGallerySelectionChanged(true);
                     },
                   })}
                   className={inputClasses}

@@ -16,6 +16,19 @@ CREATE TABLE IF NOT EXISTS public.authorized_admins (
     created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
 
+-- 2B. ACTIVE ADMIN SESSION (single-session enforcement + 24-hour expiry)
+-- The app writes one row with id = 'global' on each sign-in. Older sessions see
+-- a different session_id and sign themselves out; expires_at caps the session
+-- at 24 hours even if the browser stays open.
+CREATE TABLE IF NOT EXISTS public.admin_active_session (
+    id TEXT PRIMARY KEY DEFAULT 'global',
+    session_id UUID NOT NULL,
+    email TEXT,
+    started_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    expires_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
 -- 3. HELPER FUNCTION: Check if caller is authenticated admin
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN AS $$
@@ -199,6 +212,7 @@ CREATE TABLE IF NOT EXISTS public.job_applications (
 -- 14. ENABLE ROW LEVEL SECURITY (RLS) ON ALL TABLES
 -- ==============================================================================
 ALTER TABLE public.authorized_admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.admin_active_session ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.site_content ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.programmes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.campaigns ENABLE ROW LEVEL SECURITY;
@@ -217,6 +231,13 @@ ALTER TABLE public.job_applications ENABLE ROW LEVEL SECURITY;
 -- A. Authorized Admins
 DROP POLICY IF EXISTS "Admins can read authorized admins" ON public.authorized_admins;
 CREATE POLICY "Admins can read authorized admins" ON public.authorized_admins FOR SELECT TO authenticated USING (true);
+
+-- A2. Active Admin Session
+DROP POLICY IF EXISTS "Admins can view active admin session" ON public.admin_active_session;
+CREATE POLICY "Admins can view active admin session" ON public.admin_active_session FOR SELECT TO authenticated USING (public.is_admin());
+
+DROP POLICY IF EXISTS "Admins can manage active admin session" ON public.admin_active_session;
+CREATE POLICY "Admins can manage active admin session" ON public.admin_active_session FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- B. Site Content
 DROP POLICY IF EXISTS "Public can view site content" ON public.site_content;

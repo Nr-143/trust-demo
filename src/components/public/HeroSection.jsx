@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Heart, Users, ArrowRight, CheckCircle, MapPin } from 'lucide-react';
 import { useSite } from '../../context/SiteContext';
 import LazyImage from '../common/LazyImage';
+import MediaCarousel from '../common/MediaCarousel';
 
 export default function HeroSection() {
   const { siteInfo } = useSite();
@@ -10,6 +11,9 @@ export default function HeroSection() {
   const heroSubheading =
     siteInfo.heroSubheading ||
     'Working alongside rural communities to improve access to education, clean water, healthcare, livelihoods, and a sustainable future across Dharmapuri and rural Tamil Nadu.';
+  const heroCarouselImages = Array.isArray(siteInfo.heroCarouselImages)
+    ? siteInfo.heroCarouselImages.filter((url) => typeof url === 'string' && url).slice(0, 4)
+    : [];
 
   return (
     <section className="relative bg-[#FAF8F2] border-b border-stone-200/60 overflow-hidden">
@@ -99,14 +103,27 @@ export default function HeroSection() {
               
               {/* Main Natural Photo Container */}
               <div className="relative rounded-2xl overflow-hidden bg-white shadow-lg border border-stone-200 w-full">
-                <LazyImage
-                  src={siteInfo.heroImage || '/images/hero-village.jpg'}
-                  fallbackSrc="/images/hero-village.jpg"
-                  alt="Mannin Maindhan Grama Arakkattalai sustainable village development in Tamil Nadu"
-                  className="w-full h-72 sm:h-88 md:h-96 lg:h-[420px] xl:h-[460px] 2xl:h-[500px] object-cover object-center hover:scale-102 transition-transform duration-500"
-                  wrapperClassName="w-full h-72 sm:h-88 md:h-96 lg:h-[420px] xl:h-[460px] 2xl:h-[500px]"
-                  loading="eager"
-                />
+                <div className="h-72 w-full sm:h-88 md:h-96 lg:h-[420px] xl:h-[460px] 2xl:h-[500px]">
+                  {heroCarouselImages.length > 0 ? (
+                    <MediaCarousel
+                      items={heroCarouselImages}
+                      alt="Mannin Maindhan Grama Arakkattalai sustainable village development in Tamil Nadu"
+                      className="h-full w-full"
+                      imageClassName="h-full w-full object-cover object-center"
+                      interval={3500}
+                      autoPlay
+                    />
+                  ) : (
+                    <LazyImage
+                      src={siteInfo.heroImage || '/images/hero-village.jpg'}
+                      fallbackSrc="/images/hero-village.jpg"
+                      alt="Mannin Maindhan Grama Arakkattalai sustainable village development in Tamil Nadu"
+                      className="h-full w-full object-cover object-center hover:scale-102 transition-transform duration-500"
+                      wrapperClassName="h-full w-full"
+                      loading="eager"
+                    />
+                  )}
+                </div>
               </div>
 
             </div>

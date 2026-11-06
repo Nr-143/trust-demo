@@ -24,6 +24,7 @@ export const initialData = {
     logoFull: '/images/originalLogo.jpeg',
     logoBadge: '/images/originalLogo.jpeg',
     heroImage: '/images/hero-village.jpg',
+    heroCarouselImages: [],
     missionStatement:
       'To empower rural communities across Dharmapuri and Tamil Nadu by providing sustainable access to quality education, safe drinking water, holistic healthcare, drug awareness, and eco-friendly livelihood solutions.',
     visionStatement:

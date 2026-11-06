@@ -23,10 +23,19 @@ export async function requireAdmin(request) {
   const { data: isAdmin, error: adminError } = await client.rpc('is_admin');
   if (adminError) throw Object.assign(new Error('Could not verify administrator access.'), { status: 403 });
   if (!isAdmin) throw Object.assign(new Error('Administrator access is required.'), { status: 403 });
+
+  return { client, user: userData.user, accessToken };
 }
 
-export function sendError(response, error) {
+export function sendError(response, error, options = {}) {
   const status = Number.isInteger(error.status) ? error.status : 500;
-  if (status === 500) console.error('[Cloudinary API]', error);
-  response.status(status).json({ error: status === 500 ? 'Media operation failed.' : error.message });
+  if (status === 500) console.error(options.tag || '[Cloudinary API]', error);
+  const message =
+    status === 500 && !options.exposeMessage
+      ? options.message || 'Media operation failed.'
+      : error.message;
+  response.status(status).json({
+    error: message,
+    ...(error.code ? { code: error.code } : {}),
+  });
 }

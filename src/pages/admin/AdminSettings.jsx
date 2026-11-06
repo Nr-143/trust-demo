@@ -1,5 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useSite, useSiteDispatch } from '../../context/SiteContext';
+import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import {
   RotateCcw,
@@ -10,22 +11,125 @@ import {
   ShieldCheck,
   CheckCircle2,
   HardDrive,
-  Info,
+  KeyRound,
+  Mail,
+  Send,
+  Loader2,
+  Eye,
+  EyeOff,
+  Lock,
 } from 'lucide-react';
 import {
   getStorageStats,
   exportDatabaseJSON,
   importDatabaseJSON,
 } from '../../services/storageService';
+import {
+  sendPasswordOtp,
+  verifyPasswordOtp,
+  updateAdminPassword,
+  validateNewPassword,
+  validateOtp,
+  PASSWORD_MIN_LENGTH,
+} from '../../services/adminPassword';
 
 export default function AdminSettings() {
   const state = useSite();
   const dispatch = useSiteDispatch();
-  const { showSuccess, showError, showInfo } = useToast();
+  const { user } = useAuth();
+  const { showSuccess, showError } = useToast();
   const fileInputRef = useRef(null);
 
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const stats = getStorageStats();
+
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpDelivery, setOtpDelivery] = useState(null);
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [updatingPassword, setUpdatingPassword] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [passwordError, setPasswordError] = useState('');
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return undefined;
+    const timer = setTimeout(() => setResendCooldown((seconds) => seconds - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
+
+  const resetPasswordForm = () => {
+    setOtp('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordError('');
+    setOtpDelivery(null);
+  };
+
+  const handleSendOtp = async () => {
+    setPasswordError('');
+    setSendingOtp(true);
+    try {
+      const delivery = await sendPasswordOtp(user?.email);
+      setOtpDelivery(delivery);
+      setOtpSent(true);
+      setResendCooldown(60);
+      const channel = delivery.channel === 'smtp' ? 'SMTP' : 'Supabase';
+      showSuccess(
+        `Verification code sent via ${channel} to ${delivery.recipient}. Check that inbox and spam folder.`,
+        'OTP Sent'
+      );
+    } catch (err) {
+      const message = err.message || 'Could not send the verification code.';
+      setPasswordError(message);
+      showError(message, 'OTP Failed');
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    setPasswordError('');
+
+    const otpValidation = validateOtp(otp);
+    if (otpValidation) {
+      setPasswordError(otpValidation);
+      return;
+    }
+
+    const passwordValidation = validateNewPassword(newPassword);
+    if (passwordValidation) {
+      setPasswordError(passwordValidation);
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('The new passwords do not match.');
+      return;
+    }
+
+    setUpdatingPassword(true);
+    try {
+      await verifyPasswordOtp(user?.email, otp, otpDelivery?.challenge);
+      await updateAdminPassword(newPassword);
+      resetPasswordForm();
+      setOtpSent(false);
+      showSuccess(
+        'Your admin password has been updated. Use the new password the next time you sign in.',
+        'Password Updated'
+      );
+    } catch (err) {
+      const message = err.message || 'Could not update the password.';
+      setPasswordError(message);
+      showError(message, 'Password Update Failed');
+    } finally {
+      setUpdatingPassword(false);
+    }
+  };
 
   const handleResetConfirmed = () => {
     try {
@@ -75,13 +179,187 @@ export default function AdminSettings() {
     <div className="max-w-4xl">
       {/* Page Title */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-primary-dark">Settings & Data Management</h1>
+        <h1 className="text-2xl font-bold text-primary-dark">Settings &amp; Security</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Monitor browser storage, export backups, or manage application cache.
+          Change the admin password, monitor browser storage, export backups, or manage
+          application cache.
         </p>
       </div>
 
       <div className="space-y-6">
+        {/* 0. Admin Password Security */}
+        <div className="bg-white border border-stone-200 rounded-2xl p-6 sm:p-7 shadow-2xs">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2.5 rounded-xl bg-emerald-100 text-[#176B36]">
+              <KeyRound size={20} />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-primary-dark">Admin Password</h2>
+              <p className="text-xs text-gray-500">
+                Verify a one-time code sent to your email before changing the password.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-stone-50 border border-stone-200 text-xs text-stone-600 mb-4">
+            <Mail size={16} className="text-stone-500 shrink-0 mt-0.5" />
+            <div>
+              <p>
+                One-time codes are sent to{' '}
+                <strong className="text-stone-800">
+                  {otpDelivery?.recipient || user?.email || 'your admin email'}
+                </strong>
+                .
+              </p>
+              <p className="text-[11px] text-stone-500 mt-1">
+                To receive codes at a test address, set{' '}
+                <code className="font-mono text-[10px] text-stone-700">OTP_RECIPIENT_EMAIL</code>{' '}
+                and the <code className="font-mono text-[10px] text-stone-700">SMTP_*</code>{' '}
+                values in <code className="font-mono text-[10px] text-stone-700">.env</code>. When
+                SMTP is not configured, Supabase sends to the admin account email.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 mb-5">
+            <button
+              type="button"
+              onClick={handleSendOtp}
+              disabled={sendingOtp || resendCooldown > 0 || !user?.email}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#173B2A] hover:bg-[#176B36] text-white text-xs font-semibold rounded-xl shadow-2xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {sendingOtp ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Send size={14} />
+              )}
+              <span>
+                {resendCooldown > 0
+                  ? `Resend code in ${resendCooldown}s`
+                  : otpSent
+                    ? 'Resend OTP'
+                    : 'Send OTP to Email'}
+              </span>
+            </button>
+
+            {otpSent && (
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700">
+                <CheckCircle2 size={14} />
+                <span>Code sent. Enter it below with your new password.</span>
+              </span>
+            )}
+          </div>
+
+          <form onSubmit={handleUpdatePassword} className="space-y-4">
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
+                  Email OTP
+                </label>
+                <input
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  placeholder="6-digit code"
+                  disabled={!otpSent}
+                  className="w-full px-3.5 py-2.5 text-sm tracking-[0.35em] bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#176B36]/30 focus:border-[#176B36] transition-all disabled:bg-stone-100 disabled:text-stone-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
+                  New Password
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400">
+                    <Lock size={16} />
+                  </span>
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="New admin password"
+                    autoComplete="new-password"
+                    disabled={!otpSent}
+                    className="w-full pl-10 pr-11 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#176B36]/30 focus:border-[#176B36] transition-all disabled:bg-stone-100 disabled:text-stone-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword((visible) => !visible)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 transition-colors cursor-pointer"
+                    aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
+                    title={showNewPassword ? 'Hide new password' : 'Show new password'}
+                    tabIndex={-1}
+                  >
+                    {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
+                  Confirm New Password
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400">
+                    <ShieldCheck size={16} />
+                  </span>
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Re-enter the new password"
+                    autoComplete="new-password"
+                    disabled={!otpSent}
+                    className="w-full pl-10 pr-11 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#176B36]/30 focus:border-[#176B36] transition-all disabled:bg-stone-100 disabled:text-stone-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((visible) => !visible)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 transition-colors cursor-pointer"
+                    aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'}
+                    title={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'}
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-stone-500">
+              Use at least {PASSWORD_MIN_LENGTH} characters with at least one letter and one number.
+              The code is single-use and expires according to your Supabase email OTP settings.
+            </p>
+
+            {passwordError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-xs text-red-800">
+                <AlertTriangle size={16} className="text-red-600 shrink-0 mt-0.5" />
+                <span>{passwordError}</span>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={updatingPassword || !otpSent}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#176B36] hover:bg-[#173B2A] active:bg-emerald-950 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {updatingPassword ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  <span>Verifying &amp; Updating...</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck size={14} />
+                  <span>Verify OTP &amp; Update Password</span>
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+
         {/* 1. Storage Overview & Stats */}
         <div className="bg-white border border-stone-200 rounded-2xl p-6 sm:p-7 shadow-2xs">
           <div className="flex items-center gap-3 mb-4">
