@@ -129,12 +129,21 @@ export async function sendOtpEmail(config, { to, code, adminEmail, expiresAt }) 
   const nodemailerModule = await import('nodemailer');
   const nodemailer = nodemailerModule.default || nodemailerModule;
 
-  const transporter = nodemailer.createTransport({
-    host: config.host,
-    port: config.port,
-    secure: config.secure,
-    auth: config.user ? { user: config.user, pass: config.pass } : undefined,
-  });
+  // Optimised for cloud serverless (Vercel): use native 'gmail' transport profile for smtp.gmail.com
+  const isGmail = config.host.includes('gmail');
+  const transportOptions = isGmail
+    ? {
+        service: 'gmail',
+        auth: config.user ? { user: config.user, pass: config.pass } : undefined,
+      }
+    : {
+        host: config.host,
+        port: config.port,
+        secure: config.secure,
+        auth: config.user ? { user: config.user, pass: config.pass } : undefined,
+      };
+
+  const transporter = nodemailer.createTransport(transportOptions);
 
   const minutes = Math.max(1, Math.round((expiresAt - Date.now()) / 60000));
   const account = adminEmail || 'the admin account';
