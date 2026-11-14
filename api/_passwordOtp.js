@@ -1,5 +1,4 @@
 import { createHmac, randomInt, timingSafeEqual } from 'node:crypto';
-import nodemailer from 'nodemailer';
 
 const DEFAULT_TTL_MINUTES = 10;
 const DEFAULT_LENGTH = 6;
@@ -127,6 +126,9 @@ export function verifyChallenge(config, challenge, otp, adminId) {
 }
 
 export async function sendOtpEmail(config, { to, code, adminEmail, expiresAt }) {
+  const nodemailerModule = await import('nodemailer');
+  const nodemailer = nodemailerModule.default || nodemailerModule;
+
   const transporter = nodemailer.createTransport({
     host: config.host,
     port: config.port,

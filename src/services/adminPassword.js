@@ -139,6 +139,7 @@ export async function sendPasswordOtp(email) {
     const { response, payload } = apiResult;
     const smtpNotConfigured =
       response.status === 404 ||
+      response.status === 500 ||
       response.status === 501 ||
       payload?.code === 'SMTP_NOT_CONFIGURED';
 
