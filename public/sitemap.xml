@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- 1. Home -->
+  <url>
+    <loc>https://manninmaindhan.in/</loc>
+    <lastmod>2026-10-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- 2. Organization & Mission -->
+  <url>
+    <loc>https://manninmaindhan.in/about</loc>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 3. Programmes Hub -->
+  <url>
+    <loc>https://manninmaindhan.in/programmes</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 4. Focus Vertical: Education -->
+  <url>
+    <loc>https://manninmaindhan.in/programmes/education</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 5. Focus Vertical: Livelihood & Women Empowerment -->
+  <url>
+    <loc>https://manninmaindhan.in/programmes/livelihood-development-women-empowerment</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 6. Focus Vertical: Drug-Free Communities & Sports Development -->
+  <url>
+    <loc>https://manninmaindhan.in/programmes/drug-free-communities-sports-development</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 7. Focus Vertical: Environmental Protection & Renewable Energy -->
+  <url>
+    <loc>https://manninmaindhan.in/programmes/environmental-protection-renewable-energy</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 8. Focus Vertical: Sanitation & Healthcare -->
+  <url>
+    <loc>https://manninmaindhan.in/programmes/sanitation-healthcare</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 9. Focus Vertical: Community Water Management -->
+  <url>
+    <loc>https://manninmaindhan.in/programmes/community-water-management</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 10. Campaigns -->
+  <url>
+    <loc>https://manninmaindhan.in/campaigns</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 11. Impact & Transparency -->
+  <url>
+    <loc>https://manninmaindhan.in/impact</loc>
+    <lastmod>2026-10-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 12. Community Volunteering -->
+  <url>
+    <loc>https://manninmaindhan.in/volunteer</loc>
+    <lastmod>2026-10-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 13. Careers & Field Roles -->
+  <url>
+    <loc>https://manninmaindhan.in/careers</loc>
+    <lastmod>2026-10-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 14. Media Gallery -->
+  <url>
+    <loc>https://manninmaindhan.in/gallery</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 15. Contact & Support -->
+  <url>
+    <loc>https://manninmaindhan.in/contact</loc>
+    <lastmod>2026-10-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 16. Support & Donations -->
+  <url>
+    <loc>https://manninmaindhan.in/donate</loc>
+    <lastmod>2026-10-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>

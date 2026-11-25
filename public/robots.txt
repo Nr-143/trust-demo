@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Prevent indexing of administrative and serverless API endpoints
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://manninmaindhan.in/sitemap.xml
