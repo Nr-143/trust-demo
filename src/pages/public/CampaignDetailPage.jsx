@@ -126,7 +126,7 @@ export default function CampaignDetailPage() {
 
   const handleConfirmPledge = () => {
     try {
-      const receiptId = `MMG-PLEDGE-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+      const receiptId = `M2G-PLEDGE-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
 
       const payload = {
         id: receiptId,
@@ -650,7 +650,7 @@ export default function CampaignDetailPage() {
                     </div>
 
                     <div className="pt-2 border-t border-stone-200/60 text-[11px] text-stone-500 italic">
-                      Notice: Thank you for standing with our rural communities. The MMG Trust team will reach out with project milestones.
+                      Notice: Thank you for standing with our rural communities. The M2G Trust team will reach out with project milestones.
                     </div>
                   </div>
 

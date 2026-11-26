@@ -2,7 +2,7 @@ export const initialData = {
   siteInfo: {
     name: 'Mannin Maindhan Grama Arakkattalai',
     nameTamil: 'மண்ணின் மைந்தன் கிராம அறக்கட்டளை',
-    shortName: 'MMG Trust',
+    shortName: 'M2G Trust',
     tagline: 'Building Stronger Villages. Creating Lasting Change.',
     taglineTamil: 'கிராம சமூகங்களை மேம்படுத்துதல், வாழ்க்கையை வளப்படுத்துதல்',
     heroHeading: 'Building Stronger Villages. Creating Lasting Change.',

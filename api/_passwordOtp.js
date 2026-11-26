@@ -44,7 +44,7 @@ export function getOtpConfig() {
     user: user || undefined,
     pass: pass || undefined,
     from: process.env.SMTP_FROM || user || `no-reply@${host}`,
-    fromName: process.env.SMTP_FROM_NAME || 'MMG Trust',
+    fromName: process.env.SMTP_FROM_NAME || 'M2G Trust',
     secret,
     recipient: (process.env.OTP_RECIPIENT_EMAIL || '').trim(),
     ttlMinutes: clamp(

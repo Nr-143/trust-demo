@@ -581,7 +581,7 @@ export default function AdminContent() {
                 <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
                   Short / Acronym Name
                 </label>
-                <input {...register('shortName')} className={inputClasses} placeholder="e.g. MMG Trust" />
+                <input {...register('shortName')} className={inputClasses} placeholder="e.g. M2G Trust" />
                 <p className="text-[11px] text-stone-400 mt-1">Used in sidebar and logo labels</p>
               </div>
               <div>

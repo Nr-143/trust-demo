@@ -361,7 +361,7 @@ export function importDatabaseJSON(jsonString) {
   try {
     const parsed = JSON.parse(jsonString);
     if (!parsed || typeof parsed !== 'object' || !parsed.siteInfo) {
-      throw new Error('Invalid MMG Trust backup file structure');
+      throw new Error('Invalid M2G Trust backup file structure');
     }
 
     const validated = mergeWithDefaults(parsed, initialData);

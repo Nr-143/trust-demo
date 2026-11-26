@@ -147,7 +147,7 @@ export default function Navbar() {
               <div className="relative shrink-0">
                 <img
                   src={siteInfo.logoBadge || '/images/originalLogo.jpeg'}
-                  alt={siteInfo.shortName || 'MMG Trust Logo'}
+                  alt={siteInfo.shortName || 'M2G Trust Logo'}
                   className="h-11 w-11 sm:h-13 sm:w-13 xl:h-14 xl:w-14 2xl:h-15 2xl:w-15 rounded-full object-cover ring-2 ring-emerald-700/25 group-hover:ring-emerald-700 transition-all shadow-xs"
                   onError={(e) => {
                     e.currentTarget.src = '/images/originalLogo.jpeg';
